@@ -114,8 +114,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCompanies(userId?: number, status?: string, search?: string): Promise<Company[]> {
-    let query = db.select().from(companies);
-    
     const conditions = [];
     if (userId) conditions.push(eq(companies.userId, userId));
     if (status) conditions.push(eq(companies.status, status));
@@ -126,10 +124,10 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await db.select().from(companies).where(and(...conditions)).orderBy(desc(companies.createdAt));
+    } else {
+      return await db.select().from(companies).orderBy(desc(companies.createdAt));
     }
-
-    return await query.orderBy(desc(companies.createdAt));
   }
 
   async getCompanyWithDetails(id: number): Promise<any> {
@@ -211,24 +209,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCreditRequests(status?: string, search?: string): Promise<any[]> {
-    let query = db
-      .select({
-        id: creditRequests.id,
-        valorSolicitado: creditRequests.valorSolicitado,
-        prazoMeses: creditRequests.prazoMeses,
-        finalidade: creditRequests.finalidade,
-        status: creditRequests.status,
-        observacoesAnalise: creditRequests.observacoesAnalise,
-        createdAt: creditRequests.createdAt,
-        updatedAt: creditRequests.updatedAt,
-        companyId: companies.id,
-        companyRazaoSocial: companies.razaoSocial,
-        companyCnpj: companies.cnpj,
-        companyStatus: companies.status,
-      })
-      .from(creditRequests)
-      .leftJoin(companies, eq(creditRequests.companyId, companies.id));
-
     const conditions = [];
     if (status) conditions.push(eq(creditRequests.status, status));
     if (search) {
@@ -236,10 +216,45 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await db
+        .select({
+          id: creditRequests.id,
+          valorSolicitado: creditRequests.valorSolicitado,
+          prazoMeses: creditRequests.prazoMeses,
+          finalidade: creditRequests.finalidade,
+          status: creditRequests.status,
+          observacoesAnalise: creditRequests.observacoesAnalise,
+          createdAt: creditRequests.createdAt,
+          updatedAt: creditRequests.updatedAt,
+          companyId: companies.id,
+          companyRazaoSocial: companies.razaoSocial,
+          companyCnpj: companies.cnpj,
+          companyStatus: companies.status,
+        })
+        .from(creditRequests)
+        .leftJoin(companies, eq(creditRequests.companyId, companies.id))
+        .where(and(...conditions))
+        .orderBy(desc(creditRequests.createdAt));
+    } else {
+      return await db
+        .select({
+          id: creditRequests.id,
+          valorSolicitado: creditRequests.valorSolicitado,
+          prazoMeses: creditRequests.prazoMeses,
+          finalidade: creditRequests.finalidade,
+          status: creditRequests.status,
+          observacoesAnalise: creditRequests.observacoesAnalise,
+          createdAt: creditRequests.createdAt,
+          updatedAt: creditRequests.updatedAt,
+          companyId: companies.id,
+          companyRazaoSocial: companies.razaoSocial,
+          companyCnpj: companies.cnpj,
+          companyStatus: companies.status,
+        })
+        .from(creditRequests)
+        .leftJoin(companies, eq(creditRequests.companyId, companies.id))
+        .orderBy(desc(creditRequests.createdAt));
     }
-
-    return await query.orderBy(desc(creditRequests.createdAt));
   }
 
   async getCompanyCreditRequests(companyId: number): Promise<CreditRequest[]> {
