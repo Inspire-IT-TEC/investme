@@ -1,0 +1,197 @@
+# Documento de Requisitos do Produto (PRD) - Plataforma Investme (MVP) - (Revisão 1)
+
+## 1. Introdução
+
+Este documento descreve os requisitos para o Produto Mínimo Viável (MVP) da **Plataforma Investme**.
+
+* **Produto:** Plataforma Investme
+* **Propósito:**
+    * **MVP:** Permitir que a Investme (equipe interna) realize empréstimos diretamente para empresas, gerenciando o fluxo de cadastro e análise de crédito.
+    * **Futuro:** Evoluir para uma plataforma de conexão (rede social) entre investidores (PF/PJ) e empresas em busca de crédito.
+* **Público-Alvo:**
+    * **MVP:** Equipe interna de gestão de empréstimos da Investme; Empresas (tomadores de crédito).
+    * **Futuro:** Investidores (PF/PJ).
+* **Objetivos do MVP:**
+    * Validar o processo de cadastro de empresas e sócios.
+    * Implementar o fluxo de solicitação e análise de crédito (Investme como único credor).
+    * Estabelecer a base tecnológica para expansão futura.
+    * Fornecer ferramentas de gestão interna (Back Office) para a Investme.
+
+## 2. Visão Geral do Produto
+
+O MVP da Investme será composto por duas interfaces principais:
+
+1.  **Web App (Cliente):** Uma aplicação web acessível via navegadores onde as empresas poderão se cadastrar, fornecer suas informações e solicitar análises de crédito. *No futuro, aplicativos mobile (React Native) serão desenvolvidos.*
+2.  **Back Office (Investme):** Uma interface web interna para a equipe da Investme gerenciar os cadastros de empresas e o fluxo de análise e aprovação de crédito.
+
+A arquitetura será projetada visando **escalabilidade** e **manutenibilidade**, utilizando tecnologias modernas, **containerização** com Docker, e seguindo as melhores práticas de desenvolvimento e segurança.
+
+## 3. Funcionalidades (Escopo do MVP)
+
+### 3.1. Web App (Frontend: React.js)
+
+Acessível via navegadores web (desktop e tablets).
+
+#### a) Cadastro de Usuário (Sócio)
+
+* **Fluxo:** Um indivíduo (sócio) se cadastra na plataforma.
+* **Campos:**
+    * CPF (Formato: `XXX.XXX.XXX-XX`, validação de formato, unicidade e **validação via serviço externo**).
+    * RG (Formato livre).
+    * Nome Completo.
+    * Endereço Completo (CEP com busca automática, Rua, Número, Complemento, Bairro, Cidade, Estado).
+    * Email (Validação de formato e unicidade).
+    * Senha (Mín. 8 caracteres, 1 maiúscula, 1 minúscula, 1 número, 1 símbolo).
+    * Confirmação de Senha.
+* **Ação:** Após o cadastro, o usuário é direcionado para a tela de Login.
+
+#### b) Cadastro de Empresa
+
+* **Fluxo:** Um usuário cadastrado (sócio) cadastra uma ou mais empresas.
+* **Validação:** O CPF do usuário logado *deve* constar no Quadro Societário informado (**validação cruzada via serviço externo**).
+* **Campos:**
+    * **Dados Básicos:**
+        * Razão Social.
+        * Nome Fantasia.
+        * CNPJ (Formato: `XX.XXX.XXX/XXXX-XX`, validação de formato, unicidade e **validação via serviço externo**).
+        * Endereço Completo (CEP com busca automática, Rua, Número, Complemento, Bairro, Cidade, Estado).
+        * Dados de Contato (Telefone, Email).
+        * CNAE Principal (**Busca/Seleção a partir de lista oficial**).
+        * CNAEs Secundários (**Busca/Seleção a partir de lista oficial**, opcional).
+        * Inscrição Estadual (Opcional).
+        * Inscrição Municipal (Opcional).
+        * Data de Fundação (Formato: `DD/MM/AAAA`).
+    * **Quadro Societário:**
+        * Lista de Sócios (Nome Completo, CPF) - Adicionar/Remover dinamicamente.
+    * **Dados para Valuation:**
+        * Faturamento (últimos 12 meses) (Numérico).
+        * EBITDA (Numérico).
+        * Dívida Líquida (Numérico).
+    * **Dados de Garantias:** (Permitir adicionar múltiplas garantias)
+        * **Tipo:** Imóvel / Veículo / Recebível (Dropdown).
+        * **Imóvel:** Matrícula, Valor Estimado (Numérico).
+        * **Veículo:** RENAVAM, Valor Estimado (Numérico).
+        * **Recebível:** Descrição (Texto), Valor Estimado (Numérico).
+* **Ação:** Após o cadastro, a empresa fica com o status "Pendente de Análise".
+
+#### c) Consulta de Status de Empresas
+
+* **Fluxo:** Usuário logado visualiza a(s) sua(s) empresa(s) cadastradas.
+* **Interface:** Uma lista/dashboard mostrando:
+    * Nome Fantasia / Razão Social.
+    * CNPJ.
+    * Status Atual ("Pendente de Análise", "Em Análise", "Aprovada", "Reprovada", "Incompleto").
+    * Status da Última Solicitação (se houver).
+
+#### d) Solicitar Análise de Crédito
+
+* **Fluxo:** Disponível para empresas com status "Aprovada".
+* **Interface:** Formulário simples:
+    * Valor do Empréstimo Desejado (Numérico).
+    * Prazo Desejado (em meses, Dropdown/Input).
+    * Finalidade do Empréstimo (Texto livre, 500 caracteres max).
+    * Upload de Documentos (Balanço, DRE, etc. - Múltiplos arquivos, `.pdf`, `.jpg`, `.png`, limite 10MB/arquivo - Armazenamento **AWS S3**).
+* **Ação:** Submete a solicitação. Usuário recebe **notificação por email** de confirmação.
+
+#### e) Tela de Login
+
+* **Fluxo:** Usuário informa suas credenciais para acessar o Web App.
+* **Campos:**
+    * Email ou CPF.
+    * Senha.
+* **Funcionalidades:**
+    * Link para "Esqueci minha senha".
+    * Link para "Cadastre-se".
+
+### 3.2. Solução para Gestão do Negócio (Back Office - Frontend: React / Backend: C#)
+
+Interface web restrita para a equipe Investme.
+
+#### a) Tela para Visualização de Empresas Cadastradas
+
+* **Interface:** Tabela/Lista paginada.
+* **Colunas:** Razão Social, CNPJ, Data de Cadastro, Status.
+* **Funcionalidades:** Pesquisa (Razão Social, CNPJ), Filtro (Status).
+* **Ação:** Clicar leva para "Tela para Análise e Edição de Dados da Empresa".
+
+#### b) Tela para Análise e Edição de Dados da Empresa
+
+* **Interface:** Visualização completa dos dados.
+* **Funcionalidades:**
+    * Edição do **Status da Empresa** (Dropdown). *Ao mudar o status, o usuário (sócio) recebe **notificação por email***.
+    * Campo de **Observações Internas**.
+* **Ação:** Botão "Salvar Alterações".
+
+#### c) Tela para Análise das Solicitações de Crédito
+
+* **Interface:** Tabela/Lista paginada.
+* **Colunas:** Razão Social, CNPJ, Valor Solicitado, Data, Status da Empresa.
+* **Funcionalidades:** Pesquisa, Filtro.
+* **Ação:** Clicar leva para "Tela de Detalhe da Solicitação".
+
+#### d) Tela de Detalhe da Solicitação de Crédito
+
+* **Interface:** Dados da empresa, detalhes da solicitação, links para documentos.
+* **Funcionalidades:**
+    * Edição do **Status da Solicitação** (Dropdown). *Ao mudar o status, o usuário (sócio) recebe **notificação por email***.
+    * Campo de **Observações da Análise**.
+* **Ações:** "Aprovar Solicitação", "Reprovar Solicitação", "Salvar".
+
+#### e) Tela de Login (Back Office)
+
+* **Fluxo:** Usuário interno (Investme).
+* **Campos:** Email, Senha.
+* **Segurança:** Acesso baseado em roles/permissões e MFA
+
+### 3.3. Funcionalidades Gerais
+
+#### a) Notificações por Email (AWS SES)
+
+* **Gatilhos:**
+    * Confirmação de cadastro de usuário.
+    * Confirmação de solicitação de crédito.
+    * Mudança de status da empresa.
+    * Mudança de status da solicitação de crédito.
+    * Recuperação de senha.
+* **Infraestrutura:** AWS Simple Email Service (SES).
+
+## 4. Requisitos Não Funcionais
+
+* **Performance:** Resposta da API < 500ms (P95); Carregamento FCP < 2s.
+* **Segurança:**
+    * Criptografia de senhas (bcrypt).
+    * Autenticação via **JWT**.
+    * **HTTPS obrigatório**.
+    * Proteção contra OWASP Top 10 (SQLi, XSS, CSRF).
+    * **Validação de CPF/CNPJ via serviço externo**.
+    * Gerenciamento de permissões no Back Office.
+* **Usabilidade:** Interfaces intuitivas, feedback claro.
+* **Escalabilidade:** Arquitetura componentizada, uso de **AWS RDS, S3, ECS/Fargate**.
+* **Manutenibilidade:** Código limpo, comentado, **Dockerizado**, testes.
+* **Responsividade:** Web App (Cliente) e Back Office devem ser funcionais em desktops e tablets.
+* **Disponibilidade:** 99.9% uptime.
+* **Log e Monitoramento:** AWS CloudWatch.
+
+## 5. Tecnologias
+
+* **Frontend (Web App Cliente):** **React.js** (Última versão estável)
+* **Frontend (Back Office):** **React.js** (Última versão estável)
+* **Mobile:** React Native (Última versão estável)
+* **Backend:** C# (.NET 8+), Padrão RESTful API
+* **Banco de Dados:** MySQL 8+ (**AWS RDS**)
+* **Infraestrutura:** AWS (EC2/Fargate, RDS, S3, CloudWatch, **SES**)
+* **Containerização:** **Docker**, Docker Compose
+* **Controle de Versão:** Git
+* **Autenticação:** **JWT**
+* **Validação Externa:** Serviço de consulta CPF/CNPJ (*a definir qual*).
+
+## 6. Próximos Passos
+
+1.  **Seleção do Serviço de Validação:** Escolher e contratar o serviço externo para CPF/CNPJ.
+2.  **Modelo de Dados:** Desenhar o esquema detalhado do banco de dados MySQL.
+3.  **Arquitetura do Sistema:** Detalhar a arquitetura C# (modularidade), APIs, e a interação com React e AWS.
+4.  **Planejamento (`development_plan.md`):** Criar o plano de desenvolvimento com sprints.
+5.  **Critérios de Aceite:** Definir para cada funcionalidade.
+6.  **Design de UI/UX:** Criar wireframes e protótipos para React.js.
+
+---
