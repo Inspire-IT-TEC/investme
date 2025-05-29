@@ -1,0 +1,189 @@
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, json } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// Users table (Sócios)
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  cpf: text("cpf").notNull().unique(),
+  rg: text("rg").notNull(),
+  nomeCompleto: text("nome_completo").notNull(),
+  email: text("email").notNull().unique(),
+  senha: text("senha").notNull(),
+  cep: text("cep").notNull(),
+  rua: text("rua").notNull(),
+  numero: text("numero").notNull(),
+  complemento: text("complemento"),
+  bairro: text("bairro").notNull(),
+  cidade: text("cidade").notNull(),
+  estado: text("estado").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Admin users table (Investme team)
+export const adminUsers = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  senha: text("senha").notNull(),
+  nome: text("nome").notNull(),
+  role: text("role").notNull().default("admin"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Companies table
+export const companies = pgTable("companies", {
+  id: serial("id").primaryKey(),
+  razaoSocial: text("razao_social").notNull(),
+  nomeFantasia: text("nome_fantasia"),
+  cnpj: text("cnpj").notNull().unique(),
+  cep: text("cep").notNull(),
+  rua: text("rua").notNull(),
+  numero: text("numero").notNull(),
+  complemento: text("complemento"),
+  bairro: text("bairro").notNull(),
+  cidade: text("cidade").notNull(),
+  estado: text("estado").notNull(),
+  telefone: text("telefone"),
+  emailContato: text("email_contato"),
+  cnaePrincipal: text("cnae_principal").notNull(),
+  cnaeSecundarios: text("cnae_secundarios").array(),
+  inscricaoEstadual: text("inscricao_estadual"),
+  inscricaoMunicipal: text("inscricao_municipal"),
+  dataFundacao: timestamp("data_fundacao").notNull(),
+  faturamento: decimal("faturamento", { precision: 15, scale: 2 }).notNull(),
+  ebitda: decimal("ebitda", { precision: 15, scale: 2 }).notNull(),
+  dividaLiquida: decimal("divida_liquida", { precision: 15, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pendente_analise"), // pendente_analise, em_analise, aprovada, reprovada, incompleto
+  observacoesInternas: text("observacoes_internas"),
+  userId: integer("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Company shareholders table
+export const companyShareholders = pgTable("company_shareholders", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id").notNull().references(() => companies.id),
+  nomeCompleto: text("nome_completo").notNull(),
+  cpf: text("cpf").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Company guarantees table
+export const companyGuarantees = pgTable("company_guarantees", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id").notNull().references(() => companies.id),
+  tipo: text("tipo").notNull(), // imovel, veiculo, recebivel
+  matricula: text("matricula"), // for imovel
+  renavam: text("renavam"), // for veiculo
+  descricao: text("descricao"), // for recebivel
+  valorEstimado: decimal("valor_estimado", { precision: 15, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Credit requests table
+export const creditRequests = pgTable("credit_requests", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id").notNull().references(() => companies.id),
+  valorSolicitado: decimal("valor_solicitado", { precision: 15, scale: 2 }).notNull(),
+  prazoMeses: integer("prazo_meses").notNull(),
+  finalidade: text("finalidade").notNull(),
+  documentos: text("documentos").array(), // URLs to uploaded documents
+  status: text("status").notNull().default("pendente"), // pendente, em_analise, aprovada, reprovada
+  observacoesAnalise: text("observacoes_analise"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  companies: many(companies),
+}));
+
+export const companiesRelations = relations(companies, ({ one, many }) => ({
+  user: one(users, {
+    fields: [companies.userId],
+    references: [users.id],
+  }),
+  shareholders: many(companyShareholders),
+  guarantees: many(companyGuarantees),
+  creditRequests: many(creditRequests),
+}));
+
+export const companyShareholdersRelations = relations(companyShareholders, ({ one }) => ({
+  company: one(companies, {
+    fields: [companyShareholders.companyId],
+    references: [companies.id],
+  }),
+}));
+
+export const companyGuaranteesRelations = relations(companyGuarantees, ({ one }) => ({
+  company: one(companies, {
+    fields: [companyGuarantees.companyId],
+    references: [companies.id],
+  }),
+}));
+
+export const creditRequestsRelations = relations(creditRequests, ({ one }) => ({
+  company: one(companies, {
+    fields: [creditRequests.companyId],
+    references: [companies.id],
+  }),
+}));
+
+// Zod schemas for validation
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCompanySchema = createInsertSchema(companies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCompanyShareholderSchema = createInsertSchema(companyShareholders).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCompanyGuaranteeSchema = createInsertSchema(companyGuarantees).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCreditRequestSchema = createInsertSchema(creditRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
+
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type AdminUser = typeof adminUsers.$inferSelect;
+
+export type InsertCompany = z.infer<typeof insertCompanySchema>;
+export type Company = typeof companies.$inferSelect;
+
+export type InsertCompanyShareholder = z.infer<typeof insertCompanyShareholderSchema>;
+export type CompanyShareholder = typeof companyShareholders.$inferSelect;
+
+export type InsertCompanyGuarantee = z.infer<typeof insertCompanyGuaranteeSchema>;
+export type CompanyGuarantee = typeof companyGuarantees.$inferSelect;
+
+export type InsertCreditRequest = z.infer<typeof insertCreditRequestSchema>;
+export type CreditRequest = typeof creditRequests.$inferSelect;

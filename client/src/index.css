@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 60 4.8% 95.9%;
+  --secondary-foreground: 24 9.8% 10%;
+  --accent: 60 4.8% 95.9%;
+  --accent-foreground: 24 9.8% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 20 14.3% 4.1%;
+  --radius: 0.5rem;
+  
+  /* Custom Investme colors */
+  --investme-primary: 207 90% 54%; /* #1565C0 */
+  --investme-primary-dark: 219 91% 38%; /* #0D47A1 */
+  --investme-secondary: 194 91% 37%; /* #0277BD */
+  --investme-secondary-dark: 195 100% 29%; /* #01579B */
+  --investme-success: 122 39% 49%; /* #2E7D32 */
+  --investme-success-dark: 123 43% 27%; /* #1B5E20 */
+  --investme-warning: 36 100% 48%; /* #F57C00 */
+  --investme-warning-dark: 38 100% 45%; /* #E65100 */
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  }
+
+  .investme-gradient {
+    background: linear-gradient(135deg, hsl(var(--investme-primary)) 0%, hsl(var(--investme-secondary)) 100%);
+  }
+
+  .investme-gradient-dark {
+    background: linear-gradient(135deg, hsl(var(--investme-primary-dark)) 0%, hsl(var(--investme-secondary-dark)) 100%);
+  }
+}
+
+/* Custom utilities for financial forms */
+.currency-input {
+  @apply text-right;
+}
+
+.document-upload-area {
+  @apply border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors;
+}
+
+.document-upload-area:hover {
+  @apply border-primary;
+}
+
+.status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-badge.pendente {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.status-badge.em-analise {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.status-badge.aprovada {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-badge.reprovada {
+  @apply bg-red-100 text-red-800;
+}
+
+.status-badge.incompleto {
+  @apply bg-orange-100 text-orange-800;
+}
+
+/* Responsive table improvements */
+.table-responsive {
+  @apply overflow-x-auto;
+}
+
+.table-responsive table {
+  @apply min-w-full;
+}
+
+/* Loading states */
+.loading-shimmer {
+  @apply animate-pulse bg-gray-200 rounded;
+}
