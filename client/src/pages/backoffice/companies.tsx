@@ -20,6 +20,8 @@ export default function BackofficeCompanies() {
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editStatus, setEditStatus] = useState("");
+  const [editObservacoes, setEditObservacoes] = useState("");
 
   const { data: companies, isLoading } = useQuery({
     queryKey: ["/api/admin/companies", { status: statusFilter, search }],
@@ -90,17 +92,21 @@ export default function BackofficeCompanies() {
     );
   };
 
-  const handleUpdateCompany = (formData: FormData) => {
+  const handleUpdateCompany = () => {
     if (!selectedCompany) return;
-    
-    const status = formData.get('status') as string;
-    const observacoesInternas = formData.get('observacoesInternas') as string;
     
     updateCompanyMutation.mutate({
       id: selectedCompany.id,
-      status,
-      observacoesInternas
+      status: editStatus,
+      observacoesInternas: editObservacoes
     });
+  };
+
+  const openEditDialog = (company: any) => {
+    setSelectedCompany(company);
+    setEditStatus(company.status);
+    setEditObservacoes(company.observacoesInternas || "");
+    setEditDialogOpen(true);
   };
 
   return (
@@ -292,7 +298,7 @@ export default function BackofficeCompanies() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setSelectedCompany(company)}
+                                    onClick={() => openEditDialog(company)}
                                   >
                                     <Edit className="w-4 h-4 mr-1" />
                                     Editar
@@ -305,10 +311,10 @@ export default function BackofficeCompanies() {
                                       Altere o status e observações da empresa
                                     </DialogDescription>
                                   </DialogHeader>
-                                  <form action={handleUpdateCompany} className="space-y-4">
+                                  <div className="space-y-4">
                                     <div>
                                       <Label htmlFor="status">Status da Empresa</Label>
-                                      <Select name="status" defaultValue={selectedCompany?.status}>
+                                      <Select value={editStatus} onValueChange={setEditStatus}>
                                         <SelectTrigger>
                                           <SelectValue />
                                         </SelectTrigger>
@@ -325,8 +331,8 @@ export default function BackofficeCompanies() {
                                     <div>
                                       <Label htmlFor="observacoesInternas">Observações Internas</Label>
                                       <Textarea
-                                        name="observacoesInternas"
-                                        defaultValue={selectedCompany?.observacoesInternas || ""}
+                                        value={editObservacoes}
+                                        onChange={(e) => setEditObservacoes(e.target.value)}
                                         placeholder="Adicione observações sobre a análise..."
                                         rows={4}
                                       />
@@ -341,13 +347,14 @@ export default function BackofficeCompanies() {
                                         Cancelar
                                       </Button>
                                       <Button
-                                        type="submit"
+                                        type="button"
                                         disabled={updateCompanyMutation.isPending}
+                                        onClick={handleUpdateCompany}
                                       >
                                         {updateCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
                                       </Button>
                                     </div>
-                                  </form>
+                                  </div>
                                 </DialogContent>
                               </Dialog>
                             </div>
