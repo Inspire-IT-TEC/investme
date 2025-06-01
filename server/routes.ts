@@ -475,6 +475,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Messages/Chat routes
+  app.get('/api/messages/conversations', authenticateToken, async (req: any, res) => {
+    try {
+      const conversations = await storage.getCompanyConversations(req.user.id);
+      res.json(conversations);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar conversas' });
+    }
+  });
+
+  app.get('/api/admin/messages/conversations', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const conversations = await storage.getAdminConversations();
+      res.json(conversations);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar conversas' });
+    }
+  });
+
+  app.get('/api/messages/:conversationId', authenticateToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      const messages = await storage.getConversationMessages(conversationId);
+      res.json(messages);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar mensagens' });
+    }
+  });
+
+  app.get('/api/admin/messages/:conversationId', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      const messages = await storage.getConversationMessages(conversationId);
+      res.json(messages);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar mensagens' });
+    }
+  });
+
+  app.post('/api/messages', authenticateToken, async (req: any, res) => {
+    try {
+      const messageData = {
+        ...req.body,
+        tipo: 'company',
+        remetenteId: req.user.id,
+        destinatarioTipo: 'admin',
+      };
+      
+      const message = await storage.createMessage(messageData);
+      res.status(201).json(message);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao enviar mensagem' });
+    }
+  });
+
+  app.post('/api/admin/messages', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const messageData = {
+        ...req.body,
+        tipo: 'admin',
+        remetenteId: req.user.id,
+        destinatarioTipo: 'company',
+      };
+      
+      const message = await storage.createMessage(messageData);
+      res.status(201).json(message);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao enviar mensagem' });
+    }
+  });
+
+  app.patch('/api/messages/:conversationId/read', authenticateToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      await storage.markConversationAsRead(conversationId, 'company');
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao marcar mensagens como lidas' });
+    }
+  });
+
+  app.patch('/api/admin/messages/:conversationId/read', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      await storage.markConversationAsRead(conversationId, 'admin');
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao marcar mensagens como lidas' });
+    }
+  });
+
   // Dashboard stats for admin
   app.get('/api/admin/stats', authenticateAdminToken, async (req: any, res) => {
     try {

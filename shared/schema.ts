@@ -117,6 +117,21 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Messages/Chat table for communication between backoffice and companies
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  conversationId: text("conversation_id").notNull(), // company_id + "_" + credit_request_id
+  tipo: text("tipo").notNull(), // 'company' or 'admin'
+  remetenteId: integer("remetente_id").notNull(), // user_id if company, admin_user_id if admin
+  destinatarioTipo: text("destinatario_tipo").notNull(), // 'company' or 'admin'
+  conteudo: text("conteudo").notNull(),
+  anexos: text("anexos").array(), // URLs to uploaded files
+  lida: boolean("lida").notNull().default(false),
+  creditRequestId: integer("credit_request_id").references(() => creditRequests.id),
+  companyId: integer("company_id").references(() => companies.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   companies: many(companies),
@@ -161,6 +176,17 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
   adminUser: one(adminUsers, {
     fields: [auditLog.adminUserId],
     references: [adminUsers.id],
+  }),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  creditRequest: one(creditRequests, {
+    fields: [messages.creditRequestId],
+    references: [creditRequests.id],
+  }),
+  company: one(companies, {
+    fields: [messages.companyId],
+    references: [companies.id],
   }),
 }));
 
@@ -211,6 +237,12 @@ export const insertAuditLogSchema = createInsertSchema(auditLog).omit({
   createdAt: true,
 });
 
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true,
+  lida: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -232,3 +264,6 @@ export type CreditRequest = typeof creditRequests.$inferSelect;
 
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type AuditLog = typeof auditLog.$inferSelect;
+
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Message = typeof messages.$inferSelect;

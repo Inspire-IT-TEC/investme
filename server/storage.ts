@@ -6,6 +6,7 @@ import {
   companyGuarantees,
   creditRequests,
   auditLog,
+  messages,
   type User, 
   type InsertUser,
   type AdminUser,
@@ -19,7 +20,9 @@ import {
   type CreditRequest,
   type InsertCreditRequest,
   type AuditLog,
-  type InsertAuditLog
+  type InsertAuditLog,
+  type Message,
+  type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, like, ilike } from "drizzle-orm";
@@ -69,6 +72,14 @@ export interface IStorage {
   // Audit log methods
   createAuditLog(auditData: InsertAuditLog): Promise<AuditLog>;
   getAuditLogs(entidadeTipo?: string, acao?: string): Promise<any[]>;
+
+  // Messages methods
+  createMessage(messageData: InsertMessage): Promise<Message>;
+  getConversationMessages(conversationId: string): Promise<any[]>;
+  getCompanyConversations(companyId: number): Promise<any[]>;
+  getAdminConversations(): Promise<any[]>;
+  markMessageAsRead(messageId: number): Promise<void>;
+  markConversationAsRead(conversationId: string, userType: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -344,6 +355,90 @@ export class DatabaseStorage implements IStorage {
     }
 
     return await query;
+  }
+
+  // Messages methods
+  async createMessage(messageData: InsertMessage): Promise<Message> {
+    const [message] = await db
+      .insert(messages)
+      .values(messageData)
+      .returning();
+    return message;
+  }
+
+  async getConversationMessages(conversationId: string): Promise<any[]> {
+    return await db
+      .select({
+        id: messages.id,
+        conversationId: messages.conversationId,
+        tipo: messages.tipo,
+        remetenteId: messages.remetenteId,
+        destinatarioTipo: messages.destinatarioTipo,
+        conteudo: messages.conteudo,
+        anexos: messages.anexos,
+        lida: messages.lida,
+        creditRequestId: messages.creditRequestId,
+        companyId: messages.companyId,
+        createdAt: messages.createdAt,
+      })
+      .from(messages)
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(messages.createdAt);
+  }
+
+  async getCompanyConversations(companyId: number): Promise<any[]> {
+    const conversations = await db
+      .select({
+        conversationId: messages.conversationId,
+        creditRequestId: messages.creditRequestId,
+        lastMessage: messages.conteudo,
+        lastMessageDate: messages.createdAt,
+        unreadCount: messages.id, // Will be aggregated
+      })
+      .from(messages)
+      .where(eq(messages.companyId, companyId))
+      .groupBy(messages.conversationId, messages.creditRequestId, messages.conteudo, messages.createdAt)
+      .orderBy(desc(messages.createdAt));
+
+    return conversations;
+  }
+
+  async getAdminConversations(): Promise<any[]> {
+    const conversations = await db
+      .select({
+        conversationId: messages.conversationId,
+        companyId: messages.companyId,
+        creditRequestId: messages.creditRequestId,
+        lastMessage: messages.conteudo,
+        lastMessageDate: messages.createdAt,
+        unreadCount: messages.id, // Will be aggregated
+      })
+      .from(messages)
+      .groupBy(messages.conversationId, messages.companyId, messages.creditRequestId, messages.conteudo, messages.createdAt)
+      .orderBy(desc(messages.createdAt));
+
+    return conversations;
+  }
+
+  async markMessageAsRead(messageId: number): Promise<void> {
+    await db
+      .update(messages)
+      .set({ lida: true })
+      .where(eq(messages.id, messageId));
+  }
+
+  async markConversationAsRead(conversationId: string, userType: string): Promise<void> {
+    const conditions = [eq(messages.conversationId, conversationId)];
+    if (userType === 'company') {
+      conditions.push(eq(messages.destinatarioTipo, 'company'));
+    } else if (userType === 'admin') {
+      conditions.push(eq(messages.destinatarioTipo, 'admin'));
+    }
+
+    await db
+      .update(messages)
+      .set({ lida: true })
+      .where(and(...conditions));
   }
 }
 
