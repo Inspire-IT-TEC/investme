@@ -566,6 +566,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Routes for starting new conversations
+  app.get('/api/credit-requests/user', authenticateToken, async (req: any, res) => {
+    try {
+      const creditRequests = await storage.getUserCreditRequests(req.user.id);
+      res.json(creditRequests);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar solicitações' });
+    }
+  });
+
+  app.get('/api/admin/companies/for-chat', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const companies = await storage.getAvailableCompaniesForChat();
+      res.json(companies);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar empresas' });
+    }
+  });
+
   // Dashboard stats for admin
   app.get('/api/admin/stats', authenticateAdminToken, async (req: any, res) => {
     try {

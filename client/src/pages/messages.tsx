@@ -6,15 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import Navbar from "@/components/layout/navbar";
-import { MessageCircle, Send, Building2, Clock, CheckCircle2 } from "lucide-react";
+import { MessageCircle, Send, Building2, Clock, CheckCircle2, Plus } from "lucide-react";
 
 export default function Messages() {
   const { toast } = useToast();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messageContent, setMessageContent] = useState("");
+  const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
+  const [selectedCreditRequest, setSelectedCreditRequest] = useState("");
+  const [newConversationMessage, setNewConversationMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: conversations, isLoading: conversationsLoading } = useQuery({

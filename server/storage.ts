@@ -80,6 +80,8 @@ export interface IStorage {
   getAdminConversations(): Promise<any[]>;
   markMessageAsRead(messageId: number): Promise<void>;
   markConversationAsRead(conversationId: string, userType: string): Promise<void>;
+  getAvailableCompaniesForChat(): Promise<any[]>;
+  getUserCreditRequests(userId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -387,37 +389,102 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCompanyConversations(companyId: number): Promise<any[]> {
-    const conversations = await db
-      .select({
+    // Get all unique conversations for the company
+    const conversationsQuery = await db
+      .selectDistinct({
         conversationId: messages.conversationId,
         creditRequestId: messages.creditRequestId,
-        lastMessage: messages.conteudo,
-        lastMessageDate: messages.createdAt,
-        unreadCount: messages.id, // Will be aggregated
       })
       .from(messages)
-      .where(eq(messages.companyId, companyId))
-      .groupBy(messages.conversationId, messages.creditRequestId, messages.conteudo, messages.createdAt)
-      .orderBy(desc(messages.createdAt));
+      .where(eq(messages.companyId, companyId));
 
-    return conversations;
+    const conversationsWithDetails = [];
+    for (const conv of conversationsQuery) {
+      // Get the last message for each conversation
+      const [lastMessage] = await db
+        .select({
+          conteudo: messages.conteudo,
+          createdAt: messages.createdAt,
+        })
+        .from(messages)
+        .where(eq(messages.conversationId, conv.conversationId))
+        .orderBy(desc(messages.createdAt))
+        .limit(1);
+
+      // Count unread messages for the company
+      const [unreadCount] = await db
+        .select({ count: messages.id })
+        .from(messages)
+        .where(
+          and(
+            eq(messages.conversationId, conv.conversationId),
+            eq(messages.destinatarioTipo, 'company'),
+            eq(messages.lida, false)
+          )
+        );
+
+      conversationsWithDetails.push({
+        conversationId: conv.conversationId,
+        creditRequestId: conv.creditRequestId,
+        lastMessage: lastMessage?.conteudo || '',
+        lastMessageDate: lastMessage?.createdAt || new Date(),
+        unreadCount: unreadCount?.count || 0,
+      });
+    }
+
+    return conversationsWithDetails.sort((a, b) => 
+      new Date(b.lastMessageDate).getTime() - new Date(a.lastMessageDate).getTime()
+    );
   }
 
   async getAdminConversations(): Promise<any[]> {
-    const conversations = await db
-      .select({
+    // Get all unique conversations for admin
+    const conversationsQuery = await db
+      .selectDistinct({
         conversationId: messages.conversationId,
         companyId: messages.companyId,
         creditRequestId: messages.creditRequestId,
-        lastMessage: messages.conteudo,
-        lastMessageDate: messages.createdAt,
-        unreadCount: messages.id, // Will be aggregated
       })
-      .from(messages)
-      .groupBy(messages.conversationId, messages.companyId, messages.creditRequestId, messages.conteudo, messages.createdAt)
-      .orderBy(desc(messages.createdAt));
+      .from(messages);
 
-    return conversations;
+    const conversationsWithDetails = [];
+    for (const conv of conversationsQuery) {
+      // Get the last message for each conversation
+      const [lastMessage] = await db
+        .select({
+          conteudo: messages.conteudo,
+          createdAt: messages.createdAt,
+        })
+        .from(messages)
+        .where(eq(messages.conversationId, conv.conversationId))
+        .orderBy(desc(messages.createdAt))
+        .limit(1);
+
+      // Count unread messages for admin
+      const [unreadCount] = await db
+        .select({ count: messages.id })
+        .from(messages)
+        .where(
+          and(
+            eq(messages.conversationId, conv.conversationId),
+            eq(messages.destinatarioTipo, 'admin'),
+            eq(messages.lida, false)
+          )
+        );
+
+      conversationsWithDetails.push({
+        conversationId: conv.conversationId,
+        companyId: conv.companyId,
+        creditRequestId: conv.creditRequestId,
+        lastMessage: lastMessage?.conteudo || '',
+        lastMessageDate: lastMessage?.createdAt || new Date(),
+        unreadCount: unreadCount?.count || 0,
+      });
+    }
+
+    return conversationsWithDetails.sort((a, b) => 
+      new Date(b.lastMessageDate).getTime() - new Date(a.lastMessageDate).getTime()
+    );
   }
 
   async markMessageAsRead(messageId: number): Promise<void> {
@@ -439,6 +506,40 @@ export class DatabaseStorage implements IStorage {
       .update(messages)
       .set({ lida: true })
       .where(and(...conditions));
+  }
+
+  async getAvailableCompaniesForChat(): Promise<any[]> {
+    return await db
+      .select({
+        id: companies.id,
+        razaoSocial: companies.razaoSocial,
+        cnpj: companies.cnpj,
+        status: companies.status,
+      })
+      .from(companies)
+      .where(eq(companies.status, 'aprovada'))
+      .orderBy(companies.razaoSocial);
+  }
+
+  async getUserCreditRequests(userId: number): Promise<any[]> {
+    const userCompanies = await this.getUserCompanies(userId);
+    const companyIds = userCompanies.map(c => c.id);
+    
+    if (companyIds.length === 0) return [];
+
+    return await db
+      .select({
+        id: creditRequests.id,
+        companyId: creditRequests.companyId,
+        valorSolicitado: creditRequests.valorSolicitado,
+        status: creditRequests.status,
+        createdAt: creditRequests.createdAt,
+        companyRazaoSocial: companies.razaoSocial,
+      })
+      .from(creditRequests)
+      .leftJoin(companies, eq(creditRequests.companyId, companies.id))
+      .where(eq(creditRequests.companyId, companyIds[0]))
+      .orderBy(desc(creditRequests.createdAt));
   }
 }
 
