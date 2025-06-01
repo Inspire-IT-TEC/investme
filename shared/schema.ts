@@ -151,6 +151,8 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  dataFundacao: z.string().transform((str) => new Date(str)),
 });
 
 export const insertCompanyShareholderSchema = createInsertSchema(companyShareholders).omit({
