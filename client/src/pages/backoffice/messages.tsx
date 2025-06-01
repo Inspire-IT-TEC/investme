@@ -18,6 +18,7 @@ export default function BackofficeMessages() {
   const [messageContent, setMessageContent] = useState("");
   const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState("");
+  const [newConversationSubject, setNewConversationSubject] = useState("");
   const [newConversationMessage, setNewConversationMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -106,7 +107,7 @@ export default function BackofficeMessages() {
   });
 
   const createConversationMutation = useMutation({
-    mutationFn: async (data: { companyId: number; conteudo: string }) => {
+    mutationFn: async (data: { companyId: number; assunto: string; conteudo: string }) => {
       const conversationId = `company_${data.companyId}_${Date.now()}`;
       const response = await fetch("/api/admin/messages", {
         method: "POST",
@@ -160,7 +161,7 @@ export default function BackofficeMessages() {
     if (!messageContent.trim() || !selectedConversation) return;
 
     // Find the conversation details to get companyId and creditRequestId
-    const selectedConv = conversations?.find(conv => conv.conversationId === selectedConversation);
+    const selectedConv = conversations?.find((conv: any) => conv.conversationId === selectedConversation);
     const companyId = selectedConv?.companyId;
     const creditRequestId = selectedConv?.creditRequestId;
 
@@ -302,16 +303,21 @@ export default function BackofficeMessages() {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              Empresa #{conversation.companyId} - Sol. #{conversation.creditRequestId}
-                            </p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                Empresa: {conversation.companyName || `#${conversation.companyId}`}
+                              </p>
+                              <p className="text-xs text-blue-600 truncate mt-1">
+                                Assunto: {conversation.assunto || 'Sem assunto'}
+                              </p>
+                            </div>
                             {conversation.unreadCount > 0 && (
-                              <Badge variant="destructive" className="text-xs">
+                              <Badge variant="destructive" className="text-xs ml-2 flex-shrink-0">
                                 {conversation.unreadCount}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500 truncate mt-1">
+                          <p className="text-sm text-gray-500 truncate mt-2">
                             {conversation.lastMessage}
                           </p>
                           <p className="text-xs text-gray-400 mt-1">

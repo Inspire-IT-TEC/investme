@@ -272,14 +272,15 @@ export default function Messages() {
                         </Button>
                         <Button
                           onClick={() => {
-                            if (selectedCreditRequest && newConversationMessage.trim()) {
+                            if (selectedCreditRequest && newConversationSubject.trim() && newConversationMessage.trim()) {
                               createConversationMutation.mutate({
                                 creditRequestId: parseInt(selectedCreditRequest),
+                                assunto: newConversationSubject.trim(),
                                 conteudo: newConversationMessage.trim()
                               });
                             }
                           }}
-                          disabled={!selectedCreditRequest || !newConversationMessage.trim() || createConversationMutation.isPending}
+                          disabled={!selectedCreditRequest || !newConversationSubject.trim() || !newConversationMessage.trim() || createConversationMutation.isPending}
                         >
                           {createConversationMutation.isPending ? "Criando..." : "Criar Conversa"}
                         </Button>
@@ -320,16 +321,21 @@ export default function Messages() {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              Solicitação #{conversation.creditRequestId}
-                            </p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {conversation.companyName ? `Empresa: ${conversation.companyName}` : `Solicitação #${conversation.creditRequestId}`}
+                              </p>
+                              <p className="text-xs text-blue-600 truncate mt-1">
+                                Assunto: {conversation.assunto || 'Sem assunto'}
+                              </p>
+                            </div>
                             {conversation.unreadCount > 0 && (
-                              <Badge variant="destructive" className="text-xs">
+                              <Badge variant="destructive" className="text-xs ml-2 flex-shrink-0">
                                 {conversation.unreadCount}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500 truncate mt-1">
+                          <p className="text-sm text-gray-500 truncate mt-2">
                             {conversation.lastMessage}
                           </p>
                           <p className="text-xs text-gray-400 mt-1">
