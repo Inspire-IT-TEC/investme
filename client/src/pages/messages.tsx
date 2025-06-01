@@ -19,6 +19,7 @@ export default function Messages() {
   const [messageContent, setMessageContent] = useState("");
   const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
   const [selectedCreditRequest, setSelectedCreditRequest] = useState("");
+  const [newConversationSubject, setNewConversationSubject] = useState("");
   const [newConversationMessage, setNewConversationMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -107,7 +108,7 @@ export default function Messages() {
   });
 
   const createConversationMutation = useMutation({
-    mutationFn: async (data: { creditRequestId: number; conteudo: string }) => {
+    mutationFn: async (data: { creditRequestId: number; assunto: string; conteudo: string }) => {
       const conversationId = `credit_${data.creditRequestId}_${Date.now()}`;
       const response = await fetch("/api/messages", {
         method: "POST",
@@ -118,6 +119,7 @@ export default function Messages() {
         body: JSON.stringify({
           conversationId,
           creditRequestId: data.creditRequestId,
+          assunto: data.assunto,
           conteudo: data.conteudo,
           destinatarioTipo: 'admin'
         }),
@@ -130,6 +132,7 @@ export default function Messages() {
       queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
       setIsNewConversationOpen(false);
       setSelectedCreditRequest("");
+      setNewConversationSubject("");
       setNewConversationMessage("");
       // Selecionar automaticamente a nova conversa
       if (data?.conversationId) {
@@ -237,6 +240,17 @@ export default function Messages() {
                             ))}
                           </SelectContent>
                         </Select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Assunto
+                        </label>
+                        <Input
+                          value={newConversationSubject}
+                          onChange={(e) => setNewConversationSubject(e.target.value)}
+                          placeholder="Ex: Dúvidas sobre documentação, Urgente - Análise..."
+                          maxLength={100}
+                        />
                       </div>
                       <div>
                         <label className="text-sm font-medium mb-2 block">

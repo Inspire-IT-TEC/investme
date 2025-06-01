@@ -442,7 +442,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAdminConversations(): Promise<any[]> {
-    // Get all unique conversations for admin
+    // Get all unique conversations for admin with company info
     const conversationsQuery = await db
       .selectDistinct({
         conversationId: messages.conversationId,
@@ -453,10 +453,25 @@ export class DatabaseStorage implements IStorage {
 
     const conversationsWithDetails = [];
     for (const conv of conversationsQuery) {
-      // Get the last message for each conversation
+      // Get company info
+      let company = null;
+      if (conv.companyId) {
+        const companyResult = await db
+          .select({
+            razaoSocial: companies.razaoSocial,
+            cnpj: companies.cnpj,
+          })
+          .from(companies)
+          .where(eq(companies.id, conv.companyId))
+          .limit(1);
+        company = companyResult[0];
+      }
+
+      // Get the last message and subject for each conversation
       const [lastMessage] = await db
         .select({
           conteudo: messages.conteudo,
+          assunto: messages.assunto,
           createdAt: messages.createdAt,
         })
         .from(messages)
@@ -482,6 +497,9 @@ export class DatabaseStorage implements IStorage {
         conversationId: conv.conversationId,
         companyId: conv.companyId,
         creditRequestId: conv.creditRequestId,
+        companyName: company?.razaoSocial || 'Empresa não encontrada',
+        companyCnpj: company?.cnpj || '',
+        assunto: lastMessage?.assunto || 'Sem assunto',
         lastMessage: lastMessage?.conteudo || '',
         lastMessageDate: lastMessage?.createdAt || new Date(),
         unreadCount: unreadCount,
