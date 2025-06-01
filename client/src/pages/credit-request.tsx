@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import Navbar from "@/components/layout/navbar";
 import { formatCurrency } from "@/lib/validations";
 import { Upload, FileText, X } from "lucide-react";
@@ -63,6 +63,7 @@ export default function CreditRequest() {
         title: "Solicitação enviada com sucesso!",
         description: "Sua solicitação de crédito está sendo analisada.",
       });
+      queryClient.invalidateQueries({ queryKey: ["/api/credit-requests"] });
       setLocation("/dashboard");
     },
     onError: (error: any) => {
