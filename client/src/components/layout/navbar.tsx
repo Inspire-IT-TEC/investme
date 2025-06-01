@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
-import { Bell, ChevronDown, Building2, CreditCard, User, LogOut } from "lucide-react";
+import { Bell, ChevronDown, Building2, CreditCard, User, LogOut, MessageCircle } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Navbar() {
@@ -23,7 +23,7 @@ export default function Navbar() {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Building2 },
     { name: 'Empresas', href: '/company-registration', icon: Building2 },
-    { name: 'Solicitações', href: '/credit-requests', icon: CreditCard },
+    { name: 'Mensagens', href: '/messages', icon: MessageCircle },
   ];
 
   const isActive = (href: string) => {

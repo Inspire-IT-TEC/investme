@@ -15,6 +15,8 @@ import BackofficeCompanies from "@/pages/backoffice/companies";
 import BackofficeCreditRequests from "@/pages/backoffice/credit-requests";
 import AdminUsers from "@/pages/backoffice/admin-users";
 import AuditPage from "@/pages/backoffice/audit";
+import Messages from "@/pages/messages";
+import BackofficeMessages from "@/pages/backoffice/messages";
 
 function Router() {
   return (
@@ -25,6 +27,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/company-registration" component={CompanyRegistration} />
       <Route path="/credit-request/:companyId" component={CreditRequest} />
+      <Route path="/messages" component={Messages} />
       <Route path="/backoffice" component={BackofficeLogin} />
       <Route path="/backoffice/login" component={BackofficeLogin} />
       <Route path="/backoffice/dashboard" component={BackofficeDashboard} />
@@ -32,6 +35,7 @@ function Router() {
       <Route path="/backoffice/credit-requests" component={BackofficeCreditRequests} />
       <Route path="/backoffice/admin-users" component={AdminUsers} />
       <Route path="/backoffice/audit" component={AuditPage} />
+      <Route path="/backoffice/messages" component={BackofficeMessages} />
       <Route component={NotFound} />
     </Switch>
   );

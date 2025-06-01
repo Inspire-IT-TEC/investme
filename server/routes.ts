@@ -438,8 +438,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = req.body;
       // Hash password before storing
-      const bcrypt = require('bcrypt');
-      userData.senha = await bcrypt.hash(userData.senha, 10);
+      const bcrypt = await import('bcrypt');
+      userData.senha = await bcrypt.default.hash(userData.senha, 10);
       
       const adminUser = await storage.createAdminUser(userData);
       res.status(201).json(adminUser);
