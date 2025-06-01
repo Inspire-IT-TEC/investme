@@ -34,6 +34,18 @@ export default function Messages() {
     },
   });
 
+  const { data: creditRequests } = useQuery({
+    queryKey: ["/api/credit-requests/user"],
+    queryFn: () => {
+      return fetch("/api/credit-requests/user", {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }).then(res => res.json());
+    },
+  });
+
   const { data: messages, isLoading: messagesLoading } = useQuery({
     queryKey: ["/api/messages", selectedConversation],
     queryFn: () => {
@@ -94,6 +106,44 @@ export default function Messages() {
     },
   });
 
+  const createConversationMutation = useMutation({
+    mutationFn: async (data: { creditRequestId: number; conteudo: string }) => {
+      const conversationId = `credit_${data.creditRequestId}_${Date.now()}`;
+      const response = await fetch("/api/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          conversationId,
+          creditRequestId: data.creditRequestId,
+          conteudo: data.conteudo,
+          destinatarioTipo: 'admin'
+        }),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/messages/conversations"] });
+      setIsNewConversationOpen(false);
+      setSelectedCreditRequest("");
+      setNewConversationMessage("");
+      toast({
+        title: "Conversa iniciada",
+        description: "Nova conversa criada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao criar conversa",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -145,13 +195,80 @@ export default function Messages() {
           {/* Conversations List */}
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5" />
-                Conversas
-              </CardTitle>
-              <CardDescription>
-                Suas conversas sobre solicitações de crédito
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5" />
+                    Conversas
+                  </CardTitle>
+                  <CardDescription>
+                    Suas conversas sobre solicitações de crédito
+                  </CardDescription>
+                </div>
+                <Dialog open={isNewConversationOpen} onOpenChange={setIsNewConversationOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Iniciar Nova Conversa</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Selecione uma Solicitação de Crédito
+                        </label>
+                        <Select value={selectedCreditRequest} onValueChange={setSelectedCreditRequest}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Escolha uma solicitação..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {creditRequests?.map((request: any) => (
+                              <SelectItem key={request.id} value={request.id.toString()}>
+                                {request.companyRazaoSocial} - R$ {request.valorSolicitado}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Mensagem Inicial
+                        </label>
+                        <Textarea
+                          value={newConversationMessage}
+                          onChange={(e) => setNewConversationMessage(e.target.value)}
+                          placeholder="Digite sua mensagem inicial..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsNewConversationOpen(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            if (selectedCreditRequest && newConversationMessage.trim()) {
+                              createConversationMutation.mutate({
+                                creditRequestId: parseInt(selectedCreditRequest),
+                                conteudo: newConversationMessage.trim()
+                              });
+                            }
+                          }}
+                          disabled={!selectedCreditRequest || !newConversationMessage.trim() || createConversationMutation.isPending}
+                        >
+                          {createConversationMutation.isPending ? "Criando..." : "Criar Conversa"}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               {conversationsLoading ? (

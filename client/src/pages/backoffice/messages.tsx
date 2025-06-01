@@ -5,21 +5,38 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import BackofficeNavbar from "@/components/layout/backoffice-navbar";
-import { MessageCircle, Send, Building2, Clock, CheckCircle2, User } from "lucide-react";
+import { MessageCircle, Send, Building2, Clock, CheckCircle2, User, Plus } from "lucide-react";
 
 export default function BackofficeMessages() {
   const { toast } = useToast();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messageContent, setMessageContent] = useState("");
+  const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState("");
+  const [newConversationMessage, setNewConversationMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: conversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ["/api/admin/messages/conversations"],
     queryFn: () => {
       return fetch("/api/admin/messages/conversations", {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }).then(res => res.json());
+    },
+  });
+
+  const { data: companies } = useQuery({
+    queryKey: ["/api/admin/companies/for-chat"],
+    queryFn: () => {
+      return fetch("/api/admin/companies/for-chat", {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -85,6 +102,45 @@ export default function BackofficeMessages() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/messages/conversations"] });
+    },
+  });
+
+  const createConversationMutation = useMutation({
+    mutationFn: async (data: { companyId: number; conteudo: string }) => {
+      const conversationId = `company_${data.companyId}_${Date.now()}`;
+      const response = await fetch("/api/admin/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          conversationId,
+          companyId: data.companyId,
+          creditRequestId: null, // Admin initiated conversation
+          conteudo: data.conteudo,
+          destinatarioTipo: 'company'
+        }),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/messages/conversations"] });
+      setIsNewConversationOpen(false);
+      setSelectedCompany("");
+      setNewConversationMessage("");
+      toast({
+        title: "Conversa iniciada",
+        description: "Nova conversa criada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao criar conversa",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
