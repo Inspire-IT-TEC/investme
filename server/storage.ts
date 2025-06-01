@@ -400,10 +400,11 @@ export class DatabaseStorage implements IStorage {
 
     const conversationsWithDetails = [];
     for (const conv of conversationsQuery) {
-      // Get the last message for each conversation
+      // Get the last message and subject for each conversation
       const [lastMessage] = await db
         .select({
           conteudo: messages.conteudo,
+          assunto: messages.assunto,
           createdAt: messages.createdAt,
         })
         .from(messages)
@@ -428,6 +429,7 @@ export class DatabaseStorage implements IStorage {
       conversationsWithDetails.push({
         conversationId: conv.conversationId,
         creditRequestId: conv.creditRequestId,
+        assunto: lastMessage?.assunto || 'Sem assunto',
         lastMessage: lastMessage?.conteudo || '',
         lastMessageDate: lastMessage?.createdAt || new Date(),
         unreadCount: unreadCount,

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, json, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, json, jsonb, varchar } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -121,6 +121,7 @@ export const auditLog = pgTable("audit_log", {
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   conversationId: text("conversation_id").notNull(), // company_id + "_" + credit_request_id
+  assunto: text("assunto"), // Subject/topic of the conversation
   tipo: text("tipo").notNull(), // 'company' or 'admin'
   remetenteId: integer("remetente_id").notNull(), // user_id if company, admin_user_id if admin
   destinatarioTipo: text("destinatario_tipo").notNull(), // 'company' or 'admin'
