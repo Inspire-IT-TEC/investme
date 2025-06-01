@@ -25,7 +25,7 @@ import {
   type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, like, ilike, sql } from "drizzle-orm";
+import { eq, and, desc, like, ilike, sql, or } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -400,6 +400,18 @@ export class DatabaseStorage implements IStorage {
 
     const conversationsWithDetails = [];
     for (const conv of conversationsQuery) {
+      // Get company info
+      let company = null;
+      const companyResult = await db
+        .select({
+          razaoSocial: companies.razaoSocial,
+          cnpj: companies.cnpj,
+        })
+        .from(companies)
+        .where(eq(companies.id, companyId))
+        .limit(1);
+      company = companyResult[0];
+
       // Get the last message and subject for each conversation
       const [lastMessage] = await db
         .select({
@@ -429,6 +441,8 @@ export class DatabaseStorage implements IStorage {
       conversationsWithDetails.push({
         conversationId: conv.conversationId,
         creditRequestId: conv.creditRequestId,
+        companyName: company?.razaoSocial || 'Empresa não encontrada',
+        companyCnpj: company?.cnpj || '',
         assunto: lastMessage?.assunto || 'Sem assunto',
         lastMessage: lastMessage?.conteudo || '',
         lastMessageDate: lastMessage?.createdAt || new Date(),
@@ -561,7 +575,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(creditRequests)
       .leftJoin(companies, eq(creditRequests.companyId, companies.id))
-      .where(eq(creditRequests.companyId, companyIds[0]))
+      .where(or(...companyIds.map(id => eq(creditRequests.companyId, id))))
       .orderBy(desc(creditRequests.createdAt));
   }
 }
