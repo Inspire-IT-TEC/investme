@@ -142,15 +142,20 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Cadastro Completo</span>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <Clock className="w-4 h-4 text-yellow-500" />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Email Confirmado</span>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <Clock className="w-4 h-4 text-yellow-500" />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Documentos Verificados</span>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <Clock className="w-4 h-4 text-yellow-500" />
+                  </div>
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-xs text-yellow-800">
+                      Aguardando validação pelo backoffice
+                    </p>
                   </div>
                 </div>
               </CardContent>

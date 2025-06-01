@@ -14,6 +14,7 @@ import BackofficeDashboard from "@/pages/backoffice/dashboard";
 import BackofficeCompanies from "@/pages/backoffice/companies";
 import BackofficeCreditRequests from "@/pages/backoffice/credit-requests";
 import AdminUsers from "@/pages/backoffice/admin-users";
+import AuditPage from "@/pages/backoffice/audit";
 
 function Router() {
   return (
@@ -29,6 +30,8 @@ function Router() {
       <Route path="/backoffice/dashboard" component={BackofficeDashboard} />
       <Route path="/backoffice/companies" component={BackofficeCompanies} />
       <Route path="/backoffice/credit-requests" component={BackofficeCreditRequests} />
+      <Route path="/backoffice/admin-users" component={AdminUsers} />
+      <Route path="/backoffice/audit" component={AuditPage} />
       <Route component={NotFound} />
     </Switch>
   );
