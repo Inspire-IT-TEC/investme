@@ -159,9 +159,10 @@ export default function BackofficeMessages() {
   const handleSendMessage = () => {
     if (!messageContent.trim() || !selectedConversation) return;
 
-    const conversationParts = selectedConversation.split('_');
-    const companyId = parseInt(conversationParts[0]);
-    const creditRequestId = parseInt(conversationParts[1]);
+    // Find the conversation details to get companyId and creditRequestId
+    const selectedConv = conversations?.find(conv => conv.conversationId === selectedConversation);
+    const companyId = selectedConv?.companyId;
+    const creditRequestId = selectedConv?.creditRequestId;
 
     sendMessageMutation.mutate({
       conversationId: selectedConversation,

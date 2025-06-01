@@ -535,11 +535,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/admin/messages', authenticateAdminToken, async (req: any, res) => {
     try {
+      console.log('Admin message request body:', req.body);
+      console.log('Admin user:', req.user);
+      
       const messageData = {
-        ...req.body,
+        conversationId: req.body.conversationId,
+        companyId: req.body.companyId,
+        creditRequestId: req.body.creditRequestId,
+        conteudo: req.body.conteudo,
         tipo: 'admin',
         remetenteId: req.user.id,
-        destinatarioTipo: 'company',
+        destinatarioTipo: req.body.destinatarioTipo || 'company',
       };
       
       const message = await storage.createMessage(messageData);
@@ -548,6 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId: messageData.conversationId 
       });
     } catch (error: any) {
+      console.error('Error creating admin message:', error);
       res.status(400).json({ message: error.message || 'Erro ao enviar mensagem' });
     }
   });
