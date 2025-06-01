@@ -169,6 +169,9 @@ export const insertCreditRequestSchema = createInsertSchema(creditRequests).omit
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  companyId: z.string().transform((str) => parseInt(str)),
+  prazoMeses: z.string().transform((str) => parseInt(str)),
 });
 
 // Types
