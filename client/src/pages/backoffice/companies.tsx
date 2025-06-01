@@ -25,7 +25,7 @@ export default function BackofficeCompanies() {
     queryKey: ["/api/admin/companies", { status: statusFilter, search }],
     queryFn: () => {
       const params = new URLSearchParams();
-      if (statusFilter) params.append('status', statusFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
       if (search) params.append('search', search);
       return fetch(`/api/admin/companies?${params}`, {
         credentials: 'include',
@@ -135,7 +135,7 @@ export default function BackofficeCompanies() {
                     <SelectValue placeholder="Todos os Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os Status</SelectItem>
+                    <SelectItem value="all">Todos os Status</SelectItem>
                     <SelectItem value="pendente_analise">Pendente de Análise</SelectItem>
                     <SelectItem value="em_analise">Em Análise</SelectItem>
                     <SelectItem value="aprovada">Aprovada</SelectItem>
