@@ -536,15 +536,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/messages', authenticateAdminToken, async (req: any, res) => {
     try {
       console.log('Admin message request body:', req.body);
-      console.log('Admin user:', req.user);
+      console.log('Admin user:', req.admin);
       
+      // If companyId is null, extract it from existing conversation
+      let companyId = req.body.companyId;
+      if (!companyId && req.body.conversationId) {
+        const conversations = await storage.getAdminConversations();
+        const existingConv = conversations.find(conv => conv.conversationId === req.body.conversationId);
+        companyId = existingConv?.companyId;
+      }
+
       const messageData = {
         conversationId: req.body.conversationId,
-        companyId: req.body.companyId,
+        companyId: companyId,
         creditRequestId: req.body.creditRequestId,
         conteudo: req.body.conteudo,
         tipo: 'admin',
-        remetenteId: req.user.id,
+        remetenteId: req.admin.id,
         destinatarioTipo: req.body.destinatarioTipo || 'company',
       };
       
