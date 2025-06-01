@@ -195,13 +195,80 @@ export default function BackofficeMessages() {
           {/* Conversations List */}
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5" />
-                Conversas
-              </CardTitle>
-              <CardDescription>
-                Conversas com empresas sobre solicitações
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5" />
+                    Conversas
+                  </CardTitle>
+                  <CardDescription>
+                    Conversas com empresas sobre solicitações
+                  </CardDescription>
+                </div>
+                <Dialog open={isNewConversationOpen} onOpenChange={setIsNewConversationOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Iniciar Nova Conversa</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Selecione uma Empresa
+                        </label>
+                        <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Escolha uma empresa..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {companies?.map((company: any) => (
+                              <SelectItem key={company.id} value={company.id.toString()}>
+                                {company.razaoSocial} - {company.cnpj}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Mensagem Inicial
+                        </label>
+                        <Textarea
+                          value={newConversationMessage}
+                          onChange={(e) => setNewConversationMessage(e.target.value)}
+                          placeholder="Digite sua mensagem inicial..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsNewConversationOpen(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            if (selectedCompany && newConversationMessage.trim()) {
+                              createConversationMutation.mutate({
+                                companyId: parseInt(selectedCompany),
+                                conteudo: newConversationMessage.trim()
+                              });
+                            }
+                          }}
+                          disabled={!selectedCompany || !newConversationMessage.trim() || createConversationMutation.isPending}
+                        >
+                          {createConversationMutation.isPending ? "Criando..." : "Criar Conversa"}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               {conversationsLoading ? (
