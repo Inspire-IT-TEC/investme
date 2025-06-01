@@ -5,6 +5,7 @@ import {
   companyShareholders,
   companyGuarantees,
   creditRequests,
+  auditLog,
   type User, 
   type InsertUser,
   type AdminUser,
@@ -16,7 +17,9 @@ import {
   type CompanyGuarantee,
   type InsertCompanyGuarantee,
   type CreditRequest,
-  type InsertCreditRequest
+  type InsertCreditRequest,
+  type AuditLog,
+  type InsertAuditLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, like, ilike } from "drizzle-orm";
@@ -58,6 +61,14 @@ export interface IStorage {
   getCompanyCreditRequests(companyId: number): Promise<CreditRequest[]>;
   createCreditRequest(creditRequest: InsertCreditRequest): Promise<CreditRequest>;
   updateCreditRequest(id: number, creditRequest: Partial<InsertCreditRequest>): Promise<CreditRequest | undefined>;
+
+  // Admin user methods with profiles
+  getAdminUsers(): Promise<AdminUser[]>;
+  updateAdminUser(id: number, adminUser: Partial<InsertAdminUser>): Promise<AdminUser | undefined>;
+
+  // Audit log methods
+  createAuditLog(auditData: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(entidadeTipo?: string, acao?: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -277,6 +288,62 @@ export class DatabaseStorage implements IStorage {
       .where(eq(creditRequests.id, id))
       .returning();
     return creditRequest || undefined;
+  }
+
+  // Admin user methods with profiles
+  async getAdminUsers(): Promise<AdminUser[]> {
+    return await db.select().from(adminUsers).orderBy(desc(adminUsers.createdAt));
+  }
+
+  async updateAdminUser(id: number, updateData: Partial<InsertAdminUser>): Promise<AdminUser | undefined> {
+    const [adminUser] = await db
+      .update(adminUsers)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(adminUsers.id, id))
+      .returning();
+    return adminUser;
+  }
+
+  // Audit log methods
+  async createAuditLog(auditData: InsertAuditLog): Promise<AuditLog> {
+    const [audit] = await db
+      .insert(auditLog)
+      .values(auditData)
+      .returning();
+    return audit;
+  }
+
+  async getAuditLogs(entidadeTipo?: string, acao?: string): Promise<any[]> {
+    let query = db
+      .select({
+        id: auditLog.id,
+        acao: auditLog.acao,
+        entidadeTipo: auditLog.entidadeTipo,
+        entidadeId: auditLog.entidadeId,
+        valorAnterior: auditLog.valorAnterior,
+        valorNovo: auditLog.valorNovo,
+        observacoes: auditLog.observacoes,
+        createdAt: auditLog.createdAt,
+        adminUserNome: adminUsers.nome,
+        adminUserEmail: adminUsers.email,
+      })
+      .from(auditLog)
+      .leftJoin(adminUsers, eq(auditLog.adminUserId, adminUsers.id))
+      .orderBy(desc(auditLog.createdAt));
+
+    const conditions = [];
+    if (entidadeTipo) {
+      conditions.push(eq(auditLog.entidadeTipo, entidadeTipo));
+    }
+    if (acao) {
+      conditions.push(eq(auditLog.acao, acao));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query;
   }
 }
 

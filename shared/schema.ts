@@ -199,9 +199,16 @@ export const insertCreditRequestSchema = createInsertSchema(creditRequests).omit
   id: true,
   createdAt: true,
   updatedAt: true,
+  analisadoPor: true,
+  dataAnalise: true,
 }).extend({
   companyId: z.string().transform((str) => parseInt(str)),
   prazoMeses: z.string().transform((str) => parseInt(str)),
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLog).omit({
+  id: true,
+  createdAt: true,
 });
 
 // Types
@@ -222,3 +229,6 @@ export type CompanyGuarantee = typeof companyGuarantees.$inferSelect;
 
 export type InsertCreditRequest = z.infer<typeof insertCreditRequestSchema>;
 export type CreditRequest = typeof creditRequests.$inferSelect;
+
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLog.$inferSelect;
