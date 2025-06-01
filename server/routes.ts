@@ -385,14 +385,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requestId = parseInt(req.params.id);
       const updateData = req.body;
 
-      const creditRequest = await storage.updateCreditRequest(requestId, updateData);
-      if (!creditRequest) {
+      // Get current credit request for audit
+      const currentRequest = await storage.getCreditRequest(requestId);
+      if (!currentRequest) {
         return res.status(404).json({ message: 'Solicitação não encontrada' });
       }
 
+      // Add admin info to update data
+      if (updateData.status && updateData.status !== currentRequest.status) {
+        updateData.analisadoPor = req.user.id;
+        updateData.dataAnalise = new Date();
+        
+        // Add admin name to observations
+        const adminName = req.user.nome || req.user.email;
+        const timestamp = new Date().toLocaleString('pt-BR');
+        if (updateData.observacoesAnalise) {
+          updateData.observacoesAnalise = `${updateData.observacoesAnalise}\n\n[Analisado por: ${adminName} em ${timestamp}]`;
+        } else {
+          updateData.observacoesAnalise = `[Analisado por: ${adminName} em ${timestamp}]`;
+        }
+
+        // Create audit log
+        await storage.createAuditLog({
+          acao: `${updateData.status}_credito`,
+          entidadeTipo: 'credit_request',
+          entidadeId: requestId,
+          valorAnterior: { status: currentRequest.status },
+          valorNovo: { status: updateData.status },
+          observacoes: updateData.observacoesAnalise,
+          adminUserId: req.user.id,
+        });
+      }
+
+      const creditRequest = await storage.updateCreditRequest(requestId, updateData);
       res.json(creditRequest);
     } catch (error: any) {
       res.status(400).json({ message: error.message || 'Erro ao atualizar solicitação' });
+    }
+  });
+
+  // Admin users management
+  app.get('/api/admin/users', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const adminUsers = await storage.getAdminUsers();
+      res.json(adminUsers);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar usuários' });
+    }
+  });
+
+  app.post('/api/admin/users', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const userData = req.body;
+      // Hash password before storing
+      const bcrypt = require('bcrypt');
+      userData.senha = await bcrypt.hash(userData.senha, 10);
+      
+      const adminUser = await storage.createAdminUser(userData);
+      res.status(201).json(adminUser);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao criar usuário' });
+    }
+  });
+
+  app.patch('/api/admin/users/:id', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const adminUser = await storage.updateAdminUser(userId, updateData);
+      if (!adminUser) {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+      
+      res.json(adminUser);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao atualizar usuário' });
+    }
+  });
+
+  // Audit logs
+  app.get('/api/admin/audit', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { entidadeTipo, acao } = req.query;
+      const auditLogs = await storage.getAuditLogs(entidadeTipo, acao);
+      res.json(auditLogs);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar auditoria' });
     }
   });
 

@@ -24,11 +24,16 @@ export default function AdminUsers() {
 
   const createUserMutation = useMutation({
     mutationFn: async (userData: any) => {
-      return await apiRequest("/api/admin/users", {
+      const response = await fetch("/api/admin/users", {
         method: "POST",
         body: JSON.stringify(userData),
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
       });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
@@ -49,11 +54,16 @@ export default function AdminUsers() {
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, userData }: { id: number; userData: any }) => {
-      return await apiRequest(`/api/admin/users/${id}`, {
+      const response = await fetch(`/api/admin/users/${id}`, {
         method: "PATCH",
         body: JSON.stringify(userData),
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
       });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });

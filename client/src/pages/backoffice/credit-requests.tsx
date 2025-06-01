@@ -62,6 +62,7 @@ export default function BackofficeCreditRequests() {
         description: "Status da solicitação foi atualizado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
       setEditDialogOpen(false);
     },
     onError: (error: any) => {
@@ -87,6 +88,7 @@ export default function BackofficeCreditRequests() {
         description: "Status da solicitação foi atualizado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
     },
     onError: (error: any) => {
       toast({

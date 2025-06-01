@@ -13,6 +13,7 @@ import BackofficeLogin from "@/pages/backoffice/login";
 import BackofficeDashboard from "@/pages/backoffice/dashboard";
 import BackofficeCompanies from "@/pages/backoffice/companies";
 import BackofficeCreditRequests from "@/pages/backoffice/credit-requests";
+import AdminUsers from "@/pages/backoffice/admin-users";
 
 function Router() {
   return (
