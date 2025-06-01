@@ -25,7 +25,7 @@ import {
   type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, like, ilike } from "drizzle-orm";
+import { eq, and, desc, like, ilike, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -412,8 +412,8 @@ export class DatabaseStorage implements IStorage {
         .limit(1);
 
       // Count unread messages for the company
-      const [unreadCount] = await db
-        .select({ count: messages.id })
+      const unreadMessages = await db
+        .select()
         .from(messages)
         .where(
           and(
@@ -422,13 +422,15 @@ export class DatabaseStorage implements IStorage {
             eq(messages.lida, false)
           )
         );
+      
+      const unreadCount = unreadMessages.length;
 
       conversationsWithDetails.push({
         conversationId: conv.conversationId,
         creditRequestId: conv.creditRequestId,
         lastMessage: lastMessage?.conteudo || '',
         lastMessageDate: lastMessage?.createdAt || new Date(),
-        unreadCount: unreadCount?.count || 0,
+        unreadCount: unreadCount,
       });
     }
 
@@ -461,8 +463,8 @@ export class DatabaseStorage implements IStorage {
         .limit(1);
 
       // Count unread messages for admin
-      const [unreadCount] = await db
-        .select({ count: messages.id })
+      const unreadMessages = await db
+        .select()
         .from(messages)
         .where(
           and(
@@ -472,13 +474,15 @@ export class DatabaseStorage implements IStorage {
           )
         );
 
+      const unreadCount = unreadMessages.length;
+
       conversationsWithDetails.push({
         conversationId: conv.conversationId,
         companyId: conv.companyId,
         creditRequestId: conv.creditRequestId,
         lastMessage: lastMessage?.conteudo || '',
         lastMessageDate: lastMessage?.createdAt || new Date(),
-        unreadCount: unreadCount?.count || 0,
+        unreadCount: unreadCount,
       });
     }
 
@@ -517,7 +521,6 @@ export class DatabaseStorage implements IStorage {
         status: companies.status,
       })
       .from(companies)
-      .where(eq(companies.status, 'aprovada'))
       .orderBy(companies.razaoSocial);
   }
 

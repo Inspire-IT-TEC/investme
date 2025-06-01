@@ -225,7 +225,7 @@ export default function BackofficeMessages() {
                             <SelectValue placeholder="Escolha uma empresa..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {companies?.map((company: any) => (
+                            {Array.isArray(companies) && companies.map((company: any) => (
                               <SelectItem key={company.id} value={company.id.toString()}>
                                 {company.razaoSocial} - {company.cnpj}
                               </SelectItem>
