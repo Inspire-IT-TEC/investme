@@ -25,7 +25,7 @@ export default function BackofficeCreditRequests() {
     queryKey: ["/api/admin/credit-requests", { status: statusFilter, search }],
     queryFn: () => {
       const params = new URLSearchParams();
-      if (statusFilter) params.append('status', statusFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
       if (search) params.append('search', search);
       return fetch(`/api/admin/credit-requests?${params}`, {
         credentials: 'include',
@@ -181,7 +181,7 @@ export default function BackofficeCreditRequests() {
                     <SelectValue placeholder="Todas as Solicitações" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as Solicitações</SelectItem>
+                    <SelectItem value="all">Todas as Solicitações</SelectItem>
                     <SelectItem value="pendente">Pendentes</SelectItem>
                     <SelectItem value="em_analise">Em Análise</SelectItem>
                     <SelectItem value="aprovada">Aprovadas</SelectItem>
@@ -375,7 +375,11 @@ export default function BackofficeCreditRequests() {
                                       Altere o status e observações da solicitação
                                     </DialogDescription>
                                   </DialogHeader>
-                                  <form action={handleUpdateRequest} className="space-y-4">
+                                  <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const formData = new FormData(e.currentTarget);
+                                    handleUpdateRequest(formData);
+                                  }} className="space-y-4">
                                     <div>
                                       <Label htmlFor="status">Status da Solicitação</Label>
                                       <Select name="status" defaultValue={selectedRequest?.status}>
