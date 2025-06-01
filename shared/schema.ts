@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, json, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -29,6 +29,8 @@ export const adminUsers = pgTable("admin_users", {
   senha: text("senha").notNull(),
   nome: text("nome").notNull(),
   role: text("role").notNull().default("admin"),
+  perfil: text("perfil").notNull().default("visualizacao"), // visualizacao, aprovacao_empresa, aprovacao_credito, admin
+  ativo: boolean("ativo").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -58,6 +60,8 @@ export const companies = pgTable("companies", {
   dividaLiquida: decimal("divida_liquida", { precision: 15, scale: 2 }).notNull(),
   status: text("status").notNull().default("pendente_analise"), // pendente_analise, em_analise, aprovada, reprovada, incompleto
   observacoesInternas: text("observacoes_internas"),
+  analisadoPor: integer("analisado_por").references(() => adminUsers.id),
+  dataAnalise: timestamp("data_analise"),
   userId: integer("user_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -94,8 +98,23 @@ export const creditRequests = pgTable("credit_requests", {
   documentos: text("documentos").array(), // URLs to uploaded documents
   status: text("status").notNull().default("pendente"), // pendente, em_analise, aprovada, reprovada
   observacoesAnalise: text("observacoes_analise"),
+  analisadoPor: integer("analisado_por").references(() => adminUsers.id), // Quem fez a análise
+  dataAnalise: timestamp("data_analise"), // Quando foi analisado
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Audit log table for tracking all important actions
+export const auditLog = pgTable("audit_log", {
+  id: serial("id").primaryKey(),
+  acao: text("acao").notNull(), // aprovacao_empresa, reprovacao_empresa, aprovacao_credito, reprovacao_credito, etc
+  entidadeTipo: text("entidade_tipo").notNull(), // company, credit_request, user
+  entidadeId: integer("entidade_id").notNull(),
+  valorAnterior: json("valor_anterior"), // Estado anterior em JSON
+  valorNovo: json("valor_novo"), // Novo estado em JSON
+  observacoes: text("observacoes"),
+  adminUserId: integer("admin_user_id").notNull().references(() => adminUsers.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Relations
@@ -131,6 +150,17 @@ export const creditRequestsRelations = relations(creditRequests, ({ one }) => ({
   company: one(companies, {
     fields: [creditRequests.companyId],
     references: [companies.id],
+  }),
+  analisadoPorAdmin: one(adminUsers, {
+    fields: [creditRequests.analisadoPor],
+    references: [adminUsers.id],
+  }),
+}));
+
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+  adminUser: one(adminUsers, {
+    fields: [auditLog.adminUserId],
+    references: [adminUsers.id],
   }),
 }));
 
