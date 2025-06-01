@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -119,6 +120,7 @@ export default function BackofficeMessages() {
           conversationId,
           companyId: data.companyId,
           creditRequestId: null, // Admin initiated conversation
+          assunto: data.assunto,
           conteudo: data.conteudo,
           destinatarioTipo: 'company'
         }),
@@ -130,6 +132,7 @@ export default function BackofficeMessages() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/messages/conversations"] });
       setIsNewConversationOpen(false);
       setSelectedCompany("");
+      setNewConversationSubject("");
       setNewConversationMessage("");
       toast({
         title: "Conversa iniciada",
@@ -237,6 +240,17 @@ export default function BackofficeMessages() {
                       </div>
                       <div>
                         <label className="text-sm font-medium mb-2 block">
+                          Assunto
+                        </label>
+                        <Input
+                          value={newConversationSubject}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewConversationSubject(e.target.value)}
+                          placeholder="Ex: Análise de crédito, Documentação pendente..."
+                          maxLength={100}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
                           Mensagem Inicial
                         </label>
                         <Textarea
@@ -255,14 +269,15 @@ export default function BackofficeMessages() {
                         </Button>
                         <Button
                           onClick={() => {
-                            if (selectedCompany && newConversationMessage.trim()) {
+                            if (selectedCompany && newConversationSubject.trim() && newConversationMessage.trim()) {
                               createConversationMutation.mutate({
                                 companyId: parseInt(selectedCompany),
+                                assunto: newConversationSubject.trim(),
                                 conteudo: newConversationMessage.trim()
                               });
                             }
                           }}
-                          disabled={!selectedCompany || !newConversationMessage.trim() || createConversationMutation.isPending}
+                          disabled={!selectedCompany || !newConversationSubject.trim() || !newConversationMessage.trim() || createConversationMutation.isPending}
                         >
                           {createConversationMutation.isPending ? "Criando..." : "Criar Conversa"}
                         </Button>
