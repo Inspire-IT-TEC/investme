@@ -28,6 +28,15 @@ export default function CreditRequest() {
 
   const { data: company, isLoading } = useQuery({
     queryKey: ["/api/companies", companyId],
+    queryFn: () => {
+      const token = localStorage.getItem('token');
+      return fetch(`/api/companies/${companyId}`, {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(res => res.json());
+    },
     enabled: !!companyId
   });
 
