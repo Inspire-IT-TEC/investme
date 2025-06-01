@@ -524,7 +524,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const message = await storage.createMessage(messageData);
-      res.status(201).json(message);
+      res.status(201).json({ 
+        ...message,
+        conversationId: messageData.conversationId 
+      });
     } catch (error: any) {
       res.status(400).json({ message: error.message || 'Erro ao enviar mensagem' });
     }
@@ -540,7 +543,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const message = await storage.createMessage(messageData);
-      res.status(201).json(message);
+      res.status(201).json({ 
+        ...message,
+        conversationId: messageData.conversationId 
+      });
     } catch (error: any) {
       res.status(400).json({ message: error.message || 'Erro ao enviar mensagem' });
     }

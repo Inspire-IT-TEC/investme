@@ -125,11 +125,16 @@ export default function Messages() {
       if (!response.ok) throw new Error(await response.text());
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/messages/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
       setIsNewConversationOpen(false);
       setSelectedCreditRequest("");
       setNewConversationMessage("");
+      // Selecionar automaticamente a nova conversa
+      if (data?.conversationId) {
+        setSelectedConversation(data.conversationId);
+      }
       toast({
         title: "Conversa iniciada",
         description: "Nova conversa criada com sucesso.",
