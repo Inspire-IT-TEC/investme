@@ -478,8 +478,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Messages/Chat routes
   app.get('/api/messages/conversations', authenticateToken, async (req: any, res) => {
     try {
-      const conversations = await storage.getCompanyConversations(req.user.id);
-      res.json(conversations);
+      // Get user's companies first
+      const userCompanies = await storage.getUserCompanies(req.user.id);
+      if (userCompanies.length === 0) {
+        return res.json([]);
+      }
+      
+      // Get conversations for all user's companies
+      const allConversations = [];
+      for (const company of userCompanies) {
+        const conversations = await storage.getCompanyConversations(company.id);
+        allConversations.push(...conversations);
+      }
+      
+      // Sort by last message date
+      allConversations.sort((a, b) => 
+        new Date(b.lastMessageDate).getTime() - new Date(a.lastMessageDate).getTime()
+      );
+      
+      res.json(allConversations);
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao buscar conversas' });
     }
@@ -599,9 +616,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/admin/companies/for-chat', authenticateAdminToken, async (req: any, res) => {
     try {
+      console.log('Fetching companies for chat...');
       const companies = await storage.getAvailableCompaniesForChat();
+      console.log('Companies found:', companies);
       res.json(companies);
     } catch (error: any) {
+      console.error('Error in companies/for-chat:', error);
       res.status(500).json({ message: error.message || 'Erro ao buscar empresas' });
     }
   });
