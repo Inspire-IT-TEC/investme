@@ -196,6 +196,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Investor Login Route
+  app.post('/api/investors/login', async (req, res) => {
+    try {
+      const { login, senha } = req.body; // login can be email or CPF
+      
+      let user = await storage.getUserByEmail(login);
+      if (!user) {
+        user = await storage.getUserByCpf(login);
+      }
+
+      if (!user) {
+        return res.status(401).json({ message: 'Credenciais inválidas' });
+      }
+
+      const isValidPassword = await bcrypt.compare(senha, user.senha);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: 'Credenciais inválidas' });
+      }
+
+      const token = jwt.sign(
+        { id: user.id, email: user.email, type: 'investor' },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.json({ 
+        user: { ...user, senha: undefined }, 
+        token 
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro no login do investidor' });
+    }
+  });
+
+  // Entrepreneur Login Route
+  app.post('/api/entrepreneurs/login', async (req, res) => {
+    try {
+      const { login, senha } = req.body; // login can be email or CPF
+      
+      let user = await storage.getUserByEmail(login);
+      if (!user) {
+        user = await storage.getUserByCpf(login);
+      }
+
+      if (!user) {
+        return res.status(401).json({ message: 'Credenciais inválidas' });
+      }
+
+      const isValidPassword = await bcrypt.compare(senha, user.senha);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: 'Credenciais inválidas' });
+      }
+
+      const token = jwt.sign(
+        { id: user.id, email: user.email, type: 'entrepreneur' },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.json({ 
+        user: { ...user, senha: undefined }, 
+        token 
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro no login do empreendedor' });
+    }
+  });
+
   app.post('/api/auth/login', async (req, res) => {
     try {
       const { login, senha } = req.body; // login can be email or CPF

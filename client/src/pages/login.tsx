@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
 
 export default function Login() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
@@ -20,9 +20,23 @@ export default function Login() {
     senha: ""
   });
 
+  // Determine user type based on current route
+  const getUserType = () => {
+    if (location.includes('/login/investor')) return 'investor';
+    if (location.includes('/login/entrepreneur')) return 'entrepreneur';
+    return 'user';
+  };
+
+  const getLoginEndpoint = () => {
+    const userType = getUserType();
+    if (userType === 'investor') return '/api/investors/login';
+    if (userType === 'entrepreneur') return '/api/entrepreneurs/login';
+    return '/api/auth/login';
+  };
+
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest("POST", "/api/auth/login", data);
+      const response = await apiRequest("POST", getLoginEndpoint(), data);
       return response.json();
     },
     onSuccess: (data) => {
@@ -57,7 +71,11 @@ export default function Login() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Entrar na sua conta</CardTitle>
+            <CardTitle>
+              {getUserType() === 'investor' ? 'Login do Investidor' : 
+               getUserType() === 'entrepreneur' ? 'Login do Empreendedor' : 
+               'Entrar na sua conta'}
+            </CardTitle>
             <CardDescription>
               Digite seu email ou CPF e senha para acessar o dashboard
             </CardDescription>
