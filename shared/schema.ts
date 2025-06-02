@@ -144,10 +144,11 @@ export const creditRequests = pgTable("credit_requests", {
   prazoMeses: integer("prazo_meses").notNull(),
   finalidade: text("finalidade").notNull(),
   documentos: text("documentos").array(), // URLs to uploaded documents
-  // Novo fluxo: na_rede -> aceita_por_investidor -> em_analise -> aprovada/reprovada
-  status: text("status").notNull().default("na_rede"), // na_rede, aceita_por_investidor, em_analise, aprovada, reprovada
+  // Novo fluxo: na_rede -> em_analise -> aprovada/reprovada
+  status: text("status").notNull().default("na_rede"), // na_rede, em_analise, aprovada, reprovada
   investorId: integer("investor_id").references(() => investors.id), // Quem aceitou da rede
   dataAceite: timestamp("data_aceite"), // Quando foi aceita pelo investidor
+  dataLimiteAnalise: timestamp("data_limite_analise"), // 24 horas após aceite
   observacoesAnalise: text("observacoes_analise"),
   analisadoPor: integer("analisado_por").references(() => investors.id), // Investidor que está analisando
   dataAnalise: timestamp("data_analise"), // Quando foi analisado

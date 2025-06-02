@@ -651,6 +651,65 @@ export class DatabaseStorage implements IStorage {
       .where(or(...companyIds.map(id => eq(creditRequests.companyId, id))))
       .orderBy(desc(creditRequests.createdAt));
   }
+
+  // Timer and analysis methods
+  async checkAndReturnExpiredRequests(): Promise<void> {
+    const now = new Date();
+    
+    // Find requests that are past their 24-hour limit
+    const expiredRequests = await db
+      .select()
+      .from(creditRequests)
+      .where(
+        and(
+          eq(creditRequests.status, 'em_analise'),
+          lt(creditRequests.dataLimiteAnalise, now)
+        )
+      );
+
+    // Return expired requests to the network
+    for (const request of expiredRequests) {
+      await db
+        .update(creditRequests)
+        .set({
+          status: 'na_rede',
+          investorId: null,
+          dataAceite: null,
+          dataLimiteAnalise: null,
+          updatedAt: new Date()
+        })
+        .where(eq(creditRequests.id, request.id));
+    }
+  }
+
+  async getCreditRequestsByInvestor(investorId: number, status: string): Promise<any[]> {
+    return await db
+      .select({
+        id: creditRequests.id,
+        valorSolicitado: creditRequests.valorSolicitado,
+        prazoMeses: creditRequests.prazoMeses,
+        finalidade: creditRequests.finalidade,
+        status: creditRequests.status,
+        dataAceite: creditRequests.dataAceite,
+        dataLimiteAnalise: creditRequests.dataLimiteAnalise,
+        observacoesAnalise: creditRequests.observacoesAnalise,
+        createdAt: creditRequests.createdAt,
+        updatedAt: creditRequests.updatedAt,
+        companyId: companies.id,
+        companyRazaoSocial: companies.razaoSocial,
+        companyCnpj: companies.cnpj,
+        companyStatus: companies.status,
+      })
+      .from(creditRequests)
+      .leftJoin(companies, eq(creditRequests.companyId, companies.id))
+      .where(
+        and(
+          eq(creditRequests.investorId, investorId),
+          eq(creditRequests.status, status)
+        )
+      )
+      .orderBy(desc(creditRequests.createdAt));
+  }
 }
 
 export const storage = new DatabaseStorage();

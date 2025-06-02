@@ -359,16 +359,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requestId = parseInt(req.params.id);
       const investorId = req.user.id;
       
+      // Calculate 24 hours from now
+      const dataLimiteAnalise = new Date();
+      dataLimiteAnalise.setHours(dataLimiteAnalise.getHours() + 24);
+      
       // Update credit request to show it was accepted by this investor
       await storage.updateCreditRequest(requestId, {
-        status: 'aceita_investidor',
+        status: 'em_analise',
         investorId: investorId,
-        dataAceite: new Date()
+        dataAceite: new Date(),
+        dataLimiteAnalise: dataLimiteAnalise
       });
 
-      res.json({ message: 'Solicitação aceita com sucesso!' });
+      res.json({ message: 'Solicitação aceita com sucesso! Você tem 24 horas para dar uma resposta.' });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao aceitar solicitação' });
+    }
+  });
+
+  app.get('/api/investor/my-analysis', authenticateToken, async (req: any, res) => {
+    try {
+      const investorId = req.user.id;
+      
+      // Check for expired requests and return them to network
+      await storage.checkAndReturnExpiredRequests();
+      
+      // Get requests being analyzed by this investor
+      const requests = await storage.getCreditRequestsByInvestor(investorId, 'em_analise');
+      res.json(requests);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar análises' });
+    }
+  });
+
+  app.post('/api/investor/credit-requests/:id/approve', authenticateToken, async (req: any, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      const { observacoes } = req.body;
+      
+      await storage.updateCreditRequest(requestId, {
+        status: 'aprovada',
+        observacoesAnalise: observacoes,
+        dataAnalise: new Date()
+      });
+
+      res.json({ message: 'Solicitação aprovada com sucesso!' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao aprovar solicitação' });
+    }
+  });
+
+  app.post('/api/investor/credit-requests/:id/reject', authenticateToken, async (req: any, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      const { observacoes } = req.body;
+      
+      await storage.updateCreditRequest(requestId, {
+        status: 'reprovada',
+        observacoesAnalise: observacoes,
+        dataAnalise: new Date()
+      });
+
+      res.json({ message: 'Solicitação reprovada.' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao reprovar solicitação' });
     }
   });
 
