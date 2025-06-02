@@ -223,9 +223,9 @@ export default function InvestorDashboard() {
                       {creditRequests.map((request: any) => (
                         <TableRow key={request.id}>
                           <TableCell className="font-medium">
-                            {request.company?.razaoSocial}
+                            {request.companyRazaoSocial || 'Empresa não encontrada'}
                           </TableCell>
-                          <TableCell>{request.company?.cnpj}</TableCell>
+                          <TableCell>{request.companyCnpj || '-'}</TableCell>
                           <TableCell>{formatCurrency(request.valorSolicitado)}</TableCell>
                           <TableCell>{request.finalidade}</TableCell>
                           <TableCell>{formatDate(request.createdAt)}</TableCell>
@@ -260,10 +260,9 @@ export default function InvestorDashboard() {
                                         <div>
                                           <h3 className="font-semibold mb-2">Informações da Empresa</h3>
                                           <div className="space-y-1 text-sm">
-                                            <p><strong>Razão Social:</strong> {selectedRequest.company?.razaoSocial}</p>
-                                            <p><strong>CNPJ:</strong> {selectedRequest.company?.cnpj}</p>
-                                            <p><strong>Faturamento:</strong> {formatCurrency(selectedRequest.company?.faturamento)}</p>
-                                            <p><strong>EBITDA:</strong> {formatCurrency(selectedRequest.company?.ebitda)}</p>
+                                            <p><strong>Razão Social:</strong> {selectedRequest.companyRazaoSocial || 'Não informado'}</p>
+                                            <p><strong>CNPJ:</strong> {selectedRequest.companyCnpj || 'Não informado'}</p>
+                                            <p><strong>Status:</strong> {selectedRequest.companyStatus || 'Não informado'}</p>
                                           </div>
                                         </div>
                                         <div>
