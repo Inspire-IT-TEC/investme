@@ -362,8 +362,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update credit request to show it was accepted by this investor
       await storage.updateCreditRequest(requestId, {
         status: 'aceita_investidor',
-        analisadoPor: investorId,
-        dataAnalise: new Date()
+        investorId: investorId,
+        dataAceite: new Date()
       });
 
       res.json({ message: 'Solicitação aceita com sucesso!' });
