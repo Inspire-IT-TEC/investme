@@ -3,7 +3,50 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Users table (Sócios)
+// Empreendedores table (quem solicita crédito)
+export const entrepreneurs = pgTable("entrepreneurs", {
+  id: serial("id").primaryKey(),
+  cpf: text("cpf").notNull().unique(),
+  rg: text("rg").notNull(),
+  nomeCompleto: text("nome_completo").notNull(),
+  email: text("email").notNull().unique(),
+  senha: text("senha").notNull(),
+  cep: text("cep").notNull(),
+  rua: text("rua").notNull(),
+  numero: text("numero").notNull(),
+  complemento: text("complemento"),
+  bairro: text("bairro").notNull(),
+  cidade: text("cidade").notNull(),
+  estado: text("estado").notNull(),
+  status: text("status").notNull().default("ativo"), // ativo, inativo
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Investidores table (quem aceita e analisa solicitações)
+export const investors = pgTable("investors", {
+  id: serial("id").primaryKey(),
+  cpf: text("cpf").notNull().unique(),
+  rg: text("rg").notNull(),
+  nomeCompleto: text("nome_completo").notNull(),
+  email: text("email").notNull().unique(),
+  senha: text("senha").notNull(),
+  cep: text("cep").notNull(),
+  rua: text("rua").notNull(),
+  numero: text("numero").notNull(),
+  complemento: text("complemento"),
+  bairro: text("bairro").notNull(),
+  cidade: text("cidade").notNull(),
+  estado: text("estado").notNull(),
+  limiteInvestimento: text("limite_investimento"),
+  status: text("status").notNull().default("pendente"), // pendente, ativo, inativo
+  aprovadoPor: integer("aprovado_por").references(() => adminUsers.id),
+  aprovadoEm: timestamp("aprovado_em"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Users table (mantido para compatibilidade - será removido depois)
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   cpf: text("cpf").notNull().unique(),
@@ -62,7 +105,7 @@ export const companies = pgTable("companies", {
   observacoesInternas: text("observacoes_internas"),
   analisadoPor: integer("analisado_por").references(() => adminUsers.id),
   dataAnalise: timestamp("data_analise"),
-  userId: integer("user_id").notNull().references(() => users.id),
+  entrepreneurId: integer("entrepreneur_id").notNull().references(() => entrepreneurs.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -96,10 +139,15 @@ export const creditRequests = pgTable("credit_requests", {
   prazoMeses: integer("prazo_meses").notNull(),
   finalidade: text("finalidade").notNull(),
   documentos: text("documentos").array(), // URLs to uploaded documents
-  status: text("status").notNull().default("pendente"), // pendente, em_analise, aprovada, reprovada
+  // Novo fluxo: na_rede -> aceita_por_investidor -> em_analise -> aprovada/reprovada
+  status: text("status").notNull().default("na_rede"), // na_rede, aceita_por_investidor, em_analise, aprovada, reprovada
+  investorId: integer("investor_id").references(() => investors.id), // Quem aceitou da rede
+  dataAceite: timestamp("data_aceite"), // Quando foi aceita pelo investidor
   observacoesAnalise: text("observacoes_analise"),
-  analisadoPor: integer("analisado_por").references(() => adminUsers.id), // Quem fez a análise
+  analisadoPor: integer("analisado_por").references(() => investors.id), // Investidor que está analisando
   dataAnalise: timestamp("data_analise"), // Quando foi analisado
+  aprovadoPorBackoffice: integer("aprovado_por_backoffice").references(() => adminUsers.id), // Supervisão do backoffice
+  dataAprovacaoBackoffice: timestamp("data_aprovacao_backoffice"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -134,14 +182,22 @@ export const messages = pgTable("messages", {
 });
 
 // Relations
+export const entrepreneursRelations = relations(entrepreneurs, ({ many }) => ({
+  companies: many(companies),
+}));
+
+export const investorsRelations = relations(investors, ({ many }) => ({
+  creditRequests: many(creditRequests),
+}));
+
 export const usersRelations = relations(users, ({ many }) => ({
   companies: many(companies),
 }));
 
 export const companiesRelations = relations(companies, ({ one, many }) => ({
-  user: one(users, {
-    fields: [companies.userId],
-    references: [users.id],
+  entrepreneur: one(entrepreneurs, {
+    fields: [companies.entrepreneurId],
+    references: [entrepreneurs.id],
   }),
   shareholders: many(companyShareholders),
   guarantees: many(companyGuarantees),
