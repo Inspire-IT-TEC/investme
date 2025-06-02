@@ -61,6 +61,10 @@ export const users = pgTable("users", {
   bairro: text("bairro").notNull(),
   cidade: text("cidade").notNull(),
   estado: text("estado").notNull(),
+  tipo: text("tipo").notNull().default("entrepreneur"), // entrepreneur, investor
+  status: text("status").notNull().default("ativo"), // ativo, pendente, inativo
+  telefone: text("telefone"),
+  limiteInvestimento: text("limite_investimento"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

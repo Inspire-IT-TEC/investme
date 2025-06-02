@@ -131,7 +131,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Investor Registration Route
   app.post('/api/investors/register', async (req, res) => {
     try {
-      const investorData = insertUserSchema.parse(req.body);
+      const investorData = insertUserSchema.parse({
+        ...req.body,
+        tipo: 'investor',
+        status: 'pendente'
+      });
       
       // Check if user already exists by email or CPF
       const existingByEmail = await storage.getUserByEmail(investorData.email);
@@ -149,7 +153,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const investor = await storage.createUser({
         ...investorData,
-        senha: hashedPassword
+        senha: hashedPassword,
+        tipo: 'investor',
+        status: 'pendente'
       });
 
       res.status(201).json({ 
@@ -165,7 +171,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Entrepreneur Registration Route
   app.post('/api/entrepreneurs/register', async (req, res) => {
     try {
-      const entrepreneurData = insertUserSchema.parse(req.body);
+      const entrepreneurData = insertUserSchema.parse({
+        ...req.body,
+        tipo: 'entrepreneur',
+        status: 'ativo'
+      });
       
       // Check if user already exists by email or CPF
       const existingByEmail = await storage.getUserByEmail(entrepreneurData.email);
@@ -183,7 +193,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const entrepreneur = await storage.createUser({
         ...entrepreneurData,
-        senha: hashedPassword
+        senha: hashedPassword,
+        tipo: 'entrepreneur',
+        status: 'ativo'
       });
 
       res.status(201).json({ 
@@ -201,32 +213,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { login, senha } = req.body; // login can be email or CPF
       
-      console.log('Tentativa de login investidor:', { login, senhaLength: senha?.length });
-      
       let user = await storage.getUserByEmail(login);
-      console.log('Busca por email:', { found: !!user, email: login });
-      
       if (!user) {
         user = await storage.getUserByCpf(login);
-        console.log('Busca por CPF:', { found: !!user, cpf: login });
       }
 
       if (!user) {
-        console.log('Usuário não encontrado');
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
-      console.log('Usuário encontrado:', { id: user.id, email: user.email, cpf: user.cpf });
+      // Check if user is actually an investor
+      if (user.tipo !== 'investor') {
+        return res.status(401).json({ message: 'Acesso não autorizado para investidores' });
+      }
+
+      // Check if investor account is approved
+      if (user.status === 'pendente') {
+        return res.status(401).json({ message: 'Conta aguardando aprovação do backoffice' });
+      }
+
+      if (user.status === 'inativo') {
+        return res.status(401).json({ message: 'Conta inativa. Entre em contato com o suporte.' });
+      }
 
       const isValidPassword = await bcrypt.compare(senha, user.senha);
-      console.log('Verificação de senha:', { isValid: isValidPassword });
-      
       if (!isValidPassword) {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, type: 'investor' },
+        { id: user.id, email: user.email, tipo: user.tipo, type: 'investor' },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
@@ -255,13 +271,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
+      // Check if user is actually an entrepreneur
+      if (user.tipo !== 'entrepreneur') {
+        return res.status(401).json({ message: 'Acesso não autorizado para empreendedores' });
+      }
+
       const isValidPassword = await bcrypt.compare(senha, user.senha);
       if (!isValidPassword) {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, type: 'entrepreneur' },
+        { id: user.id, email: user.email, tipo: user.tipo, type: 'entrepreneur' },
         JWT_SECRET,
         { expiresIn: '7d' }
       );

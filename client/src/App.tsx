@@ -10,6 +10,7 @@ import UserTypeSelection from "@/pages/user-type-selection";
 import RegisterEntrepreneur from "@/pages/register-entrepreneur";
 import RegisterInvestor from "@/pages/register-investor";
 import Dashboard from "@/pages/dashboard";
+import InvestorDashboard from "@/pages/investor-dashboard";
 import CompanyRegistration from "@/pages/company-registration";
 import CreditRequest from "@/pages/credit-request";
 import BackofficeLogin from "@/pages/backoffice/login";
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/investor/dashboard" component={InvestorDashboard} />
       <Route path="/company-registration" component={CompanyRegistration} />
       <Route path="/credit-request/:companyId" component={CreditRequest} />
       <Route path="/messages" component={Messages} />
