@@ -442,7 +442,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversationMessages(conversationId: string): Promise<any[]> {
-    return await db
+    const messagesData = await db
       .select({
         id: messages.id,
         conversationId: messages.conversationId,
@@ -459,6 +459,31 @@ export class DatabaseStorage implements IStorage {
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
       .orderBy(messages.createdAt);
+
+    // Add sender information for each message
+    const enrichedMessages = await Promise.all(
+      messagesData.map(async (message) => {
+        let senderName = '';
+        
+        if (message.tipo === 'investor') {
+          const investor = await this.getInvestor(message.remetenteId);
+          senderName = investor?.nomeCompleto || `Investidor #${message.remetenteId}`;
+        } else if (message.tipo === 'empresa') {
+          const user = await this.getUser(message.remetenteId);
+          senderName = user?.nomeCompleto || `Empresa #${message.remetenteId}`;
+        } else if (message.tipo === 'admin') {
+          const admin = await this.getAdminUser(message.remetenteId);
+          senderName = admin?.nome || `Admin #${message.remetenteId}`;
+        }
+
+        return {
+          ...message,
+          senderName
+        };
+      })
+    );
+
+    return enrichedMessages;
   }
 
   async getCompanyConversations(companyId: number): Promise<any[]> {
