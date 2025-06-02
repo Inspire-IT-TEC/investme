@@ -18,7 +18,7 @@ export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messageContent, setMessageContent] = useState("");
   const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
-  const [selectedCreditRequest, setSelectedCreditRequest] = useState("");
+  const [selectedCompany, setSelectedCompany] = useState("");
   const [newConversationSubject, setNewConversationSubject] = useState("");
   const [newConversationMessage, setNewConversationMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -35,10 +35,10 @@ export default function Messages() {
     },
   });
 
-  const { data: creditRequests } = useQuery({
-    queryKey: ["/api/credit-requests/user"],
+  const { data: companies } = useQuery({
+    queryKey: ["/api/companies"],
     queryFn: () => {
-      return fetch("/api/credit-requests/user", {
+      return fetch("/api/companies", {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -108,8 +108,8 @@ export default function Messages() {
   });
 
   const createConversationMutation = useMutation({
-    mutationFn: async (data: { creditRequestId: number; assunto: string; conteudo: string }) => {
-      const conversationId = `credit_${data.creditRequestId}_${Date.now()}`;
+    mutationFn: async (data: { companyId: number; assunto: string; conteudo: string }) => {
+      const conversationId = `company_${data.companyId}_${Date.now()}`;
       const response = await fetch("/api/messages", {
         method: "POST",
         headers: {
@@ -118,7 +118,8 @@ export default function Messages() {
         },
         body: JSON.stringify({
           conversationId,
-          creditRequestId: data.creditRequestId,
+          companyId: data.companyId,
+          creditRequestId: null,
           assunto: data.assunto,
           conteudo: data.conteudo,
           destinatarioTipo: 'admin'
@@ -131,7 +132,7 @@ export default function Messages() {
       queryClient.invalidateQueries({ queryKey: ["/api/messages/conversations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
       setIsNewConversationOpen(false);
-      setSelectedCreditRequest("");
+      setSelectedCompany("");
       setNewConversationSubject("");
       setNewConversationMessage("");
       // Selecionar automaticamente a nova conversa
@@ -226,16 +227,16 @@ export default function Messages() {
                     <div className="space-y-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block">
-                          Selecione uma Solicitação de Crédito
+                          Selecione uma Empresa
                         </label>
-                        <Select value={selectedCreditRequest} onValueChange={setSelectedCreditRequest}>
+                        <Select value={selectedCompany} onValueChange={setSelectedCompany}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Escolha uma solicitação..." />
+                            <SelectValue placeholder="Escolha uma empresa..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {creditRequests?.map((request: any) => (
-                              <SelectItem key={request.id} value={request.id.toString()}>
-                                {request.companyRazaoSocial} - R$ {request.valorSolicitado}
+                            {companies?.map((company: any) => (
+                              <SelectItem key={company.id} value={company.id.toString()}>
+                                {company.razaoSocial} - {company.cnpj}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -272,15 +273,15 @@ export default function Messages() {
                         </Button>
                         <Button
                           onClick={() => {
-                            if (selectedCreditRequest && newConversationSubject.trim() && newConversationMessage.trim()) {
+                            if (selectedCompany && newConversationSubject.trim() && newConversationMessage.trim()) {
                               createConversationMutation.mutate({
-                                creditRequestId: parseInt(selectedCreditRequest),
+                                companyId: parseInt(selectedCompany),
                                 assunto: newConversationSubject.trim(),
                                 conteudo: newConversationMessage.trim()
                               });
                             }
                           }}
-                          disabled={!selectedCreditRequest || !newConversationSubject.trim() || !newConversationMessage.trim() || createConversationMutation.isPending}
+                          disabled={!selectedCompany || !newConversationSubject.trim() || !newConversationMessage.trim() || createConversationMutation.isPending}
                         >
                           {createConversationMutation.isPending ? "Criando..." : "Criar Conversa"}
                         </Button>
