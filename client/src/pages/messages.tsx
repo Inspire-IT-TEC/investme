@@ -324,10 +324,10 @@ export default function Messages() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">
-                                {conversation.companyName ? `Empresa: ${conversation.companyName}` : `Solicitação #${conversation.creditRequestId}`}
+                                {conversation.participantName ? `${conversation.participantType}: ${conversation.participantName}` : `Empresa: ${conversation.companyName}`}
                               </p>
                               <p className="text-xs text-blue-600 truncate mt-1">
-                                Assunto: {conversation.assunto || 'Sem assunto'}
+                                Solicitação #{conversation.creditRequestId}
                               </p>
                             </div>
                             {conversation.unreadCount > 0 && (

@@ -31,7 +31,7 @@ import {
   type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, like, ilike, sql, or, lt } from "drizzle-orm";
+import { eq, and, desc, like, ilike, sql, or, lt, ne } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -517,11 +517,44 @@ export class DatabaseStorage implements IStorage {
           conteudo: messages.conteudo,
           assunto: messages.assunto,
           createdAt: messages.createdAt,
+          tipo: messages.tipo,
+          remetenteId: messages.remetenteId,
         })
         .from(messages)
         .where(eq(messages.conversationId, conv.conversationId))
         .orderBy(desc(messages.createdAt))
         .limit(1);
+
+      // Get participant info (who is talking with the company)
+      let participantName = '';
+      let participantType = '';
+      
+      // Find non-company messages to identify the other participant
+      const [otherParticipant] = await db
+        .select({
+          tipo: messages.tipo,
+          remetenteId: messages.remetenteId,
+        })
+        .from(messages)
+        .where(
+          and(
+            eq(messages.conversationId, conv.conversationId),
+            ne(messages.tipo, 'empresa')
+          )
+        )
+        .limit(1);
+
+      if (otherParticipant) {
+        if (otherParticipant.tipo === 'investor') {
+          const user = await this.getUser(otherParticipant.remetenteId);
+          participantName = user?.nomeCompleto || `Investidor #${otherParticipant.remetenteId}`;
+          participantType = 'Investidor';
+        } else if (otherParticipant.tipo === 'admin') {
+          const admin = await this.getAdminUser(otherParticipant.remetenteId);
+          participantName = admin?.nome || `Admin #${otherParticipant.remetenteId}`;
+          participantType = 'Suporte';
+        }
+      }
 
       // Count unread messages for the company
       const unreadMessages = await db
@@ -530,7 +563,7 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(messages.conversationId, conv.conversationId),
-            eq(messages.destinatarioTipo, 'company'),
+            eq(messages.destinatarioTipo, 'empresa'),
             eq(messages.lida, false)
           )
         );
@@ -542,6 +575,8 @@ export class DatabaseStorage implements IStorage {
         creditRequestId: conv.creditRequestId,
         companyName: company?.razaoSocial || 'Empresa não encontrada',
         companyCnpj: company?.cnpj || '',
+        participantName: participantName,
+        participantType: participantType,
         assunto: lastMessage?.assunto || 'Sem assunto',
         lastMessage: lastMessage?.conteudo || '',
         lastMessageDate: lastMessage?.createdAt || new Date(),
