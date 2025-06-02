@@ -1,95 +1,121 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, TrendingUp, Users } from "lucide-react";
+import { Building2, TrendingUp, ArrowRight } from "lucide-react";
+import { InvestmeLogo } from "@/components/ui/logo";
 
 export default function UserTypeSelection() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-12">
+          <div className="flex justify-center mb-6">
+            <InvestmeLogo className="h-12" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Bem-vindo à Investme
           </h1>
-          <p className="text-xl text-gray-600">
-            Escolha como você quer participar da nossa plataforma
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Escolha como você quer participar da nossa plataforma de crédito inteligente
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {/* Empreendedor */}
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                <Building2 className="w-8 h-8 text-blue-600" />
+          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white">
+            <CardContent className="p-8">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-50 rounded-2xl mb-4 group-hover:bg-blue-100 transition-colors">
+                  <Building2 className="w-10 h-10 text-indigo-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Sou Empreendedor</h2>
+                <p className="text-gray-600">Quero solicitar crédito para minha empresa</p>
               </div>
-              <CardTitle className="text-2xl text-blue-700">
-                Sou Empreendedor
-              </CardTitle>
-              <CardDescription className="text-base">
-                Quero solicitar crédito para minha empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900">O que você pode fazer:</h3>
-                <ul className="space-y-1 text-sm text-gray-600">
-                  <li>• Cadastrar suas empresas</li>
-                  <li>• Solicitar crédito</li>
-                  <li>• Acompanhar análises</li>
-                  <li>• Conversar com investidores</li>
+              
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-3">O que você pode fazer:</h3>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center">
+                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mr-3"></div>
+                    Cadastrar suas empresas
+                  </li>
+                  <li className="flex items-center">
+                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mr-3"></div>
+                    Solicitar crédito
+                  </li>
+                  <li className="flex items-center">
+                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mr-3"></div>
+                    Acompanhar análises
+                  </li>
+                  <li className="flex items-center">
+                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mr-3"></div>
+                    Conversar com investidores
+                  </li>
                 </ul>
               </div>
+              
               <Link href="/register/entrepreneur">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium group-hover:bg-indigo-700 transition-colors">
                   Cadastrar como Empreendedor
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
             </CardContent>
           </Card>
 
           {/* Investidor */}
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <TrendingUp className="w-8 h-8 text-green-600" />
+          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white">
+            <CardContent className="p-8">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-green-50 rounded-2xl mb-4 group-hover:bg-green-100 transition-colors">
+                  <TrendingUp className="w-10 h-10 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Sou Investidor</h2>
+                <p className="text-gray-600">Quero analisar e aprovar solicitações de crédito</p>
               </div>
-              <CardTitle className="text-2xl text-green-700">
-                Sou Investidor
-              </CardTitle>
-              <CardDescription className="text-base">
-                Quero analisar e aprovar solicitações de crédito
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900">O que você pode fazer:</h3>
-                <ul className="space-y-1 text-sm text-gray-600">
-                  <li>• Ver solicitações na rede</li>
-                  <li>• Aceitar projetos</li>
-                  <li>• Analisar empresas</li>
-                  <li>• Conversar com empreendedores</li>
+              
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-3">O que você pode fazer:</h3>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center">
+                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-3"></div>
+                    Ver solicitações na rede
+                  </li>
+                  <li className="flex items-center">
+                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-3"></div>
+                    Aceitar projetos
+                  </li>
+                  <li className="flex items-center">
+                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-3"></div>
+                    Analisar empresas
+                  </li>
+                  <li className="flex items-center">
+                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-3"></div>
+                    Conversar com empreendedores
+                  </li>
                 </ul>
               </div>
+              
               <Link href="/register/investor">
-                <Button className="w-full bg-green-600 hover:bg-green-700">
+                <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium group-hover:bg-green-700 transition-colors">
                   Cadastrar como Investidor
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
             </CardContent>
           </Card>
         </div>
 
-        <div className="text-center mt-8">
-          <p className="text-gray-600 mb-4">Já tem uma conta?</p>
-          <div className="space-x-4">
+        <div className="text-center mt-12">
+          <p className="text-gray-600 mb-6">Já tem uma conta?</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login/entrepreneur">
-              <Button variant="outline">
+              <Button variant="outline" className="px-8 py-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50">
                 Login Empreendedor
               </Button>
             </Link>
             <Link href="/login/investor">
-              <Button variant="outline">
+              <Button variant="outline" className="px-8 py-2 border-green-200 text-green-600 hover:bg-green-50">
                 Login Investidor
               </Button>
             </Link>
