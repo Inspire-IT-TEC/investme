@@ -24,7 +24,12 @@ import BackofficeMessages from "@/pages/backoffice/messages";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Login} />
+      <Route path="/" component={UserTypeSelection} />
+      <Route path="/user-type-selection" component={UserTypeSelection} />
+      <Route path="/register/entrepreneur" component={RegisterEntrepreneur} />
+      <Route path="/register/investor" component={RegisterInvestor} />
+      <Route path="/login/entrepreneur" component={Login} />
+      <Route path="/login/investor" component={Login} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/dashboard" component={Dashboard} />
