@@ -62,11 +62,78 @@ export default function InvestorDashboard() {
         description: "Você agora pode iniciar a conversa com o empreendedor.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/investor/credit-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/investor/my-analysis"] });
       setSelectedRequest(null);
     },
     onError: (error: Error) => {
       toast({
         title: "Erro ao aceitar solicitação",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Approve credit request mutation
+  const approveRequestMutation = useMutation({
+    mutationFn: async ({ requestId, observacoes }: { requestId: number; observacoes: string }) => {
+      const response = await fetch(`/api/investor/credit-requests/${requestId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ observacoes }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao aprovar solicitação');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Solicitação aprovada!",
+        description: "A solicitação foi aprovada com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/investor/my-analysis"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao aprovar solicitação",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Reject credit request mutation
+  const rejectRequestMutation = useMutation({
+    mutationFn: async ({ requestId, observacoes }: { requestId: number; observacoes: string }) => {
+      const response = await fetch(`/api/investor/credit-requests/${requestId}/reject`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ observacoes }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao reprovar solicitação');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Solicitação reprovada",
+        description: "A solicitação foi reprovada.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/investor/my-analysis"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao reprovar solicitação",
         description: error.message,
         variant: "destructive",
       });
@@ -370,18 +437,136 @@ export default function InvestorDashboard() {
                           </div>
 
                           <div className="flex space-x-2">
-                            <Button className="bg-green-600 hover:bg-green-700" size="sm">
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Aprovar
-                            </Button>
-                            <Button variant="destructive" size="sm">
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Reprovar
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <MessageCircle className="w-4 h-4 mr-2" />
-                              Conversar
-                            </Button>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button className="bg-green-600 hover:bg-green-700" size="sm">
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Aprovar
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Aprovar Solicitação</DialogTitle>
+                                  <DialogDescription>
+                                    Você está aprovando a solicitação de crédito de {request.companyRazaoSocial}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="text-sm font-medium">Observações (opcional)</label>
+                                    <textarea
+                                      className="w-full mt-1 p-2 border rounded"
+                                      rows={3}
+                                      placeholder="Adicione observações sobre a aprovação..."
+                                      id={`approve-obs-${request.id}`}
+                                    />
+                                  </div>
+                                  <div className="flex justify-end space-x-2">
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline">Cancelar</Button>
+                                    </DialogTrigger>
+                                    <Button 
+                                      className="bg-green-600 hover:bg-green-700"
+                                      onClick={() => {
+                                        const textarea = document.getElementById(`approve-obs-${request.id}`) as HTMLTextAreaElement;
+                                        approveRequestMutation.mutate({
+                                          requestId: request.id,
+                                          observacoes: textarea?.value || ''
+                                        });
+                                      }}
+                                      disabled={approveRequestMutation.isPending}
+                                    >
+                                      {approveRequestMutation.isPending ? 'Aprovando...' : 'Confirmar Aprovação'}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                            
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="destructive" size="sm">
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Reprovar
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Reprovar Solicitação</DialogTitle>
+                                  <DialogDescription>
+                                    Você está reprovando a solicitação de crédito de {request.companyRazaoSocial}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="text-sm font-medium">Motivo da reprovação *</label>
+                                    <textarea
+                                      className="w-full mt-1 p-2 border rounded"
+                                      rows={3}
+                                      placeholder="Explique o motivo da reprovação..."
+                                      id={`reject-obs-${request.id}`}
+                                      required
+                                    />
+                                  </div>
+                                  <div className="flex justify-end space-x-2">
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline">Cancelar</Button>
+                                    </DialogTrigger>
+                                    <Button 
+                                      variant="destructive"
+                                      onClick={() => {
+                                        const textarea = document.getElementById(`reject-obs-${request.id}`) as HTMLTextAreaElement;
+                                        if (!textarea?.value.trim()) {
+                                          toast({
+                                            title: "Campo obrigatório",
+                                            description: "Por favor, informe o motivo da reprovação.",
+                                            variant: "destructive",
+                                          });
+                                          return;
+                                        }
+                                        rejectRequestMutation.mutate({
+                                          requestId: request.id,
+                                          observacoes: textarea.value
+                                        });
+                                      }}
+                                      disabled={rejectRequestMutation.isPending}
+                                    >
+                                      {rejectRequestMutation.isPending ? 'Reprovando...' : 'Confirmar Reprovação'}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <MessageCircle className="w-4 h-4 mr-2" />
+                                  Conversar
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl max-h-[80vh]">
+                                <DialogHeader>
+                                  <DialogTitle>Conversa com {request.companyRazaoSocial}</DialogTitle>
+                                  <DialogDescription>
+                                    Chat privado sobre a solicitação de crédito
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="h-96 border rounded p-4 overflow-y-auto bg-gray-50">
+                                  <div className="text-center text-gray-500 py-8">
+                                    Sistema de chat em desenvolvimento
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Digite sua mensagem..."
+                                    className="flex-1 px-3 py-2 border rounded"
+                                    disabled
+                                  />
+                                  <Button disabled>Enviar</Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                           </div>
                         </CardContent>
                       </Card>
