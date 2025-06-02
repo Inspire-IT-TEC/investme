@@ -683,7 +683,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCreditRequestsByInvestor(investorId: number, status: string): Promise<any[]> {
-    return await db
+    console.log(`Buscando solicitações para investidor ${investorId} com status ${status}`);
+    
+    const result = await db
       .select({
         id: creditRequests.id,
         valorSolicitado: creditRequests.valorSolicitado,
@@ -709,6 +711,9 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(creditRequests.createdAt));
+    
+    console.log(`Encontradas ${result.length} solicitações`);
+    return result;
   }
 }
 
