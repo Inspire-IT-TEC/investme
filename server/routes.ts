@@ -131,15 +131,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Investor Registration Route
   app.post('/api/investors/register', async (req, res) => {
     try {
-      const investorData = insertInvestorSchema.parse(req.body);
+      const investorData = insertUserSchema.parse(req.body);
       
-      // Check if investor already exists by email or CPF
-      const existingByEmail = await storage.getInvestorByEmail(investorData.email);
+      // Check if user already exists by email or CPF
+      const existingByEmail = await storage.getUserByEmail(investorData.email);
       if (existingByEmail) {
         return res.status(400).json({ message: 'Email já cadastrado' });
       }
       
-      const existingByCpf = await storage.getInvestorByCpf(investorData.cpf);
+      const existingByCpf = await storage.getUserByCpf(investorData.cpf);
       if (existingByCpf) {
         return res.status(400).json({ message: 'CPF já cadastrado' });
       }
@@ -147,9 +147,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await bcrypt.hash(investorData.senha, SALT_ROUNDS);
       
-      const investor = await storage.createInvestor({
+      const investor = await storage.createUser({
         ...investorData,
-        senha: hashedPassword,
+        senha: hashedPassword
       });
 
       res.status(201).json({ 
@@ -165,15 +165,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Entrepreneur Registration Route
   app.post('/api/entrepreneurs/register', async (req, res) => {
     try {
-      const entrepreneurData = insertEntrepreneurSchema.parse(req.body);
+      const entrepreneurData = insertUserSchema.parse(req.body);
       
-      // Check if entrepreneur already exists by email or CPF
-      const existingByEmail = await storage.getEntrepreneurByEmail(entrepreneurData.email);
+      // Check if user already exists by email or CPF
+      const existingByEmail = await storage.getUserByEmail(entrepreneurData.email);
       if (existingByEmail) {
         return res.status(400).json({ message: 'Email já cadastrado' });
       }
       
-      const existingByCpf = await storage.getEntrepreneurByCpf(entrepreneurData.cpf);
+      const existingByCpf = await storage.getUserByCpf(entrepreneurData.cpf);
       if (existingByCpf) {
         return res.status(400).json({ message: 'CPF já cadastrado' });
       }
@@ -181,9 +181,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await bcrypt.hash(entrepreneurData.senha, SALT_ROUNDS);
       
-      const entrepreneur = await storage.createEntrepreneur({
+      const entrepreneur = await storage.createUser({
         ...entrepreneurData,
-        senha: hashedPassword,
+        senha: hashedPassword
       });
 
       res.status(201).json({ 

@@ -1,5 +1,7 @@
 import { 
   users, 
+  entrepreneurs,
+  investors,
   adminUsers,
   companies, 
   companyShareholders,
@@ -9,6 +11,10 @@ import {
   messages,
   type User, 
   type InsertUser,
+  type Entrepreneur,
+  type InsertEntrepreneur,
+  type Investor,
+  type InsertInvestor,
   type AdminUser,
   type InsertAdminUser,
   type Company,
@@ -141,6 +147,48 @@ export class DatabaseStorage implements IStorage {
   async createAdminUser(insertAdminUser: InsertAdminUser): Promise<AdminUser> {
     const [adminUser] = await db.insert(adminUsers).values(insertAdminUser).returning();
     return adminUser;
+  }
+
+  // Entrepreneur methods
+  async getEntrepreneur(id: number): Promise<Entrepreneur | undefined> {
+    const [entrepreneur] = await db.select().from(entrepreneurs).where(eq(entrepreneurs.id, id));
+    return entrepreneur || undefined;
+  }
+
+  async getEntrepreneurByEmail(email: string): Promise<Entrepreneur | undefined> {
+    const [entrepreneur] = await db.select().from(entrepreneurs).where(eq(entrepreneurs.email, email));
+    return entrepreneur || undefined;
+  }
+
+  async getEntrepreneurByCpf(cpf: string): Promise<Entrepreneur | undefined> {
+    const [entrepreneur] = await db.select().from(entrepreneurs).where(eq(entrepreneurs.cpf, cpf));
+    return entrepreneur || undefined;
+  }
+
+  async createEntrepreneur(insertEntrepreneur: InsertEntrepreneur): Promise<Entrepreneur> {
+    const [entrepreneur] = await db.insert(entrepreneurs).values(insertEntrepreneur).returning();
+    return entrepreneur;
+  }
+
+  // Investor methods
+  async getInvestor(id: number): Promise<Investor | undefined> {
+    const [investor] = await db.select().from(investors).where(eq(investors.id, id));
+    return investor || undefined;
+  }
+
+  async getInvestorByEmail(email: string): Promise<Investor | undefined> {
+    const [investor] = await db.select().from(investors).where(eq(investors.email, email));
+    return investor || undefined;
+  }
+
+  async getInvestorByCpf(cpf: string): Promise<Investor | undefined> {
+    const [investor] = await db.select().from(investors).where(eq(investors.cpf, cpf));
+    return investor || undefined;
+  }
+
+  async createInvestor(insertInvestor: InsertInvestor): Promise<Investor> {
+    const [investor] = await db.insert(investors).values(insertInvestor).returning();
+    return investor;
   }
 
   // Company methods
