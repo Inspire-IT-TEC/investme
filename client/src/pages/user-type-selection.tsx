@@ -22,40 +22,40 @@ export default function UserTypeSelection() {
 
         <div className="grid lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {/* Empreendedor */}
-          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white">
+          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-indigo-600 to-purple-700">
             <CardContent className="p-8">
               <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-50 rounded-2xl mb-4 group-hover:bg-blue-100 transition-colors">
-                  <Building2 className="w-10 h-10 text-indigo-600" />
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-2xl mb-4 group-hover:bg-white/30 transition-colors">
+                  <Building2 className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Sou Empreendedor</h2>
-                <p className="text-gray-600">Quero solicitar crédito para minha empresa</p>
+                <h2 className="text-2xl font-bold text-white mb-2">Sou Empreendedor</h2>
+                <p className="text-indigo-100">Quero solicitar crédito para minha empresa</p>
               </div>
               
               <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">O que você pode fazer:</h3>
-                <ul className="space-y-2 text-gray-600">
+                <h3 className="font-semibold text-white mb-3">O que você pode fazer:</h3>
+                <ul className="space-y-2 text-indigo-100">
                   <li className="flex items-center">
-                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mr-3"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-3"></div>
                     Cadastrar suas empresas
                   </li>
                   <li className="flex items-center">
-                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mr-3"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-3"></div>
                     Solicitar crédito
                   </li>
                   <li className="flex items-center">
-                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mr-3"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-3"></div>
                     Acompanhar análises
                   </li>
                   <li className="flex items-center">
-                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mr-3"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-3"></div>
                     Conversar com investidores
                   </li>
                 </ul>
               </div>
               
               <Link href="/register/entrepreneur">
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium group-hover:bg-indigo-700 transition-colors">
+                <Button className="w-full bg-white text-indigo-600 hover:bg-gray-50 py-3 rounded-lg font-medium transition-colors">
                   Cadastrar como Empreendedor
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -64,40 +64,40 @@ export default function UserTypeSelection() {
           </Card>
 
           {/* Investidor */}
-          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white">
+          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-green-600 to-emerald-700">
             <CardContent className="p-8">
               <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-green-50 rounded-2xl mb-4 group-hover:bg-green-100 transition-colors">
-                  <TrendingUp className="w-10 h-10 text-green-600" />
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-2xl mb-4 group-hover:bg-white/30 transition-colors">
+                  <TrendingUp className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Sou Investidor</h2>
-                <p className="text-gray-600">Quero analisar e aprovar solicitações de crédito</p>
+                <h2 className="text-2xl font-bold text-white mb-2">Sou Investidor</h2>
+                <p className="text-green-100">Quero analisar e aprovar solicitações de crédito</p>
               </div>
               
               <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">O que você pode fazer:</h3>
-                <ul className="space-y-2 text-gray-600">
+                <h3 className="font-semibold text-white mb-3">O que você pode fazer:</h3>
+                <ul className="space-y-2 text-green-100">
                   <li className="flex items-center">
-                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-3"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-3"></div>
                     Ver solicitações na rede
                   </li>
                   <li className="flex items-center">
-                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-3"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-3"></div>
                     Aceitar projetos
                   </li>
                   <li className="flex items-center">
-                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-3"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-3"></div>
                     Analisar empresas
                   </li>
                   <li className="flex items-center">
-                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-3"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-3"></div>
                     Conversar com empreendedores
                   </li>
                 </ul>
               </div>
               
               <Link href="/register/investor">
-                <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium group-hover:bg-green-700 transition-colors">
+                <Button className="w-full bg-white text-green-600 hover:bg-gray-50 py-3 rounded-lg font-medium transition-colors">
                   Cadastrar como Investidor
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
