@@ -24,6 +24,9 @@ export default function InvestorDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [messageContent, setMessageContent] = useState("");
+  const [selectedChatRequest, setSelectedChatRequest] = useState<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch investor stats
   const { data: stats, isLoading: loadingStats } = useQuery({

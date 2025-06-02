@@ -342,12 +342,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/investor/stats', authenticateToken, async (req: any, res) => {
     try {
+      const investorId = req.user.id;
+      
+      // Available requests (na_rede status)
+      const availableRequests = await storage.getCreditRequests('na_rede');
+      
+      // Accepted requests by this investor (em_analise, aprovada, reprovada)
+      const acceptedRequests = await storage.getCreditRequestsByInvestor(investorId, 'em_analise');
+      const approvedRequests = await storage.getCreditRequestsByInvestor(investorId, 'aprovada');
+      const rejectedRequests = await storage.getCreditRequestsByInvestor(investorId, 'reprovada');
+      
+      const totalAcceptedRequests = acceptedRequests.length + approvedRequests.length + rejectedRequests.length;
+      
+      // Total value from accepted requests
+      const totalValue = [...acceptedRequests, ...approvedRequests, ...rejectedRequests]
+        .reduce((sum, req) => sum + parseFloat(req.valorSolicitado), 0);
+      
+      // Unique companies in available requests
+      const uniqueCompanies = new Set(availableRequests.map(req => req.companyId)).size;
+      
       const stats = {
-        availableRequests: 5,
-        acceptedRequests: 2,
-        totalValue: 250000,
-        uniqueCompanies: 3
+        availableRequests: availableRequests.length,
+        acceptedRequests: totalAcceptedRequests,
+        totalValue: totalValue,
+        uniqueCompanies: uniqueCompanies
       };
+      
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao buscar estatísticas' });
@@ -421,6 +441,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: 'Solicitação reprovada.' });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao reprovar solicitação' });
+    }
+  });
+
+  // Investor messages routes
+  app.get('/api/investor/messages/:conversationId', authenticateToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      const messages = await storage.getConversationMessages(conversationId);
+      res.json(messages);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar mensagens' });
+    }
+  });
+
+  app.post('/api/investor/messages', authenticateToken, async (req: any, res) => {
+    try {
+      const { conversationId, conteudo, companyId, creditRequestId } = req.body;
+      
+      const message = await storage.createMessage({
+        conversationId,
+        conteudo,
+        tipo: 'investor',
+        remetenteId: req.user.id,
+        destinatarioTipo: 'empresa',
+        companyId,
+        creditRequestId
+      });
+      
+      res.json(message);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao enviar mensagem' });
+    }
+  });
+
+  app.post('/api/investor/messages/:conversationId/mark-read', authenticateToken, async (req: any, res) => {
+    try {
+      const { conversationId } = req.params;
+      await storage.markConversationAsRead(conversationId, 'investor');
+      res.json({ message: 'Mensagens marcadas como lidas' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao marcar como lidas' });
     }
   });
 
