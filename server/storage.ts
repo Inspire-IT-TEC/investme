@@ -466,8 +466,9 @@ export class DatabaseStorage implements IStorage {
         let senderName = '';
         
         if (message.tipo === 'investor') {
-          const investor = await this.getInvestor(message.remetenteId);
-          senderName = investor?.nomeCompleto || `Investidor #${message.remetenteId}`;
+          // Investors are actually users with investor role
+          const user = await this.getUser(message.remetenteId);
+          senderName = user?.nomeCompleto || `Investidor #${message.remetenteId}`;
         } else if (message.tipo === 'empresa') {
           const user = await this.getUser(message.remetenteId);
           senderName = user?.nomeCompleto || `Empresa #${message.remetenteId}`;
