@@ -10,6 +10,8 @@ import fs from "fs";
 import { 
   insertUserSchema, 
   insertAdminUserSchema,
+  insertEntrepreneurSchema,
+  insertInvestorSchema,
   insertCompanySchema,
   insertCompanyShareholderSchema,
   insertCompanyGuaranteeSchema,
@@ -123,6 +125,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message || 'Erro ao criar usuário' });
+    }
+  });
+
+  // Investor Registration Route
+  app.post('/api/investors/register', async (req, res) => {
+    try {
+      const investorData = insertInvestorSchema.parse(req.body);
+      
+      // Check if investor already exists by email or CPF
+      const existingByEmail = await storage.getInvestorByEmail(investorData.email);
+      if (existingByEmail) {
+        return res.status(400).json({ message: 'Email já cadastrado' });
+      }
+      
+      const existingByCpf = await storage.getInvestorByCpf(investorData.cpf);
+      if (existingByCpf) {
+        return res.status(400).json({ message: 'CPF já cadastrado' });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(investorData.senha, SALT_ROUNDS);
+      
+      const investor = await storage.createInvestor({
+        ...investorData,
+        senha: hashedPassword,
+      });
+
+      res.status(201).json({ 
+        message: 'Investidor cadastrado com sucesso! Aguarde aprovação do backoffice.',
+        investor: { ...investor, senha: undefined } 
+      });
+    } catch (error: any) {
+      console.error('Error registering investor:', error);
+      res.status(400).json({ message: error.message || 'Erro ao cadastrar investidor' });
+    }
+  });
+
+  // Entrepreneur Registration Route
+  app.post('/api/entrepreneurs/register', async (req, res) => {
+    try {
+      const entrepreneurData = insertEntrepreneurSchema.parse(req.body);
+      
+      // Check if entrepreneur already exists by email or CPF
+      const existingByEmail = await storage.getEntrepreneurByEmail(entrepreneurData.email);
+      if (existingByEmail) {
+        return res.status(400).json({ message: 'Email já cadastrado' });
+      }
+      
+      const existingByCpf = await storage.getEntrepreneurByCpf(entrepreneurData.cpf);
+      if (existingByCpf) {
+        return res.status(400).json({ message: 'CPF já cadastrado' });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(entrepreneurData.senha, SALT_ROUNDS);
+      
+      const entrepreneur = await storage.createEntrepreneur({
+        ...entrepreneurData,
+        senha: hashedPassword,
+      });
+
+      res.status(201).json({ 
+        message: 'Empreendedor cadastrado com sucesso!',
+        entrepreneur: { ...entrepreneur, senha: undefined } 
+      });
+    } catch (error: any) {
+      console.error('Error registering entrepreneur:', error);
+      res.status(400).json({ message: error.message || 'Erro ao cadastrar empreendedor' });
     }
   });
 

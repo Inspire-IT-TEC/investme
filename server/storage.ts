@@ -35,6 +35,18 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
 
+  // Entrepreneur methods
+  getEntrepreneur(id: number): Promise<Entrepreneur | undefined>;
+  getEntrepreneurByEmail(email: string): Promise<Entrepreneur | undefined>;
+  getEntrepreneurByCpf(cpf: string): Promise<Entrepreneur | undefined>;
+  createEntrepreneur(entrepreneur: InsertEntrepreneur): Promise<Entrepreneur>;
+
+  // Investor methods
+  getInvestor(id: number): Promise<Investor | undefined>;
+  getInvestorByEmail(email: string): Promise<Investor | undefined>;
+  getInvestorByCpf(cpf: string): Promise<Investor | undefined>;
+  createInvestor(investor: InsertInvestor): Promise<Investor>;
+
   // Admin user methods
   getAdminUser(id: number): Promise<AdminUser | undefined>;
   getAdminUserByEmail(email: string): Promise<AdminUser | undefined>;

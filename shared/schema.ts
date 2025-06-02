@@ -253,6 +253,20 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 }));
 
 // Zod schemas for validation
+export const insertEntrepreneurSchema = createInsertSchema(entrepreneurs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInvestorSchema = createInsertSchema(investors).omit({
+  id: true,
+  aprovadoPor: true,
+  aprovadoEm: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -306,6 +320,12 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
 });
 
 // Types
+export type InsertEntrepreneur = z.infer<typeof insertEntrepreneurSchema>;
+export type Entrepreneur = typeof entrepreneurs.$inferSelect;
+
+export type InsertInvestor = z.infer<typeof insertInvestorSchema>;
+export type Investor = typeof investors.$inferSelect;
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
