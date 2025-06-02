@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from "@/lib/utils";
 import { 
@@ -17,7 +19,8 @@ import {
   CheckCircle, 
   XCircle,
   MessageCircle,
-  LogOut
+  LogOut,
+  Send
 } from "lucide-react";
 
 export default function InvestorDashboard() {
@@ -31,6 +34,14 @@ export default function InvestorDashboard() {
   // Fetch investor stats
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ["/api/investor/stats"],
+    queryFn: async () => {
+      const response = await fetch('/api/investor/stats', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      return response.json();
+    },
   });
 
   // Fetch available credit requests for the network
@@ -142,6 +153,87 @@ export default function InvestorDashboard() {
       });
     },
   });
+
+  // Chat messages queries and mutations
+  const { data: chatMessages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
+    queryKey: ["/api/investor/messages", selectedChatRequest?.id],
+    queryFn: async () => {
+      if (!selectedChatRequest) return [];
+      const conversationId = `${selectedChatRequest.companyId}_${selectedChatRequest.id}`;
+      const response = await fetch(`/api/investor/messages/${conversationId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      return response.json();
+    },
+    enabled: !!selectedChatRequest,
+  });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ conversationId, content, companyId, creditRequestId }: any) => {
+      const response = await fetch('/api/investor/messages', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversationId,
+          conteudo: content,
+          companyId,
+          creditRequestId,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao enviar mensagem');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setMessageContent("");
+      refetchMessages();
+      toast({
+        title: "Mensagem enviada",
+        description: "Sua mensagem foi enviada com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendMessage = () => {
+    if (!messageContent.trim() || !selectedChatRequest) return;
+    
+    const conversationId = `${selectedChatRequest.companyId}_${selectedChatRequest.id}`;
+    sendMessageMutation.mutate({
+      conversationId,
+      content: messageContent,
+      companyId: selectedChatRequest.companyId,
+      creditRequestId: selectedChatRequest.id,
+    });
+  };
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages]);
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -542,31 +634,110 @@ export default function InvestorDashboard() {
                             </Dialog>
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button variant="outline" size="sm">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setSelectedChatRequest(request)}
+                                >
                                   <MessageCircle className="w-4 h-4 mr-2" />
                                   Conversar
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-2xl max-h-[80vh]">
+                              <DialogContent className="max-w-3xl max-h-[80vh]">
                                 <DialogHeader>
                                   <DialogTitle>Conversa com {request.companyRazaoSocial}</DialogTitle>
                                   <DialogDescription>
-                                    Chat privado sobre a solicitação de crédito
+                                    Chat privado sobre a solicitação de crédito de {formatCurrency(request.valorSolicitado)}
                                   </DialogDescription>
                                 </DialogHeader>
-                                <div className="h-96 border rounded p-4 overflow-y-auto bg-gray-50">
-                                  <div className="text-center text-gray-500 py-8">
-                                    Sistema de chat em desenvolvimento
+                                
+                                {/* Messages Area */}
+                                <div className="h-96 border rounded-lg overflow-hidden flex flex-col">
+                                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                                    {loadingMessages ? (
+                                      <div className="space-y-4">
+                                        {[1, 2, 3].map((i) => (
+                                          <div key={i} className="animate-pulse">
+                                            <div className="flex space-x-3">
+                                              <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                                              <div className="flex-1 space-y-2">
+                                                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                                                <div className="h-16 bg-gray-200 rounded"></div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : chatMessages && chatMessages.length > 0 ? (
+                                      <>
+                                        {chatMessages.map((message: any) => (
+                                          <div
+                                            key={message.id}
+                                            className={`flex space-x-3 ${
+                                              message.tipo === 'investor' ? 'flex-row-reverse space-x-reverse' : ''
+                                            }`}
+                                          >
+                                            <Avatar className="w-8 h-8">
+                                              <AvatarFallback className={
+                                                message.tipo === 'investor' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                                              }>
+                                                {message.tipo === 'investor' ? 'I' : 'E'}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <div className={`flex-1 ${message.tipo === 'investor' ? 'text-right' : ''}`}>
+                                              <div className="flex items-center space-x-2 mb-1">
+                                                <span className="text-sm font-medium text-gray-900">
+                                                  {message.tipo === 'investor' ? 'Você' : request.companyRazaoSocial}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                  {formatTime(message.createdAt)}
+                                                </span>
+                                              </div>
+                                              <div className={`p-3 rounded-lg max-w-sm ${
+                                                message.tipo === 'investor' 
+                                                  ? 'bg-blue-500 text-white ml-auto' 
+                                                  : 'bg-white border shadow-sm'
+                                              }`}>
+                                                <p className="text-sm whitespace-pre-wrap">{message.conteudo}</p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                        <div ref={messagesEndRef} />
+                                      </>
+                                    ) : (
+                                      <div className="text-center text-gray-500 py-8">
+                                        <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                        <p>Nenhuma mensagem ainda.</p>
+                                        <p className="text-sm">Comece a conversa sobre esta solicitação de crédito.</p>
+                                      </div>
+                                    )}
                                   </div>
-                                </div>
-                                <div className="flex space-x-2">
-                                  <input
-                                    type="text"
-                                    placeholder="Digite sua mensagem..."
-                                    className="flex-1 px-3 py-2 border rounded"
-                                    disabled
-                                  />
-                                  <Button disabled>Enviar</Button>
+                                  
+                                  {/* Message Input */}
+                                  <div className="border-t p-4 bg-white">
+                                    <div className="flex space-x-2">
+                                      <Textarea
+                                        value={messageContent}
+                                        onChange={(e) => setMessageContent(e.target.value)}
+                                        placeholder="Digite sua mensagem..."
+                                        className="flex-1 min-h-[60px] resize-none"
+                                        onKeyPress={(e) => {
+                                          if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                          }
+                                        }}
+                                      />
+                                      <Button
+                                        onClick={handleSendMessage}
+                                        disabled={!messageContent.trim() || sendMessageMutation.isPending}
+                                        className="px-6"
+                                      >
+                                        <Send className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
                                 </div>
                               </DialogContent>
                             </Dialog>
