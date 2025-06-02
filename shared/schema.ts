@@ -105,7 +105,8 @@ export const companies = pgTable("companies", {
   observacoesInternas: text("observacoes_internas"),
   analisadoPor: integer("analisado_por").references(() => adminUsers.id),
   dataAnalise: timestamp("data_analise"),
-  entrepreneurId: integer("entrepreneur_id").notNull().references(() => entrepreneurs.id),
+  userId: integer("user_id").references(() => users.id),
+  entrepreneurId: integer("entrepreneur_id").references(() => entrepreneurs.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -195,6 +196,10 @@ export const usersRelations = relations(users, ({ many }) => ({
 }));
 
 export const companiesRelations = relations(companies, ({ one, many }) => ({
+  user: one(users, {
+    fields: [companies.userId],
+    references: [users.id],
+  }),
   entrepreneur: one(entrepreneurs, {
     fields: [companies.entrepreneurId],
     references: [entrepreneurs.id],

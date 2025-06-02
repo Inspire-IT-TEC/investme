@@ -139,7 +139,15 @@ export class DatabaseStorage implements IStorage {
 
   async getCompanies(userId?: number, status?: string, search?: string): Promise<Company[]> {
     const conditions = [];
-    if (userId) conditions.push(eq(companies.userId, userId));
+    if (userId) {
+      // Support both old userId and new entrepreneurId structure
+      conditions.push(
+        or(
+          eq(companies.userId, userId),
+          eq(companies.entrepreneurId, userId)
+        )
+      );
+    }
     if (status) conditions.push(eq(companies.status, status));
     if (search) {
       conditions.push(
@@ -188,7 +196,12 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(companies)
-      .where(eq(companies.userId, userId))
+      .where(
+        or(
+          eq(companies.userId, userId),
+          eq(companies.entrepreneurId, userId)
+        )
+      )
       .orderBy(desc(companies.createdAt));
   }
 
