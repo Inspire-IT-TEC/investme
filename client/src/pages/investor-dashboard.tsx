@@ -20,7 +20,9 @@ import {
   XCircle,
   MessageCircle,
   LogOut,
-  Send
+  Send,
+  Clock,
+  Shield
 } from "lucide-react";
 
 export default function InvestorDashboard() {
@@ -29,7 +31,23 @@ export default function InvestorDashboard() {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [messageContent, setMessageContent] = useState("");
   const [selectedChatRequest, setSelectedChatRequest] = useState<any>(null);
+  const [selectedDetailsRequest, setSelectedDetailsRequest] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch detailed company information
+  const { data: companyDetails, isLoading: loadingDetails } = useQuery({
+    queryKey: ["/api/investor/company-details", selectedDetailsRequest?.id],
+    queryFn: async () => {
+      if (!selectedDetailsRequest) return null;
+      const response = await fetch(`/api/investor/company-details/${selectedDetailsRequest.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      return response.json();
+    },
+    enabled: !!selectedDetailsRequest,
+  });
 
   // Fetch investor stats
   const { data: stats, isLoading: loadingStats } = useQuery({
@@ -532,6 +550,217 @@ export default function InvestorDashboard() {
                           </div>
 
                           <div className="flex space-x-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setSelectedDetailsRequest(request)}
+                                >
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Mais Detalhes
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle>Detalhes Completos - {request.companyRazaoSocial}</DialogTitle>
+                                  <DialogDescription>
+                                    Informações detalhadas da empresa e solicitação de crédito
+                                  </DialogDescription>
+                                </DialogHeader>
+                                
+                                {loadingDetails ? (
+                                  <div className="flex justify-center items-center py-8">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                  </div>
+                                ) : companyDetails ? (
+                                  <div className="space-y-6">
+                                    {/* Company Information */}
+                                    <div className="border rounded-lg p-4">
+                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                        <Building2 className="w-5 h-5 mr-2" />
+                                        Informações da Empresa
+                                      </h3>
+                                      <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                          <label className="font-medium text-gray-600">Razão Social:</label>
+                                          <p>{companyDetails.company.razaoSocial}</p>
+                                        </div>
+                                        <div>
+                                          <label className="font-medium text-gray-600">CNPJ:</label>
+                                          <p>{companyDetails.company.cnpj}</p>
+                                        </div>
+                                        <div>
+                                          <label className="font-medium text-gray-600">Status:</label>
+                                          <Badge variant={companyDetails.company.status === 'ativa' ? 'default' : 'secondary'}>
+                                            {companyDetails.company.status}
+                                          </Badge>
+                                        </div>
+                                        <div>
+                                          <label className="font-medium text-gray-600">Setor:</label>
+                                          <p>{companyDetails.company.setor || 'Não informado'}</p>
+                                        </div>
+                                        <div>
+                                          <label className="font-medium text-gray-600">Porte:</label>
+                                          <p>{companyDetails.company.porte || 'Não informado'}</p>
+                                        </div>
+                                        <div>
+                                          <label className="font-medium text-gray-600">Faturamento Anual:</label>
+                                          <p>{companyDetails.company.faturamentoAnual ? formatCurrency(companyDetails.company.faturamentoAnual) : 'Não informado'}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Shareholders */}
+                                    {companyDetails.shareholders && companyDetails.shareholders.length > 0 && (
+                                      <div className="border rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                          <Users className="w-5 h-5 mr-2" />
+                                          Sócios da Empresa
+                                        </h3>
+                                        <div className="space-y-3">
+                                          {companyDetails.shareholders.map((shareholder: any) => (
+                                            <div key={shareholder.id} className="bg-gray-50 p-3 rounded border">
+                                              <div className="grid grid-cols-3 gap-4 text-sm">
+                                                <div>
+                                                  <label className="font-medium text-gray-600">Nome:</label>
+                                                  <p>{shareholder.nome}</p>
+                                                </div>
+                                                <div>
+                                                  <label className="font-medium text-gray-600">CPF:</label>
+                                                  <p>{shareholder.cpf}</p>
+                                                </div>
+                                                <div>
+                                                  <label className="font-medium text-gray-600">Participação:</label>
+                                                  <p>{shareholder.participacao}%</p>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Guarantees */}
+                                    {companyDetails.guarantees && companyDetails.guarantees.length > 0 && (
+                                      <div className="border rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                          <Shield className="w-5 h-5 mr-2" />
+                                          Garantias Oferecidas
+                                        </h3>
+                                        <div className="space-y-3">
+                                          {companyDetails.guarantees.map((guarantee: any) => (
+                                            <div key={guarantee.id} className="bg-gray-50 p-3 rounded border">
+                                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                                <div>
+                                                  <label className="font-medium text-gray-600">Tipo:</label>
+                                                  <p>{guarantee.tipo}</p>
+                                                </div>
+                                                <div>
+                                                  <label className="font-medium text-gray-600">Valor:</label>
+                                                  <p>{formatCurrency(guarantee.valor)}</p>
+                                                </div>
+                                                {guarantee.descricao && (
+                                                  <div className="col-span-2">
+                                                    <label className="font-medium text-gray-600">Descrição:</label>
+                                                    <p>{guarantee.descricao}</p>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Credit Request Information */}
+                                    <div className="border rounded-lg p-4">
+                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                        <DollarSign className="w-5 h-5 mr-2" />
+                                        Detalhes da Solicitação
+                                      </h3>
+                                      <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                          <label className="font-medium text-gray-600">Valor Solicitado:</label>
+                                          <p className="text-lg font-bold text-green-600">
+                                            {formatCurrency(companyDetails.creditRequest.valorSolicitado)}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <label className="font-medium text-gray-600">Prazo:</label>
+                                          <p>{companyDetails.creditRequest.prazoMeses} meses</p>
+                                        </div>
+                                        <div className="col-span-2">
+                                          <label className="font-medium text-gray-600">Finalidade:</label>
+                                          <p>{companyDetails.creditRequest.finalidade}</p>
+                                        </div>
+                                        <div>
+                                          <label className="font-medium text-gray-600">Data da Solicitação:</label>
+                                          <p>{formatDate(companyDetails.creditRequest.createdAt)}</p>
+                                        </div>
+                                        <div>
+                                          <label className="font-medium text-gray-600">Data de Aceite:</label>
+                                          <p>{formatDate(companyDetails.creditRequest.dataAceite)}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Analysis Information */}
+                                    <div className="border rounded-lg p-4">
+                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                        <Clock className="w-5 h-5 mr-2" />
+                                        Informações da Análise
+                                      </h3>
+                                      <div className="grid grid-cols-1 gap-4 text-sm">
+                                        <div>
+                                          <label className="font-medium text-gray-600">Status:</label>
+                                          <Badge variant="outline" className="ml-2">
+                                            Em Análise
+                                          </Badge>
+                                        </div>
+                                        <div>
+                                          <label className="font-medium text-gray-600">Prazo para Resposta:</label>
+                                          <p className="text-orange-600 font-medium">
+                                            {companyDetails.creditRequest.dataLimiteAnalise ? formatDate(companyDetails.creditRequest.dataLimiteAnalise) : 'Não definido'}
+                                          </p>
+                                        </div>
+                                        {companyDetails.creditRequest.observacoesAnalise && (
+                                          <div>
+                                            <label className="font-medium text-gray-600">Observações:</label>
+                                            <p className="bg-gray-50 p-2 rounded border">
+                                              {companyDetails.creditRequest.observacoesAnalise}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Documents Section */}
+                                    <div className="border rounded-lg p-4">
+                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                        <MessageCircle className="w-5 h-5 mr-2" />
+                                        Documentos e Anexos
+                                      </h3>
+                                      <div className="text-sm text-gray-600">
+                                        <p>Para visualizar documentos anexados pela empresa, utilize o sistema de mensagens.</p>
+                                        <p className="mt-2">Documentos geralmente incluem:</p>
+                                        <ul className="list-disc list-inside mt-1 space-y-1">
+                                          <li>Demonstrações financeiras</li>
+                                          <li>Comprovantes de faturamento</li>
+                                          <li>Certidões negativas</li>
+                                          <li>Contratos e garantias</li>
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-center py-8 text-gray-500">
+                                    Erro ao carregar detalhes da empresa
+                                  </div>
+                                )}
+                              </DialogContent>
+                            </Dialog>
+                            
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button className="bg-green-600 hover:bg-green-700" size="sm">

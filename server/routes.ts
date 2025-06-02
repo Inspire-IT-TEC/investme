@@ -485,6 +485,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get detailed company information for investor analysis
+  app.get('/api/investor/company-details/:creditRequestId', authenticateToken, async (req: any, res) => {
+    try {
+      const { creditRequestId } = req.params;
+      
+      // First verify the credit request is being analyzed by this investor
+      const creditRequest = await storage.getCreditRequest(parseInt(creditRequestId));
+      if (!creditRequest || creditRequest.investorId !== req.user.id || creditRequest.status !== 'em_analise') {
+        return res.status(403).json({ message: 'Acesso não autorizado a esta solicitação' });
+      }
+
+      // Get detailed company information
+      const company = await storage.getCompanyWithDetails(creditRequest.companyId);
+      if (!company) {
+        return res.status(404).json({ message: 'Empresa não encontrada' });
+      }
+
+      // Get shareholders
+      const shareholders = await storage.getCompanyShareholders(creditRequest.companyId);
+      
+      // Get guarantees
+      const guarantees = await storage.getCompanyGuarantees(creditRequest.companyId);
+
+      res.json({
+        company,
+        creditRequest,
+        shareholders,
+        guarantees
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar detalhes da empresa' });
+    }
+  });
+
   // Admin Authentication Routes
   app.post('/api/admin/auth/login', async (req, res) => {
     try {
