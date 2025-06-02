@@ -31,7 +31,7 @@ import {
   type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, like, ilike, sql, or } from "drizzle-orm";
+import { eq, and, desc, like, ilike, sql, or, lt } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
