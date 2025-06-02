@@ -201,16 +201,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { login, senha } = req.body; // login can be email or CPF
       
+      console.log('Tentativa de login investidor:', { login, senhaLength: senha?.length });
+      
       let user = await storage.getUserByEmail(login);
+      console.log('Busca por email:', { found: !!user, email: login });
+      
       if (!user) {
         user = await storage.getUserByCpf(login);
+        console.log('Busca por CPF:', { found: !!user, cpf: login });
       }
 
       if (!user) {
+        console.log('Usuário não encontrado');
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
+      console.log('Usuário encontrado:', { id: user.id, email: user.email, cpf: user.cpf });
+
       const isValidPassword = await bcrypt.compare(senha, user.senha);
+      console.log('Verificação de senha:', { isValid: isValidPassword });
+      
       if (!isValidPassword) {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
@@ -226,6 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token 
       });
     } catch (error: any) {
+      console.error('Erro no login do investidor:', error);
       res.status(400).json({ message: error.message || 'Erro no login do investidor' });
     }
   });
