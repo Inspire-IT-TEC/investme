@@ -332,8 +332,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Investor API Routes
   app.get('/api/investor/credit-requests', authenticateToken, async (req: any, res) => {
     try {
-      // Get available credit requests for investors
-      const creditRequests = await storage.getCreditRequests('aprovada_empresa'); // Only approved companies
+      // Get available credit requests for investors - show requests in the network
+      const creditRequests = await storage.getCreditRequests('na_rede');
       res.json(creditRequests);
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao buscar solicitações' });
