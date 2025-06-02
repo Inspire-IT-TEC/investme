@@ -6,6 +6,7 @@ import { Building2, Plus, CreditCard, CheckCircle, Clock, AlertCircle } from "lu
 import { useAuth } from "@/hooks/use-auth";
 import Navbar from "@/components/layout/navbar";
 import { Link } from "wouter";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -39,30 +40,37 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
-        <div className="investme-gradient text-white rounded-lg p-8 mb-8">
-          <h1 className="text-3xl font-bold mb-2">Bem-vindo, {user?.nomeCompleto}</h1>
-          <p className="text-blue-100">Gerencie suas empresas e solicitações de crédito</p>
+        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-lg p-8 mb-8 shadow-xl">
+          <div className="flex items-center mb-4">
+            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mr-4">
+              <Building2 className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Bem-vindo, {user?.nomeCompleto}</h1>
+              <p className="text-indigo-100">Gerencie suas empresas e solicitações de crédito</p>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Companies Section */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
+            <Card className="shadow-lg border-0">
+              <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="w-5 h-5" />
                   Minhas Empresas
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-indigo-100">
                   Gerencie suas empresas cadastradas
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 {isLoading ? (
                   <div className="space-y-4">
                     {[1, 2].map((i) => (
@@ -72,10 +80,10 @@ export default function Dashboard() {
                       </div>
                     ))}
                   </div>
-                ) : companies && companies.length > 0 ? (
+                ) : companies && Array.isArray(companies) && companies.length > 0 ? (
                   <div className="space-y-4">
                     {companies.map((company: any) => (
-                      <div key={company.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors">
+                      <div key={company.id} className="border border-indigo-200 rounded-lg p-4 hover:border-indigo-400 hover:bg-indigo-50 transition-all">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <h4 className="font-semibold text-gray-900">{company.razaoSocial}</h4>
@@ -87,7 +95,7 @@ export default function Dashboard() {
                           <div className="flex space-x-2">
                             {company.status === 'aprovada' && (
                               <Link href={`/credit-request/${company.id}`}>
-                                <Button size="sm">
+                                <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
                                   <CreditCard className="w-4 h-4 mr-1" />
                                   Solicitar Crédito
                                 </Button>
@@ -100,7 +108,7 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <Building2 className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
                     <p className="text-gray-600 mb-4">Nenhuma empresa cadastrada</p>
                   </div>
                 )}
@@ -108,7 +116,7 @@ export default function Dashboard() {
                 <Link href="/company-registration">
                   <Button 
                     variant="outline" 
-                    className="w-full mt-6 border-dashed border-2 h-16 text-gray-600 hover:text-primary hover:border-primary"
+                    className="w-full mt-6 border-dashed border-2 h-16 border-indigo-300 text-indigo-600 hover:text-indigo-700 hover:border-indigo-400 hover:bg-indigo-50"
                   >
                     <Plus className="w-6 h-6 mr-2" />
                     Cadastrar Nova Empresa
@@ -120,13 +128,13 @@ export default function Dashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="shadow-lg border-0">
+              <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
                 <CardTitle>Ações Rápidas</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 p-6">
                 <Link href="/company-registration">
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400">
                     <Building2 className="w-4 h-4 mr-2" />
                     Nova Empresa
                   </Button>
@@ -134,26 +142,26 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
+            <Card className="shadow-lg border-0">
+              <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
                 <CardTitle>Status do Perfil</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Cadastro Completo</span>
-                    <Clock className="w-4 h-4 text-yellow-500" />
+                    <CheckCircle className="w-4 h-4 text-green-500" />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Email Confirmado</span>
-                    <Clock className="w-4 h-4 text-yellow-500" />
+                    <CheckCircle className="w-4 h-4 text-green-500" />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Documentos Verificados</span>
                     <Clock className="w-4 h-4 text-yellow-500" />
                   </div>
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                    <p className="text-xs text-yellow-800">
+                  <div className="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-md">
+                    <p className="text-xs text-indigo-800">
                       Aguardando validação pelo backoffice
                     </p>
                   </div>
@@ -164,12 +172,12 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Credit Requests */}
-        {creditRequests && creditRequests.length > 0 && (
-          <Card>
-            <CardHeader>
+        {creditRequests && Array.isArray(creditRequests) && creditRequests.length > 0 && (
+          <Card className="shadow-lg border-0">
+            <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
               <CardTitle>Solicitações de Crédito Recentes</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
