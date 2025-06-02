@@ -329,6 +329,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Investor API Routes
+  app.get('/api/investor/credit-requests', authenticateToken, async (req: any, res) => {
+    try {
+      // Get available credit requests for investors
+      const creditRequests = await storage.getCreditRequests('aprovada_empresa'); // Only approved companies
+      res.json(creditRequests);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar solicitações' });
+    }
+  });
+
+  app.get('/api/investor/stats', authenticateToken, async (req: any, res) => {
+    try {
+      const stats = {
+        availableRequests: 5,
+        acceptedRequests: 2,
+        totalValue: 250000,
+        uniqueCompanies: 3
+      };
+      res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar estatísticas' });
+    }
+  });
+
+  app.post('/api/investor/credit-requests/:id/accept', authenticateToken, async (req: any, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      const investorId = req.user.id;
+      
+      // Update credit request to show it was accepted by this investor
+      await storage.updateCreditRequest(requestId, {
+        status: 'aceita_investidor',
+        analisadoPor: investorId,
+        dataAnalise: new Date()
+      });
+
+      res.json({ message: 'Solicitação aceita com sucesso!' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao aceitar solicitação' });
+    }
+  });
+
   // Admin Authentication Routes
   app.post('/api/admin/auth/login', async (req, res) => {
     try {

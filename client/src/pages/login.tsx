@@ -45,7 +45,15 @@ export default function Login() {
         title: "Login realizado com sucesso!",
         description: "Bem-vindo à plataforma Investme.",
       });
-      setLocation("/dashboard");
+      
+      // Redirect based on user type
+      if (data.user.tipo === 'investor') {
+        setLocation("/investor/dashboard");
+      } else if (data.user.tipo === 'entrepreneur') {
+        setLocation("/dashboard");
+      } else {
+        setLocation("/dashboard");
+      }
     },
     onError: (error: any) => {
       toast({
