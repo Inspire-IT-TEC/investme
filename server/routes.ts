@@ -399,8 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.updateCreditRequest(requestId, {
         status: 'aprovada',
-        observacoesAnalise: observacoes,
-        dataAnalise: new Date()
+        observacoesAnalise: observacoes
       });
 
       res.json({ message: 'Solicitação aprovada com sucesso!' });
@@ -416,8 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.updateCreditRequest(requestId, {
         status: 'reprovada',
-        observacoesAnalise: observacoes,
-        dataAnalise: new Date()
+        observacoesAnalise: observacoes
       });
 
       res.json({ message: 'Solicitação reprovada.' });

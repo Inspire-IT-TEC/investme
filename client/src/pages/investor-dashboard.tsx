@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,11 @@ export default function InvestorDashboard() {
   // Fetch available credit requests for the network
   const { data: creditRequests, isLoading: loadingRequests } = useQuery({
     queryKey: ["/api/investor/credit-requests"],
+  });
+
+  // Fetch requests being analyzed by this investor
+  const { data: myAnalysis, isLoading: loadingAnalysis } = useQuery({
+    queryKey: ["/api/investor/my-analysis"],
   });
 
   // Accept credit request mutation
@@ -71,6 +76,20 @@ export default function InvestorDashboard() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/user-type-selection';
+  };
+
+  // Function to calculate remaining time
+  const calculateTimeRemaining = (dataLimiteAnalise: string) => {
+    const now = new Date();
+    const limit = new Date(dataLimiteAnalise);
+    const diff = limit.getTime() - now.getTime();
+    
+    if (diff <= 0) return "Tempo esgotado";
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hours}h ${minutes}m restantes`;
   };
 
   return (
@@ -158,10 +177,11 @@ export default function InvestorDashboard() {
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="network">Rede</TabsTrigger>
-            <TabsTrigger value="accepted">Aceitas por Mim</TabsTrigger>
+            <TabsTrigger value="analysis">Em Análise</TabsTrigger>
+            <TabsTrigger value="completed">Finalizadas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -301,20 +321,91 @@ export default function InvestorDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="accepted" className="space-y-6">
+          <TabsContent value="analysis" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Solicitações Aceitas por Mim</CardTitle>
+                <CardTitle>Em Análise - 24h para Resposta</CardTitle>
                 <CardDescription>
-                  Solicitações que você aceitou e está analisando
+                  Solicitações que você aceitou da rede e tem 24 horas para dar uma resposta
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingAnalysis ? (
+                  <div className="text-center py-8">Carregando análises...</div>
+                ) : !myAnalysis?.length ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">Nenhuma solicitação em análise</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Aceite solicitações da rede para começar a analisar
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {myAnalysis.map((request: any) => (
+                      <Card key={request.id} className="border-l-4 border-l-orange-500">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="font-semibold text-lg">{request.companyRazaoSocial}</h3>
+                              <p className="text-gray-600">{request.companyCnpj}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-gray-600">Tempo restante:</p>
+                              <p className="font-medium text-orange-600">
+                                {calculateTimeRemaining(request.dataLimiteAnalise)}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm text-gray-600">Valor Solicitado</p>
+                              <p className="font-medium">{formatCurrency(request.valorSolicitado)}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">Finalidade</p>
+                              <p className="font-medium">{request.finalidade}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex space-x-2">
+                            <Button className="bg-green-600 hover:bg-green-700" size="sm">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Aprovar
+                            </Button>
+                            <Button variant="destructive" size="sm">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Reprovar
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              <MessageCircle className="w-4 h-4 mr-2" />
+                              Conversar
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="completed" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Solicitações Finalizadas</CardTitle>
+                <CardDescription>
+                  Solicitações que você aprovou ou reprovou
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
                   <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhuma solicitação aceita ainda</p>
+                  <p className="text-gray-600">Nenhuma solicitação finalizada ainda</p>
                   <p className="text-sm text-gray-500 mt-2">
-                    Quando você aceitar solicitações da rede, elas aparecerão aqui
+                    Solicitações aprovadas ou reprovadas aparecerão aqui
                   </p>
                 </div>
               </CardContent>
