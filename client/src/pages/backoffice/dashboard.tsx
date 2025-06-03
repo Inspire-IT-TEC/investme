@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Clock, CheckCircle, DollarSign } from "lucide-react";
+import { Building2, Clock, CheckCircle, DollarSign, Users } from "lucide-react";
 import BackofficeNavbar from "@/components/layout/backoffice-navbar";
 
 export default function BackofficeDashboard() {
@@ -15,6 +15,10 @@ export default function BackofficeDashboard() {
 
   const { data: creditRequests } = useQuery({
     queryKey: ["/api/admin/credit-requests"],
+  });
+
+  const { data: investors } = useQuery({
+    queryKey: ["/api/admin/investors"],
   });
 
   const formatCurrency = (value: number) => {
@@ -38,7 +42,7 @@ export default function BackofficeDashboard() {
         </div>
 
         {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
