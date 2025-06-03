@@ -273,23 +273,25 @@ export default function InvestorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-gradient-to-r from-green-600 to-emerald-700 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
-              <Building2 className="w-8 h-8 text-blue-600" />
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Investme</h1>
-                <p className="text-sm text-gray-600">Painel do Investidor</p>
+                <h1 className="text-2xl font-bold text-white">Investme</h1>
+                <p className="text-sm text-green-100">Painel do Investidor</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 bg-white/10 border-white/20 text-white hover:bg-white/20"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sair</span>
@@ -302,85 +304,85 @@ export default function InvestorDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-green-500 to-emerald-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Solicitações Disponíveis</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Solicitações Disponíveis</CardTitle>
+              <TrendingUp className="h-4 w-4 text-white/80" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-white">
                 {loadingStats ? "..." : stats?.availableRequests || 0}
               </div>
-              <p className="text-xs text-muted-foreground">Na rede para análise</p>
+              <p className="text-xs text-green-100">Na rede para análise</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-emerald-500 to-green-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Aceitas por Mim</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Aceitas por Mim</CardTitle>
+              <CheckCircle className="h-4 w-4 text-white/80" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-white">
                 {loadingStats ? "..." : stats?.acceptedRequests || 0}
               </div>
-              <p className="text-xs text-muted-foreground">Em análise</p>
+              <p className="text-xs text-green-100">Em análise</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-green-600 to-emerald-700 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Valor Total</CardTitle>
+              <DollarSign className="h-4 w-4 text-white/80" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-white">
                 {loadingStats ? "..." : formatCurrency(stats?.totalValue || 0)}
               </div>
-              <p className="text-xs text-muted-foreground">Em solicitações aceitas</p>
+              <p className="text-xs text-green-100">Em solicitações aceitas</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-emerald-600 to-green-700 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Empresas Únicas</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Empresas Únicas</CardTitle>
+              <Users className="h-4 w-4 text-white/80" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-white">
                 {loadingStats ? "..." : stats?.uniqueCompanies || 0}
               </div>
-              <p className="text-xs text-muted-foreground">Empresas diferentes</p>
+              <p className="text-xs text-green-100">Empresas diferentes</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="network">Rede</TabsTrigger>
-            <TabsTrigger value="analysis">Em Análise</TabsTrigger>
-            <TabsTrigger value="completed">Finalizadas</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 bg-green-100 border-green-200">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Visão Geral</TabsTrigger>
+            <TabsTrigger value="network" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Rede</TabsTrigger>
+            <TabsTrigger value="analysis" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Em Análise</TabsTrigger>
+            <TabsTrigger value="completed" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Finalizadas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="shadow-lg border-0">
+              <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
                 <CardTitle>Resumo das Atividades</CardTitle>
-                <CardDescription>
+                <CardDescription className="text-green-100">
                   Suas estatísticas como investidor na plataforma
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-8">
                 <div className="text-center py-8">
-                  <TrendingUp className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <TrendingUp className="w-16 h-16 text-green-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Bem-vindo ao Investme!</h3>
                   <p className="text-gray-600 mb-4">
                     Use a aba "Rede" para ver todas as solicitações de crédito disponíveis para análise.
                   </p>
                   <p className="text-sm text-gray-500">
-                    Quando você aceitar uma solicitação, ela aparecerá na aba "Aceitas por Mim".
+                    Quando você aceitar uma solicitação, ela aparecerá na aba "Em Análise".
                   </p>
                 </div>
               </CardContent>
@@ -388,10 +390,10 @@ export default function InvestorDashboard() {
           </TabsContent>
 
           <TabsContent value="network" className="space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="shadow-lg border-0">
+              <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
                 <CardTitle>Rede - Solicitações Disponíveis</CardTitle>
-                <CardDescription>
+                <CardDescription className="text-green-100">
                   Todas as solicitações de crédito na rede aguardando análise de investidores
                 </CardDescription>
               </CardHeader>
@@ -442,6 +444,7 @@ export default function InvestorDashboard() {
                                     variant="outline" 
                                     size="sm"
                                     onClick={() => setSelectedRequest(request)}
+                                    className="border-green-200 text-green-600 hover:bg-green-50 hover:border-green-400"
                                   >
                                     <Eye className="w-4 h-4 mr-2" />
                                     Ver Detalhes
