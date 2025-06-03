@@ -519,6 +519,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Investors Routes
+  app.get('/api/admin/investors', authenticateAdminToken, async (req, res) => {
+    try {
+      const { status } = req.query;
+      const investors = await storage.getInvestors(status as string);
+      res.json(investors);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar investidores' });
+    }
+  });
+
+  app.post('/api/admin/investors/:id/approve', authenticateAdminToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const investor = await storage.approveInvestor(parseInt(id));
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+      res.json(investor);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao aprovar investidor' });
+    }
+  });
+
+  app.post('/api/admin/investors/:id/reject', authenticateAdminToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      const investor = await storage.rejectInvestor(parseInt(id), reason);
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+      res.json(investor);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao rejeitar investidor' });
+    }
+  });
+
+  // Admin Network Routes
+  app.get('/api/admin/network', authenticateAdminToken, async (req, res) => {
+    try {
+      const { status } = req.query;
+      const networkRequests = await storage.getNetworkRequests(status as string);
+      res.json(networkRequests);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar rede' });
+    }
+  });
+
+  app.get('/api/admin/network/stats', authenticateAdminToken, async (req, res) => {
+    try {
+      const stats = await storage.getNetworkStats();
+      res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar estatísticas da rede' });
+    }
+  });
+
   // Admin Authentication Routes
   app.post('/api/admin/auth/login', async (req, res) => {
     try {

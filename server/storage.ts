@@ -100,6 +100,15 @@ export interface IStorage {
   markConversationAsRead(conversationId: string, userType: string): Promise<void>;
   getAvailableCompaniesForChat(): Promise<any[]>;
   getUserCreditRequests(userId: number): Promise<any[]>;
+
+  // Admin investor management methods
+  getInvestors(status?: string): Promise<any[]>;
+  approveInvestor(investorId: number): Promise<Investor | undefined>;
+  rejectInvestor(investorId: number, reason: string): Promise<Investor | undefined>;
+
+  // Admin network methods
+  getNetworkRequests(status?: string): Promise<any[]>;
+  getNetworkStats(): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -774,6 +783,130 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(creditRequests.createdAt));
     
     console.log(`Encontradas ${result.length} solicitações`);
+    return result;
+  }
+
+  // Admin investor management methods
+  async getInvestors(status?: string): Promise<any[]> {
+    let query = db
+      .select({
+        id: investors.id,
+        nomeCompleto: investors.nomeCompleto,
+        email: investors.email,
+        cpf: investors.cpf,
+        telefone: investors.telefone,
+        dataNascimento: investors.dataNascimento,
+        endereco: investors.endereco,
+        status: investors.status,
+        createdAt: investors.createdAt,
+        updatedAt: investors.updatedAt,
+      })
+      .from(investors);
+
+    if (status && status !== 'all') {
+      query = query.where(eq(investors.status, status));
+    }
+
+    return await query.orderBy(desc(investors.createdAt));
+  }
+
+  async approveInvestor(investorId: number): Promise<Investor | undefined> {
+    const [updatedInvestor] = await db
+      .update(investors)
+      .set({
+        status: 'ativo',
+        updatedAt: new Date(),
+      })
+      .where(eq(investors.id, investorId))
+      .returning();
+
+    return updatedInvestor;
+  }
+
+  async rejectInvestor(investorId: number, reason: string): Promise<Investor | undefined> {
+    const [updatedInvestor] = await db
+      .update(investors)
+      .set({
+        status: 'rejeitado',
+        observacoes: reason,
+        updatedAt: new Date(),
+      })
+      .where(eq(investors.id, investorId))
+      .returning();
+
+    return updatedInvestor;
+  }
+
+  // Admin network methods
+  async getNetworkRequests(status?: string): Promise<any[]> {
+    let query = db
+      .select({
+        id: creditRequests.id,
+        valorSolicitado: creditRequests.valorSolicitado,
+        prazoMeses: creditRequests.prazoMeses,
+        finalidade: creditRequests.finalidade,
+        taxaJuros: creditRequests.taxaJuros,
+        status: creditRequests.status,
+        createdAt: creditRequests.createdAt,
+        dataAceite: creditRequests.dataAceite,
+        dataLimiteAnalise: creditRequests.dataLimiteAnalise,
+        dataAprovacao: creditRequests.dataAprovacao,
+        dataReprovacao: creditRequests.dataReprovacao,
+        observacoesAnalise: creditRequests.observacoesAnalise,
+        companyRazaoSocial: companies.razaoSocial,
+        companyCnpj: companies.cnpj,
+        companyStatus: companies.status,
+        companyId: companies.id,
+        investorName: investors.nomeCompleto,
+        investorEmail: investors.email,
+      })
+      .from(creditRequests)
+      .leftJoin(companies, eq(creditRequests.companyId, companies.id))
+      .leftJoin(investors, eq(creditRequests.investorId, investors.id));
+
+    if (status && status !== 'all') {
+      query = query.where(eq(creditRequests.status, status));
+    }
+
+    return await query.orderBy(desc(creditRequests.createdAt));
+  }
+
+  async getNetworkStats(): Promise<any> {
+    const stats = await db
+      .select({
+        status: creditRequests.status,
+        count: sql<number>`COUNT(*)::int`,
+        totalValue: sql<number>`SUM(${creditRequests.valorSolicitado})::int`,
+      })
+      .from(creditRequests)
+      .groupBy(creditRequests.status);
+
+    const result = {
+      totalInNetwork: 0,
+      inAnalysis: 0,
+      approved: 0,
+      rejected: 0,
+      totalValue: 0,
+    };
+
+    stats.forEach((stat) => {
+      switch (stat.status) {
+        case 'na_rede':
+          result.totalInNetwork = stat.count;
+          break;
+        case 'em_analise':
+          result.inAnalysis = stat.count;
+          break;
+        case 'aprovada':
+          result.approved = stat.count;
+          break;
+        case 'reprovada':
+          result.rejected = stat.count;
+          break;
+      }
+      result.totalValue += stat.totalValue || 0;
+    });
+
     return result;
   }
 }
