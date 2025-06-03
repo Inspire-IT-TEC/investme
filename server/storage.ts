@@ -788,26 +788,17 @@ export class DatabaseStorage implements IStorage {
 
   // Admin investor management methods
   async getInvestors(status?: string): Promise<any[]> {
-    let query = db
-      .select({
-        id: investors.id,
-        nomeCompleto: investors.nomeCompleto,
-        email: investors.email,
-        cpf: investors.cpf,
-        telefone: investors.telefone,
-        dataNascimento: investors.dataNascimento,
-        endereco: investors.endereco,
-        status: investors.status,
-        createdAt: investors.createdAt,
-        updatedAt: investors.updatedAt,
-      })
-      .from(investors);
+    const result = await db
+      .select()
+      .from(investors)
+      .orderBy(desc(investors.createdAt));
 
+    // Filter by status if provided
     if (status && status !== 'all') {
-      query = query.where(eq(investors.status, status));
+      return result.filter(investor => investor.status === status);
     }
 
-    return await query.orderBy(desc(investors.createdAt));
+    return result;
   }
 
   async approveInvestor(investorId: number): Promise<Investor | undefined> {
@@ -828,7 +819,6 @@ export class DatabaseStorage implements IStorage {
       .update(investors)
       .set({
         status: 'rejeitado',
-        observacoes: reason,
         updatedAt: new Date(),
       })
       .where(eq(investors.id, investorId))
@@ -839,36 +829,55 @@ export class DatabaseStorage implements IStorage {
 
   // Admin network methods
   async getNetworkRequests(status?: string): Promise<any[]> {
-    let query = db
+    const result = await db
       .select({
         id: creditRequests.id,
         valorSolicitado: creditRequests.valorSolicitado,
         prazoMeses: creditRequests.prazoMeses,
         finalidade: creditRequests.finalidade,
-        taxaJuros: creditRequests.taxaJuros,
         status: creditRequests.status,
         createdAt: creditRequests.createdAt,
         dataAceite: creditRequests.dataAceite,
         dataLimiteAnalise: creditRequests.dataLimiteAnalise,
-        dataAprovacao: creditRequests.dataAprovacao,
-        dataReprovacao: creditRequests.dataReprovacao,
         observacoesAnalise: creditRequests.observacoesAnalise,
         companyRazaoSocial: companies.razaoSocial,
         companyCnpj: companies.cnpj,
         companyStatus: companies.status,
         companyId: companies.id,
-        investorName: investors.nomeCompleto,
-        investorEmail: investors.email,
+        investorId: creditRequests.investorId,
       })
       .from(creditRequests)
       .leftJoin(companies, eq(creditRequests.companyId, companies.id))
-      .leftJoin(investors, eq(creditRequests.investorId, investors.id));
+      .orderBy(desc(creditRequests.createdAt));
 
+    // Get investor information for each request
+    const enrichedResults = await Promise.all(
+      result.map(async (request) => {
+        let investorName = null;
+        let investorEmail = null;
+        
+        if (request.investorId) {
+          const investor = await this.getInvestor(request.investorId);
+          if (investor) {
+            investorName = investor.nomeCompleto;
+            investorEmail = investor.email;
+          }
+        }
+
+        return {
+          ...request,
+          investorName,
+          investorEmail,
+        };
+      })
+    );
+
+    // Filter by status if provided
     if (status && status !== 'all') {
-      query = query.where(eq(creditRequests.status, status));
+      return enrichedResults.filter(request => request.status === status);
     }
 
-    return await query.orderBy(desc(creditRequests.createdAt));
+    return enrichedResults;
   }
 
   async getNetworkStats(): Promise<any> {

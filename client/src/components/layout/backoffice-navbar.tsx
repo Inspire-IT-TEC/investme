@@ -23,6 +23,8 @@ export default function BackofficeNavbar() {
     { name: 'Dashboard', href: '/backoffice/dashboard', icon: BarChart3 },
     { name: 'Empresas', href: '/backoffice/companies', icon: Building2 },
     { name: 'Solicitações', href: '/backoffice/credit-requests', icon: CreditCard },
+    { name: 'Investidores', href: '/backoffice/investors', icon: UserCheck },
+    { name: 'Rede', href: '/backoffice/network', icon: TrendingUp },
     { name: 'Mensagens', href: '/backoffice/messages', icon: MessageCircle },
     { name: 'Usuários', href: '/backoffice/admin-users', icon: Users },
     { name: 'Auditoria', href: '/backoffice/audit', icon: FileSearch },

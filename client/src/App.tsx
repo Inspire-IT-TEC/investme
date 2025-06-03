@@ -21,6 +21,8 @@ import AdminUsers from "@/pages/backoffice/admin-users";
 import AuditPage from "@/pages/backoffice/audit";
 import Messages from "@/pages/messages";
 import BackofficeMessages from "@/pages/backoffice/messages";
+import BackofficeInvestors from "@/pages/backoffice/investors";
+import BackofficeNetwork from "@/pages/backoffice/network";
 
 function Router() {
   return (
@@ -43,6 +45,8 @@ function Router() {
       <Route path="/backoffice/dashboard" component={BackofficeDashboard} />
       <Route path="/backoffice/companies" component={BackofficeCompanies} />
       <Route path="/backoffice/credit-requests" component={BackofficeCreditRequests} />
+      <Route path="/backoffice/investors" component={BackofficeInvestors} />
+      <Route path="/backoffice/network" component={BackofficeNetwork} />
       <Route path="/backoffice/admin-users" component={AdminUsers} />
       <Route path="/backoffice/audit" component={AuditPage} />
       <Route path="/backoffice/messages" component={BackofficeMessages} />
