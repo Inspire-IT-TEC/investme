@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { TrendingUp, Users, CheckCircle, XCircle, Eye, UserCheck, AlertCircle } from "lucide-react";
+import BackofficeNavbar from "@/components/layout/backoffice-navbar";
 
 export default function BackofficeInvestors() {
   const { toast } = useToast();
@@ -91,251 +92,245 @@ export default function BackofficeInvestors() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestão de Investidores</h1>
-        <p className="text-gray-600">Gerencie e aprove cadastros de investidores</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Investidores</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {investors?.length || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendentes de Aprovação</CardTitle>
-            <AlertCircle className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {investors?.filter((inv: any) => inv.status === "pendente").length || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Investidores Ativos</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {investors?.filter((inv: any) => inv.status === "ativo").length || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rejeitados</CardTitle>
-            <XCircle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {investors?.filter((inv: any) => inv.status === "rejeitado").length || 0}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <Label htmlFor="status">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pendente">Pendente</SelectItem>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      <BackofficeNavbar />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
+          {/* Header */}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gestão de Investidores</h1>
+            <p className="text-gray-600">Gerencie e aprove cadastros de investidores</p>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Investors Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Investidores</CardTitle>
-          <CardDescription>
-            Gerencie todos os investidores cadastrados na plataforma
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">Carregando investidores...</div>
-          ) : !investors?.length ? (
-            <div className="text-center py-8">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Nenhum investidor encontrado</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>CPF</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data de Cadastro</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {investors.map((investor: any) => (
-                  <TableRow key={investor.id}>
-                    <TableCell className="font-medium">{investor.nomeCompleto}</TableCell>
-                    <TableCell>{investor.email}</TableCell>
-                    <TableCell>{investor.cpf}</TableCell>
-                    <TableCell>{getStatusBadge(investor.status)}</TableCell>
-                    <TableCell>{formatDate(investor.createdAt)}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedInvestor(investor)}
-                            >
-                              <Eye className="w-4 h-4 mr-1" />
-                              Ver
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>Detalhes do Investidor</DialogTitle>
-                              <DialogDescription>
-                                Informações completas do investidor
-                              </DialogDescription>
-                            </DialogHeader>
-                            {selectedInvestor && (
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label className="font-semibold">Nome Completo</Label>
-                                    <p>{selectedInvestor.nomeCompleto}</p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-semibold">Email</Label>
-                                    <p>{selectedInvestor.email}</p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-semibold">CPF</Label>
-                                    <p>{selectedInvestor.cpf}</p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-semibold">Status</Label>
-                                    <div className="mt-1">{getStatusBadge(selectedInvestor.status)}</div>
-                                  </div>
-                                  <div>
-                                    <Label className="font-semibold">Data de Cadastro</Label>
-                                    <p>{formatDate(selectedInvestor.createdAt)}</p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-semibold">Data de Nascimento</Label>
-                                    <p>{selectedInvestor.dataNascimento ? formatDate(selectedInvestor.dataNascimento) : "Não informado"}</p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-semibold">Telefone</Label>
-                                    <p>{selectedInvestor.telefone || "Não informado"}</p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-semibold">Endereço</Label>
-                                    <p>{selectedInvestor.endereco || "Não informado"}</p>
-                                  </div>
-                                </div>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Investidores</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {investors?.length || 0}
+                </div>
+              </CardContent>
+            </Card>
 
-                                {selectedInvestor.status === "pendente" && (
-                                  <div className="flex space-x-2 pt-4 border-t">
-                                    <Button
-                                      onClick={() => approveInvestorMutation.mutate(selectedInvestor.id)}
-                                      disabled={approveInvestorMutation.isPending}
-                                      className="bg-green-600 hover:bg-green-700"
-                                    >
-                                      <CheckCircle className="w-4 h-4 mr-2" />
-                                      Aprovar
-                                    </Button>
-                                    <Dialog>
-                                      <DialogTrigger asChild>
-                                        <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50">
-                                          <XCircle className="w-4 h-4 mr-2" />
-                                          Rejeitar
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pendentes de Aprovação</CardTitle>
+                <AlertCircle className="h-4 w-4 text-yellow-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {investors?.filter((inv: any) => inv.status === "pendente").length || 0}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Investidores Ativos</CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {investors?.filter((inv: any) => inv.status === "ativo").length || 0}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Rejeitados</CardTitle>
+                <XCircle className="h-4 w-4 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {investors?.filter((inv: any) => inv.status === "rejeitado").length || 0}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtros</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex space-x-4">
+                <div className="flex-1">
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="pendente">Pendente</SelectItem>
+                      <SelectItem value="ativo">Ativo</SelectItem>
+                      <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                      <SelectItem value="inativo">Inativo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Investors Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Lista de Investidores</CardTitle>
+              <CardDescription>
+                Gerencie todos os investidores cadastrados na plataforma
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="text-center py-8">Carregando investidores...</div>
+              ) : !investors?.length ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Nenhum investidor encontrado</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>CPF</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data de Cadastro</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {investors.map((investor: any) => (
+                      <TableRow key={investor.id}>
+                        <TableCell className="font-medium">{investor.nomeCompleto}</TableCell>
+                        <TableCell>{investor.email}</TableCell>
+                        <TableCell>{investor.cpf}</TableCell>
+                        <TableCell>{getStatusBadge(investor.status)}</TableCell>
+                        <TableCell>{formatDate(investor.createdAt)}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedInvestor(investor)}
+                                >
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  Ver
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>Detalhes do Investidor</DialogTitle>
+                                  <DialogDescription>
+                                    Informações completas do investidor
+                                  </DialogDescription>
+                                </DialogHeader>
+                                {selectedInvestor && (
+                                  <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <Label className="font-semibold">Nome Completo</Label>
+                                        <p>{selectedInvestor.nomeCompleto}</p>
+                                      </div>
+                                      <div>
+                                        <Label className="font-semibold">Email</Label>
+                                        <p>{selectedInvestor.email}</p>
+                                      </div>
+                                      <div>
+                                        <Label className="font-semibold">CPF</Label>
+                                        <p>{selectedInvestor.cpf}</p>
+                                      </div>
+                                      <div>
+                                        <Label className="font-semibold">Status</Label>
+                                        <div className="mt-1">{getStatusBadge(selectedInvestor.status)}</div>
+                                      </div>
+                                      <div>
+                                        <Label className="font-semibold">Data de Cadastro</Label>
+                                        <p>{formatDate(selectedInvestor.createdAt)}</p>
+                                      </div>
+                                    </div>
+
+                                    {selectedInvestor.status === "pendente" && (
+                                      <div className="flex space-x-2 pt-4 border-t">
+                                        <Button
+                                          onClick={() => approveInvestorMutation.mutate(selectedInvestor.id)}
+                                          disabled={approveInvestorMutation.isPending}
+                                          className="bg-green-600 hover:bg-green-700"
+                                        >
+                                          <CheckCircle className="w-4 h-4 mr-2" />
+                                          Aprovar
                                         </Button>
-                                      </DialogTrigger>
-                                      <DialogContent>
-                                        <DialogHeader>
-                                          <DialogTitle>Rejeitar Investidor</DialogTitle>
-                                          <DialogDescription>
-                                            Informe o motivo da rejeição
-                                          </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="space-y-4">
-                                          <div>
-                                            <Label htmlFor="reason">Motivo da Rejeição</Label>
-                                            <Textarea
-                                              id="reason"
-                                              placeholder="Descreva o motivo da rejeição..."
-                                              rows={3}
-                                            />
-                                          </div>
-                                          <div className="flex justify-end space-x-2">
-                                            <Button
-                                              onClick={() => {
-                                                const reason = (document.getElementById("reason") as HTMLTextAreaElement)?.value;
-                                                if (reason) {
-                                                  rejectInvestorMutation.mutate({
-                                                    investorId: selectedInvestor.id,
-                                                    reason
-                                                  });
-                                                }
-                                              }}
-                                              disabled={rejectInvestorMutation.isPending}
-                                              variant="destructive"
-                                            >
-                                              Confirmar Rejeição
+                                        <Dialog>
+                                          <DialogTrigger asChild>
+                                            <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50">
+                                              <XCircle className="w-4 h-4 mr-2" />
+                                              Rejeitar
                                             </Button>
-                                          </div>
-                                        </div>
-                                      </DialogContent>
-                                    </Dialog>
+                                          </DialogTrigger>
+                                          <DialogContent>
+                                            <DialogHeader>
+                                              <DialogTitle>Rejeitar Investidor</DialogTitle>
+                                              <DialogDescription>
+                                                Informe o motivo da rejeição
+                                              </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="space-y-4">
+                                              <div>
+                                                <Label htmlFor="reason">Motivo da Rejeição</Label>
+                                                <Textarea
+                                                  id="reason"
+                                                  placeholder="Descreva o motivo da rejeição..."
+                                                  rows={3}
+                                                />
+                                              </div>
+                                              <div className="flex justify-end space-x-2">
+                                                <Button
+                                                  onClick={() => {
+                                                    const reason = (document.getElementById("reason") as HTMLTextAreaElement)?.value;
+                                                    if (reason) {
+                                                      rejectInvestorMutation.mutate({
+                                                        investorId: selectedInvestor.id,
+                                                        reason
+                                                      });
+                                                    }
+                                                  }}
+                                                  disabled={rejectInvestorMutation.isPending}
+                                                  variant="destructive"
+                                                >
+                                                  Confirmar Rejeição
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          </DialogContent>
+                                        </Dialog>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
