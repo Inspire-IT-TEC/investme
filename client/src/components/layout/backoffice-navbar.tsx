@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
-import { ChevronDown, Building2, CreditCard, BarChart3, User, LogOut, Shield, Users, FileSearch, MessageCircle, UserCheck, TrendingUp } from "lucide-react";
+import { ChevronDown, Building2, CreditCard, BarChart3, User, LogOut, Shield, Users, FileSearch, MessageCircle, UserCheck, TrendingUp, ClipboardCheck } from "lucide-react";
 import { Link } from "wouter";
 
 export default function BackofficeNavbar() {
@@ -21,6 +21,7 @@ export default function BackofficeNavbar() {
 
   const navigation = [
     { name: 'Dashboard', href: '/backoffice/dashboard', icon: BarChart3 },
+    { name: 'Aprovações', href: '/backoffice/approvals', icon: ClipboardCheck },
     { name: 'Empresas', href: '/backoffice/companies', icon: Building2 },
     { name: 'Solicitações', href: '/backoffice/credit-requests', icon: CreditCard },
     { name: 'Investidores', href: '/backoffice/investors', icon: UserCheck },

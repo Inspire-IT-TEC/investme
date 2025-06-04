@@ -23,6 +23,7 @@ import Messages from "@/pages/messages";
 import BackofficeMessages from "@/pages/backoffice/messages";
 import BackofficeInvestors from "@/pages/backoffice/investors";
 import BackofficeNetwork from "@/pages/backoffice/network";
+import BackofficeApprovals from "@/pages/backoffice/approvals";
 
 function Router() {
   return (
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/backoffice" component={BackofficeLogin} />
       <Route path="/backoffice/login" component={BackofficeLogin} />
       <Route path="/backoffice/dashboard" component={BackofficeDashboard} />
+      <Route path="/backoffice/approvals" component={BackofficeApprovals} />
       <Route path="/backoffice/companies" component={BackofficeCompanies} />
       <Route path="/backoffice/credit-requests" component={BackofficeCreditRequests} />
       <Route path="/backoffice/investors" component={BackofficeInvestors} />

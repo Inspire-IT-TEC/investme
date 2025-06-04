@@ -923,6 +923,51 @@ export class DatabaseStorage implements IStorage {
 
     return result;
   }
+
+  // Admin user management methods
+  async getUsersByTypeAndStatus(tipo?: string, status?: string): Promise<any[]> {
+    let query = db.select().from(users);
+    
+    const conditions = [];
+    if (tipo) {
+      conditions.push(eq(users.tipo, tipo));
+    }
+    if (status) {
+      conditions.push(eq(users.status, status));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(users.createdAt));
+  }
+
+  async approveUser(userId: number): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        status: 'ativo',
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return updatedUser;
+  }
+
+  async rejectUser(userId: number, reason: string): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        status: 'rejeitado',
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return updatedUser;
+  }
 }
 
 export const storage = new DatabaseStorage();
