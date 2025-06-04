@@ -106,6 +106,11 @@ export interface IStorage {
   approveInvestor(investorId: number): Promise<Investor | undefined>;
   rejectInvestor(investorId: number, reason: string): Promise<Investor | undefined>;
 
+  // Admin user management methods
+  getUsersByTypeAndStatus(tipo?: string, status?: string): Promise<any[]>;
+  approveUser(userId: number): Promise<User | undefined>;
+  rejectUser(userId: number, reason: string): Promise<User | undefined>;
+
   // Admin network methods
   getNetworkRequests(status?: string): Promise<any[]>;
   getNetworkStats(): Promise<any>;

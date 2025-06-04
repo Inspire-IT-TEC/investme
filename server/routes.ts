@@ -530,6 +530,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Users/Entrepreneurs Routes
+  app.get('/api/admin/users', authenticateAdminToken, async (req, res) => {
+    try {
+      const { tipo, status } = req.query;
+      const users = await storage.getUsersByTypeAndStatus(tipo as string, status as string);
+      res.json(users);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar usuários' });
+    }
+  });
+
+  app.post('/api/admin/users/:id/approve', authenticateAdminToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await storage.approveUser(parseInt(id));
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+      res.json(user);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao aprovar usuário' });
+    }
+  });
+
+  app.post('/api/admin/users/:id/reject', authenticateAdminToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      const user = await storage.rejectUser(parseInt(id), reason);
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+      res.json(user);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao rejeitar usuário' });
+    }
+  });
+
   app.post('/api/admin/investors/:id/approve', authenticateAdminToken, async (req, res) => {
     try {
       const { id } = req.params;
