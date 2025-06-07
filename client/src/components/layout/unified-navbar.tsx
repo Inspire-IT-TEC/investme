@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,9 @@ import {
   TrendingUp, 
   Users, 
   Settings,
-  User
+  User,
+  Download,
+  Smartphone
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
@@ -23,6 +25,27 @@ interface UnifiedNavbarProps {
 export default function UnifiedNavbar({ userType, userName, isCompanyApproved = true }: UnifiedNavbarProps) {
   const [, setLocation] = useLocation();
   const { logout } = useAuth();
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Save the event so it can be triggered later
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstallButton(false);
+    }
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   // Fetch unread messages count
   const { data: unreadCount } = useQuery({
@@ -43,6 +66,23 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
   const handleLogout = () => {
     logout();
     setLocation("/");
+  };
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setShowInstallButton(false);
+    }
+    
+    // Clear the deferredPrompt
+    setDeferredPrompt(null);
   };
 
   const getNavItems = () => {
@@ -131,9 +171,30 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
             ))}
           </div>
 
-          {/* User Info and Logout */}
-          <div className="flex items-center space-x-4">
+          {/* User Info and Actions */}
+          <div className="flex items-center space-x-3">
+            {showInstallButton && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 hidden sm:flex"
+                onClick={handleInstallApp}
+                title="Adicionar à tela inicial"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                <span className="hidden md:inline">Instalar App</span>
+              </Button>
+            )}
             <span className="text-sm opacity-90">Olá, {userName}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20"
+              onClick={() => setLocation("/profile")}
+            >
+              <User className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Perfil</span>
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -141,7 +202,7 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Sair
+              <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>
