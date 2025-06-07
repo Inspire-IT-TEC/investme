@@ -21,7 +21,6 @@ import {
   CheckCircle, 
   XCircle,
   MessageCircle,
-  LogOut,
   Send,
   Clock,
   Shield,
@@ -54,21 +53,6 @@ export default function InvestorDashboard() {
       if (!response.ok) return { hasApprovedCompany: false, hasCompany: false };
       return response.json();
     },
-  });
-
-  // Fetch detailed company information
-  const { data: companyDetails, isLoading: loadingDetails } = useQuery({
-    queryKey: ["/api/investor/company-details", selectedDetailsRequest?.id],
-    queryFn: async () => {
-      if (!selectedDetailsRequest) return null;
-      const response = await fetch(`/api/investor/company-details/${selectedDetailsRequest.id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      return response.json();
-    },
-    enabled: !!selectedDetailsRequest,
   });
 
   // Fetch investor stats
@@ -220,23 +204,20 @@ export default function InvestorDashboard() {
         },
         body: JSON.stringify({
           conversationId,
-          conteudo: content,
+          content,
           companyId,
           creditRequestId,
         }),
       });
       if (!response.ok) {
-        throw new Error('Erro ao enviar mensagem');
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao enviar mensagem');
       }
       return response.json();
     },
     onSuccess: () => {
       setMessageContent("");
       refetchMessages();
-      toast({
-        title: "Mensagem enviada",
-        description: "Sua mensagem foi enviada com sucesso.",
-      });
     },
     onError: (error: Error) => {
       toast({
@@ -247,141 +228,134 @@ export default function InvestorDashboard() {
     },
   });
 
-  const handleSendMessage = () => {
-    if (!messageContent.trim() || !selectedChatRequest) return;
-    
-    const conversationId = `${selectedChatRequest.companyId}_${selectedChatRequest.id}`;
-    sendMessageMutation.mutate({
-      conversationId,
-      content: messageContent,
-      companyId: selectedChatRequest.companyId,
-      creditRequestId: selectedChatRequest.id,
-    });
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    scrollToBottom();
   }, [chatMessages]);
 
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/user-type-selection';
-  };
-
-  // Function to calculate remaining time
-  const calculateTimeRemaining = (dataLimiteAnalise: string) => {
-    const now = new Date();
-    const limit = new Date(dataLimiteAnalise);
-    const diff = limit.getTime() - now.getTime();
-    
-    if (diff <= 0) return "Tempo esgotado";
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    return `${hours}h ${minutes}m restantes`;
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-emerald-700 shadow-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">Investme</h1>
-                <p className="text-sm text-green-100">Painel do Investidor</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="flex items-center space-x-2 bg-white/10 border-white/20 text-white hover:bg-white/20"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sair</span>
-              </Button>
-            </div>
+  if (loadingStats) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <UnifiedNavbar 
+          userType="investor" 
+          userName={user?.nomeCompleto || "Investidor"}
+          isCompanyApproved={companyStatus?.hasApprovedCompany}
+        />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600"></div>
+            <p className="mt-4 text-lg font-medium text-gray-600">Carregando painel do investidor...</p>
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Show company registration prompt if no company is registered
+  if (companyStatus && !companyStatus.hasCompany) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <UnifiedNavbar 
+          userType="investor" 
+          userName={user?.nomeCompleto || "Investidor"}
+          isCompanyApproved={false}
+        />
+        <div className="max-w-4xl mx-auto p-6">
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Cadastre sua empresa para acessar a rede</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Para participar da rede de investimentos, você precisa cadastrar uma empresa.
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => setLocation("/investor-company-registration")}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Cadastrar Empresa
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <UnifiedNavbar 
+        userType="investor" 
+        userName={user?.nomeCompleto || "Investidor"}
+        isCompanyApproved={companyStatus?.hasApprovedCompany}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
+        {/* Stats Cards - Cores mais harmoniosas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Solicitações Disponíveis</CardTitle>
-              <TrendingUp className="h-4 w-4 text-white/80" />
+          <Card className="shadow-md border-green-100 bg-white hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+              <CardTitle className="text-sm font-medium text-green-800">Solicitações Disponíveis</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold text-green-700">
                 {loadingStats ? "..." : stats?.availableRequests || 0}
               </div>
-              <p className="text-xs text-green-100">Na rede para análise</p>
+              <p className="text-xs text-green-600 mt-1">Na rede para análise</p>
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-emerald-500 to-green-600 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Aceitas por Mim</CardTitle>
-              <CheckCircle className="h-4 w-4 text-white/80" />
+          <Card className="shadow-md border-green-100 bg-white hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+              <CardTitle className="text-sm font-medium text-green-800">Aceitas por Mim</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold text-green-700">
                 {loadingStats ? "..." : stats?.acceptedRequests || 0}
               </div>
-              <p className="text-xs text-green-100">Em análise</p>
+              <p className="text-xs text-green-600 mt-1">Em análise</p>
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-green-600 to-emerald-700 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Valor Total</CardTitle>
-              <DollarSign className="h-4 w-4 text-white/80" />
+          <Card className="shadow-md border-green-100 bg-white hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+              <CardTitle className="text-sm font-medium text-green-800">Valor Total</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold text-green-700">
                 {loadingStats ? "..." : formatCurrency(stats?.totalValue || 0)}
               </div>
-              <p className="text-xs text-green-100">Em solicitações aceitas</p>
+              <p className="text-xs text-green-600 mt-1">Em solicitações aceitas</p>
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-emerald-600 to-green-700 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Empresas Únicas</CardTitle>
-              <Users className="h-4 w-4 text-white/80" />
+          <Card className="shadow-md border-green-100 bg-white hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+              <CardTitle className="text-sm font-medium text-green-800">Empresas Únicas</CardTitle>
+              <Users className="h-4 w-4 text-green-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold text-green-700">
                 {loadingStats ? "..." : stats?.uniqueCompanies || 0}
               </div>
-              <p className="text-xs text-green-100">Empresas diferentes</p>
+              <p className="text-xs text-green-600 mt-1">Empresas diferentes</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-green-100 border-green-200">
+          <TabsList className="grid w-full grid-cols-4 bg-green-50 border-green-200">
             <TabsTrigger value="overview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Visão Geral</TabsTrigger>
             <TabsTrigger value="network" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Rede</TabsTrigger>
             <TabsTrigger value="analysis" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Em Análise</TabsTrigger>
@@ -389,22 +363,19 @@ export default function InvestorDashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
-                <CardTitle>Resumo das Atividades</CardTitle>
-                <CardDescription className="text-green-100">
+            <Card className="shadow-md border-green-100">
+              <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-t-lg border-b border-green-200">
+                <CardTitle className="text-green-800">Resumo das Atividades</CardTitle>
+                <CardDescription className="text-green-600">
                   Suas estatísticas como investidor na plataforma
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-8">
                 <div className="text-center py-8">
-                  <TrendingUp className="w-16 h-16 text-green-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Bem-vindo ao Investme!</h3>
-                  <p className="text-gray-600 mb-4">
-                    Use a aba "Rede" para ver todas as solicitações de crédito disponíveis para análise.
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Quando você aceitar uma solicitação, ela aparecerá na aba "Em Análise".
+                  <TrendingUp className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Bem-vindo ao seu painel</h3>
+                  <p className="text-gray-600">
+                    Aqui você pode acompanhar suas atividades de investimento e análise de crédito
                   </p>
                 </div>
               </CardContent>
@@ -412,11 +383,11 @@ export default function InvestorDashboard() {
           </TabsContent>
 
           <TabsContent value="network" className="space-y-6">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
-                <CardTitle>Rede - Solicitações Disponíveis</CardTitle>
-                <CardDescription className="text-green-100">
-                  Todas as solicitações de crédito na rede aguardando análise de investidores
+            <Card className="shadow-md border-green-100">
+              <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-t-lg border-b border-green-200">
+                <CardTitle className="text-green-800">Rede de Solicitações</CardTitle>
+                <CardDescription className="text-green-600">
+                  Solicitações de crédito disponíveis para análise
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -444,7 +415,7 @@ export default function InvestorDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {creditRequests.map((request: any) => (
+                      {creditRequests?.map((request: any) => (
                         <TableRow key={request.id}>
                           <TableCell className="font-medium">
                             {request.companyRazaoSocial || 'Empresa não encontrada'}
@@ -527,11 +498,11 @@ export default function InvestorDashboard() {
           </TabsContent>
 
           <TabsContent value="analysis" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Em Análise - 24h para Resposta</CardTitle>
-                <CardDescription>
-                  Solicitações que você aceitou da rede e tem 24 horas para dar uma resposta
+            <Card className="shadow-md border-green-100">
+              <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-t-lg border-b border-green-200">
+                <CardTitle className="text-green-800">Solicitações em Análise</CardTitle>
+                <CardDescription className="text-green-600">
+                  Solicitações que você aceitou e está analisando
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -539,462 +510,126 @@ export default function InvestorDashboard() {
                   <div className="text-center py-8">Carregando análises...</div>
                 ) : !myAnalysis?.length ? (
                   <div className="text-center py-8">
-                    <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600">Nenhuma solicitação em análise</p>
                     <p className="text-sm text-gray-500 mt-2">
                       Aceite solicitações da rede para começar a analisar
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {myAnalysis.map((request: any) => (
-                      <Card key={request.id} className="border-l-4 border-l-orange-500">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
+                  <div className="space-y-6">
+                    {myAnalysis?.map((request: any) => (
+                      <Card key={request.id} className="border-green-200">
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
                             <div>
-                              <h3 className="font-semibold text-lg">{request.companyRazaoSocial}</h3>
-                              <p className="text-gray-600">{request.companyCnpj}</p>
+                              <CardTitle className="text-lg">{request.companyRazaoSocial}</CardTitle>
+                              <CardDescription>
+                                {formatCurrency(request.valorSolicitado)} • {request.prazoMeses} meses
+                              </CardDescription>
                             </div>
-                            <div className="text-right">
-                              <p className="text-sm text-gray-600">Tempo restante:</p>
-                              <p className="font-medium text-orange-600">
-                                {calculateTimeRemaining(request.dataLimiteAnalise)}
-                              </p>
-                            </div>
+                            <Badge className={getStatusColor(request.status)}>
+                              {getStatusLabel(request.status)}
+                            </Badge>
                           </div>
-                          
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <p className="text-sm text-gray-600">Valor Solicitado</p>
-                              <p className="font-medium">{formatCurrency(request.valorSolicitado)}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-600">Finalidade</p>
-                              <p className="font-medium">{request.finalidade}</p>
-                            </div>
-                          </div>
-
-                          <div className="flex space-x-2">
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex space-x-4">
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button 
                                   variant="outline" 
-                                  size="sm"
-                                  onClick={() => setSelectedDetailsRequest(request)}
-                                >
-                                  <Eye className="w-4 h-4 mr-2" />
-                                  Mais Detalhes
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                                <DialogHeader>
-                                  <DialogTitle>Detalhes Completos - {request.companyRazaoSocial}</DialogTitle>
-                                  <DialogDescription>
-                                    Informações detalhadas da empresa e solicitação de crédito
-                                  </DialogDescription>
-                                </DialogHeader>
-                                
-                                {loadingDetails ? (
-                                  <div className="flex justify-center items-center py-8">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                  </div>
-                                ) : companyDetails ? (
-                                  <div className="space-y-6">
-                                    {/* Company Information */}
-                                    <div className="border rounded-lg p-4">
-                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                        <Building2 className="w-5 h-5 mr-2" />
-                                        Informações da Empresa
-                                      </h3>
-                                      <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                          <label className="font-medium text-gray-600">Razão Social:</label>
-                                          <p>{companyDetails.company.razaoSocial}</p>
-                                        </div>
-                                        <div>
-                                          <label className="font-medium text-gray-600">CNPJ:</label>
-                                          <p>{companyDetails.company.cnpj}</p>
-                                        </div>
-                                        <div>
-                                          <label className="font-medium text-gray-600">Status:</label>
-                                          <Badge variant={companyDetails.company.status === 'ativa' ? 'default' : 'secondary'}>
-                                            {companyDetails.company.status}
-                                          </Badge>
-                                        </div>
-                                        <div>
-                                          <label className="font-medium text-gray-600">Setor:</label>
-                                          <p>{companyDetails.company.setor || 'Não informado'}</p>
-                                        </div>
-                                        <div>
-                                          <label className="font-medium text-gray-600">Porte:</label>
-                                          <p>{companyDetails.company.porte || 'Não informado'}</p>
-                                        </div>
-                                        <div>
-                                          <label className="font-medium text-gray-600">Faturamento Anual:</label>
-                                          <p>{companyDetails.company.faturamentoAnual ? formatCurrency(companyDetails.company.faturamentoAnual) : 'Não informado'}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Shareholders */}
-                                    {companyDetails.shareholders && companyDetails.shareholders.length > 0 && (
-                                      <div className="border rounded-lg p-4">
-                                        <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                          <Users className="w-5 h-5 mr-2" />
-                                          Sócios da Empresa
-                                        </h3>
-                                        <div className="space-y-3">
-                                          {companyDetails.shareholders.map((shareholder: any) => (
-                                            <div key={shareholder.id} className="bg-gray-50 p-3 rounded border">
-                                              <div className="grid grid-cols-3 gap-4 text-sm">
-                                                <div>
-                                                  <label className="font-medium text-gray-600">Nome:</label>
-                                                  <p>{shareholder.nome}</p>
-                                                </div>
-                                                <div>
-                                                  <label className="font-medium text-gray-600">CPF:</label>
-                                                  <p>{shareholder.cpf}</p>
-                                                </div>
-                                                <div>
-                                                  <label className="font-medium text-gray-600">Participação:</label>
-                                                  <p>{shareholder.participacao}%</p>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Guarantees */}
-                                    {companyDetails.guarantees && companyDetails.guarantees.length > 0 && (
-                                      <div className="border rounded-lg p-4">
-                                        <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                          <Shield className="w-5 h-5 mr-2" />
-                                          Garantias Oferecidas
-                                        </h3>
-                                        <div className="space-y-3">
-                                          {companyDetails.guarantees.map((guarantee: any) => (
-                                            <div key={guarantee.id} className="bg-gray-50 p-3 rounded border">
-                                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                                <div>
-                                                  <label className="font-medium text-gray-600">Tipo:</label>
-                                                  <p>{guarantee.tipo}</p>
-                                                </div>
-                                                <div>
-                                                  <label className="font-medium text-gray-600">Valor:</label>
-                                                  <p>{formatCurrency(guarantee.valor)}</p>
-                                                </div>
-                                                {guarantee.descricao && (
-                                                  <div className="col-span-2">
-                                                    <label className="font-medium text-gray-600">Descrição:</label>
-                                                    <p>{guarantee.descricao}</p>
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Credit Request Information */}
-                                    <div className="border rounded-lg p-4">
-                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                        <DollarSign className="w-5 h-5 mr-2" />
-                                        Detalhes da Solicitação
-                                      </h3>
-                                      <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                          <label className="font-medium text-gray-600">Valor Solicitado:</label>
-                                          <p className="text-lg font-bold text-green-600">
-                                            {formatCurrency(companyDetails.creditRequest.valorSolicitado)}
-                                          </p>
-                                        </div>
-                                        <div>
-                                          <label className="font-medium text-gray-600">Prazo:</label>
-                                          <p>{companyDetails.creditRequest.prazoMeses} meses</p>
-                                        </div>
-                                        <div className="col-span-2">
-                                          <label className="font-medium text-gray-600">Finalidade:</label>
-                                          <p>{companyDetails.creditRequest.finalidade}</p>
-                                        </div>
-                                        <div>
-                                          <label className="font-medium text-gray-600">Data da Solicitação:</label>
-                                          <p>{formatDate(companyDetails.creditRequest.createdAt)}</p>
-                                        </div>
-                                        <div>
-                                          <label className="font-medium text-gray-600">Data de Aceite:</label>
-                                          <p>{formatDate(companyDetails.creditRequest.dataAceite)}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Analysis Information */}
-                                    <div className="border rounded-lg p-4">
-                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                        <Clock className="w-5 h-5 mr-2" />
-                                        Informações da Análise
-                                      </h3>
-                                      <div className="grid grid-cols-1 gap-4 text-sm">
-                                        <div>
-                                          <label className="font-medium text-gray-600">Status:</label>
-                                          <Badge variant="outline" className="ml-2">
-                                            Em Análise
-                                          </Badge>
-                                        </div>
-                                        <div>
-                                          <label className="font-medium text-gray-600">Prazo para Resposta:</label>
-                                          <p className="text-orange-600 font-medium">
-                                            {companyDetails.creditRequest.dataLimiteAnalise ? formatDate(companyDetails.creditRequest.dataLimiteAnalise) : 'Não definido'}
-                                          </p>
-                                        </div>
-                                        {companyDetails.creditRequest.observacoesAnalise && (
-                                          <div>
-                                            <label className="font-medium text-gray-600">Observações:</label>
-                                            <p className="bg-gray-50 p-2 rounded border">
-                                              {companyDetails.creditRequest.observacoesAnalise}
-                                            </p>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {/* Documents Section */}
-                                    <div className="border rounded-lg p-4">
-                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                        <MessageCircle className="w-5 h-5 mr-2" />
-                                        Documentos e Anexos
-                                      </h3>
-                                      <div className="text-sm text-gray-600">
-                                        <p>Para visualizar documentos anexados pela empresa, utilize o sistema de mensagens.</p>
-                                        <p className="mt-2">Documentos geralmente incluem:</p>
-                                        <ul className="list-disc list-inside mt-1 space-y-1">
-                                          <li>Demonstrações financeiras</li>
-                                          <li>Comprovantes de faturamento</li>
-                                          <li>Certidões negativas</li>
-                                          <li>Contratos e garantias</li>
-                                        </ul>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-center py-8 text-gray-500">
-                                    Erro ao carregar detalhes da empresa
-                                  </div>
-                                )}
-                              </DialogContent>
-                            </Dialog>
-                            
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button className="bg-green-600 hover:bg-green-700" size="sm">
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Aprovar
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Aprovar Solicitação</DialogTitle>
-                                  <DialogDescription>
-                                    Você está aprovando a solicitação de crédito de {request.companyRazaoSocial}
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                  <div>
-                                    <label className="text-sm font-medium">Observações (opcional)</label>
-                                    <textarea
-                                      className="w-full mt-1 p-2 border rounded"
-                                      rows={3}
-                                      placeholder="Adicione observações sobre a aprovação..."
-                                      id={`approve-obs-${request.id}`}
-                                    />
-                                  </div>
-                                  <div className="flex justify-end space-x-2">
-                                    <DialogTrigger asChild>
-                                      <Button variant="outline">Cancelar</Button>
-                                    </DialogTrigger>
-                                    <Button 
-                                      className="bg-green-600 hover:bg-green-700"
-                                      onClick={() => {
-                                        const textarea = document.getElementById(`approve-obs-${request.id}`) as HTMLTextAreaElement;
-                                        approveRequestMutation.mutate({
-                                          requestId: request.id,
-                                          observacoes: textarea?.value || ''
-                                        });
-                                      }}
-                                      disabled={approveRequestMutation.isPending}
-                                    >
-                                      {approveRequestMutation.isPending ? 'Aprovando...' : 'Confirmar Aprovação'}
-                                    </Button>
-                                  </div>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                            
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="destructive" size="sm">
-                                  <XCircle className="w-4 h-4 mr-2" />
-                                  Reprovar
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Reprovar Solicitação</DialogTitle>
-                                  <DialogDescription>
-                                    Você está reprovando a solicitação de crédito de {request.companyRazaoSocial}
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                  <div>
-                                    <label className="text-sm font-medium">Motivo da reprovação *</label>
-                                    <textarea
-                                      className="w-full mt-1 p-2 border rounded"
-                                      rows={3}
-                                      placeholder="Explique o motivo da reprovação..."
-                                      id={`reject-obs-${request.id}`}
-                                      required
-                                    />
-                                  </div>
-                                  <div className="flex justify-end space-x-2">
-                                    <DialogTrigger asChild>
-                                      <Button variant="outline">Cancelar</Button>
-                                    </DialogTrigger>
-                                    <Button 
-                                      variant="destructive"
-                                      onClick={() => {
-                                        const textarea = document.getElementById(`reject-obs-${request.id}`) as HTMLTextAreaElement;
-                                        if (!textarea?.value.trim()) {
-                                          toast({
-                                            title: "Campo obrigatório",
-                                            description: "Por favor, informe o motivo da reprovação.",
-                                            variant: "destructive",
-                                          });
-                                          return;
-                                        }
-                                        rejectRequestMutation.mutate({
-                                          requestId: request.id,
-                                          observacoes: textarea.value
-                                        });
-                                      }}
-                                      disabled={rejectRequestMutation.isPending}
-                                    >
-                                      {rejectRequestMutation.isPending ? 'Reprovando...' : 'Confirmar Reprovação'}
-                                    </Button>
-                                  </div>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
+                                  className="border-green-200 text-green-600 hover:bg-green-50"
                                   onClick={() => setSelectedChatRequest(request)}
                                 >
                                   <MessageCircle className="w-4 h-4 mr-2" />
                                   Conversar
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-3xl max-h-[80vh]">
+                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
                                 <DialogHeader>
                                   <DialogTitle>Conversa com {request.companyRazaoSocial}</DialogTitle>
                                   <DialogDescription>
-                                    Chat privado sobre a solicitação de crédito de {formatCurrency(request.valorSolicitado)}
+                                    Chat sobre a solicitação de {formatCurrency(request.valorSolicitado)}
                                   </DialogDescription>
                                 </DialogHeader>
-                                
-                                {/* Messages Area */}
-                                <div className="h-96 border rounded-lg overflow-hidden flex flex-col">
-                                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                                <div className="flex-1 flex flex-col overflow-hidden">
+                                  <div className="flex-1 overflow-y-auto p-4 space-y-4 border rounded-lg bg-gray-50">
                                     {loadingMessages ? (
-                                      <div className="space-y-4">
-                                        {[1, 2, 3].map((i) => (
-                                          <div key={i} className="animate-pulse">
-                                            <div className="flex space-x-3">
-                                              <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                                              <div className="flex-1 space-y-2">
-                                                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                                                <div className="h-16 bg-gray-200 rounded"></div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    ) : chatMessages && chatMessages.length > 0 ? (
-                                      <>
-                                        {chatMessages.map((message: any) => (
-                                          <div
-                                            key={message.id}
-                                            className={`flex space-x-3 ${
-                                              message.tipo === 'investor' ? 'flex-row-reverse space-x-reverse' : ''
-                                            }`}
-                                          >
-                                            <Avatar className="w-8 h-8">
-                                              <AvatarFallback className={
-                                                message.tipo === 'investor' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                                              }>
-                                                {message.tipo === 'investor' ? 'I' : 'E'}
-                                              </AvatarFallback>
-                                            </Avatar>
-                                            <div className={`flex-1 ${message.tipo === 'investor' ? 'text-right' : ''}`}>
-                                              <div className="flex items-center space-x-2 mb-1">
-                                                <span className="text-sm font-medium text-gray-900">
-                                                  {message.tipo === 'investor' ? 'Você' : request.companyRazaoSocial}
-                                                </span>
-                                                <span className="text-xs text-gray-500">
-                                                  {formatTime(message.createdAt)}
-                                                </span>
-                                              </div>
-                                              <div className={`p-3 rounded-lg max-w-sm ${
-                                                message.tipo === 'investor' 
-                                                  ? 'bg-blue-500 text-white ml-auto' 
-                                                  : 'bg-white border shadow-sm'
-                                              }`}>
-                                                <p className="text-sm whitespace-pre-wrap">{message.conteudo}</p>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))}
-                                        <div ref={messagesEndRef} />
-                                      </>
+                                      <p className="text-center text-gray-500">Carregando mensagens...</p>
+                                    ) : !chatMessages?.length ? (
+                                      <p className="text-center text-gray-500">
+                                        Nenhuma mensagem ainda. Inicie a conversa!
+                                      </p>
                                     ) : (
-                                      <div className="text-center text-gray-500 py-8">
-                                        <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                        <p>Nenhuma mensagem ainda.</p>
-                                        <p className="text-sm">Comece a conversa sobre esta solicitação de crédito.</p>
-                                      </div>
+                                      chatMessages?.map((message: any, index: number) => (
+                                        <div key={index} className={`flex ${message.senderType === 'investor' ? 'justify-end' : 'justify-start'}`}>
+                                          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                            message.senderType === 'investor'
+                                              ? 'bg-green-600 text-white'
+                                              : 'bg-white border'
+                                          }`}>
+                                            <p className="text-sm">{message.content}</p>
+                                            <p className={`text-xs mt-1 ${
+                                              message.senderType === 'investor'
+                                                ? 'text-green-100'
+                                                : 'text-gray-500'
+                                            }`}>
+                                              {formatDate(message.createdAt)}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      ))
                                     )}
+                                    <div ref={messagesEndRef} />
                                   </div>
-                                  
-                                  {/* Message Input */}
-                                  <div className="border-t p-4 bg-white">
-                                    <div className="flex space-x-2">
-                                      <Textarea
-                                        value={messageContent}
-                                        onChange={(e) => setMessageContent(e.target.value)}
-                                        placeholder="Digite sua mensagem..."
-                                        className="flex-1 min-h-[60px] resize-none"
-                                        onKeyPress={(e) => {
-                                          if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleSendMessage();
-                                          }
-                                        }}
-                                      />
-                                      <Button
-                                        onClick={handleSendMessage}
-                                        disabled={!messageContent.trim() || sendMessageMutation.isPending}
-                                        className="px-6"
-                                      >
-                                        <Send className="w-4 h-4" />
-                                      </Button>
-                                    </div>
+                                  <div className="mt-4 flex space-x-2">
+                                    <Textarea
+                                      placeholder="Digite sua mensagem..."
+                                      value={messageContent}
+                                      onChange={(e) => setMessageContent(e.target.value)}
+                                      className="flex-1"
+                                      rows={2}
+                                    />
+                                    <Button 
+                                      onClick={() => {
+                                        if (messageContent.trim() && selectedChatRequest) {
+                                          const conversationId = `${selectedChatRequest.companyId}_${selectedChatRequest.id}`;
+                                          sendMessageMutation.mutate({
+                                            conversationId,
+                                            content: messageContent,
+                                            companyId: selectedChatRequest.companyId,
+                                            creditRequestId: selectedChatRequest.id,
+                                          });
+                                        }
+                                      }}
+                                      disabled={!messageContent.trim() || sendMessageMutation.isPending}
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      <Send className="w-4 h-4" />
+                                    </Button>
                                   </div>
                                 </div>
                               </DialogContent>
                             </Dialog>
+
+                            <Button 
+                              onClick={() => approveRequestMutation.mutate({ requestId: request.id, observacoes: "Aprovado pelo investidor" })}
+                              disabled={approveRequestMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Aprovar
+                            </Button>
+
+                            <Button 
+                              variant="destructive"
+                              onClick={() => rejectRequestMutation.mutate({ requestId: request.id, observacoes: "Reprovado pelo investidor" })}
+                              disabled={rejectRequestMutation.isPending}
+                            >
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Reprovar
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -1006,19 +641,19 @@ export default function InvestorDashboard() {
           </TabsContent>
 
           <TabsContent value="completed" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Solicitações Finalizadas</CardTitle>
-                <CardDescription>
-                  Solicitações que você aprovou ou reprovou
+            <Card className="shadow-md border-green-100">
+              <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-t-lg border-b border-green-200">
+                <CardTitle className="text-green-800">Análises Finalizadas</CardTitle>
+                <CardDescription className="text-green-600">
+                  Histórico de solicitações analisadas
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
-                  <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhuma solicitação finalizada ainda</p>
+                  <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Nenhuma análise finalizada ainda</p>
                   <p className="text-sm text-gray-500 mt-2">
-                    Solicitações aprovadas ou reprovadas aparecerão aqui
+                    Análises aprovadas ou reprovadas aparecerão aqui
                   </p>
                 </div>
               </CardContent>
