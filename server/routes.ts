@@ -1118,9 +1118,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Investor Routes
   app.get('/api/investor/company-status', authenticateToken, async (req: any, res) => {
     try {
-      const investor = await storage.getInvestor(req.user.id);
+      // Try to find investor by the user email from the token
+      let investor = await storage.getInvestorByEmail(req.user.email);
+      
       if (!investor) {
-        return res.status(404).json({ message: 'Investidor não encontrado' });
+        // Try alternative approach - find investor by CPF if available
+        const user = await storage.getUser(req.user.id);
+        if (user?.cpf) {
+          investor = await storage.getInvestorByCpf(user.cpf);
+        }
+      }
+
+      if (!investor) {
+        return res.json({
+          hasCompany: false,
+          hasApprovedCompany: false
+        });
       }
 
       // Check if investor has a company registered
@@ -1138,9 +1151,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/investor/company', authenticateToken, async (req: any, res) => {
     try {
-      const investor = await storage.getInvestor(req.user.id);
+      // Try to find investor by the user ID from the token
+      let investor = await storage.getInvestorByEmail(req.user.email);
+      
       if (!investor) {
-        return res.status(404).json({ message: 'Investidor não encontrado' });
+        // Try alternative approach - find investor by CPF if available
+        const user = await storage.getUser(req.user.id);
+        if (user?.cpf) {
+          investor = await storage.getInvestorByCpf(user.cpf);
+        }
+      }
+
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado. Verifique se seu cadastro foi aprovado.' });
       }
 
       const companyData = insertCompanySchema.parse({
