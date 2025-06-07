@@ -248,8 +248,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       res.json({ 
-        user: { ...user, senha: undefined }, 
-        token 
+        user: { ...user, senha: undefined, role: 'investor' }, 
+        token,
+        userType: 'investor'
       });
     } catch (error: any) {
       console.error('Erro no login do investidor:', error);

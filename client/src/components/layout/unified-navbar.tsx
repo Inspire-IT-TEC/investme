@@ -45,40 +45,48 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
     setLocation("/");
   };
 
-  const navItems = [
-    {
-      key: "home",
-      label: "Início",
-      icon: Building2,
-      path: userType === "investor" ? "/investor-dashboard" : "/dashboard"
-    },
-    {
-      key: "dashboard",
-      label: "Dashboard",
-      icon: TrendingUp,
-      path: userType === "investor" ? "/investor-dashboard" : "/dashboard"
-    },
-    {
-      key: "messages",
-      label: "Mensagens",
-      icon: MessageCircle,
-      path: "/messages",
-      badge: unreadCount > 0 ? unreadCount : null
-    },
-    {
-      key: "network",
-      label: "Rede",
-      icon: Users,
-      path: userType === "investor" ? "/investor-dashboard" : "/dashboard",
-      disabled: userType === "investor" && !isCompanyApproved
-    },
-    {
-      key: "profile",
-      label: "Perfil",
-      icon: User,
-      path: "/profile"
+  const getNavItems = () => {
+    if (userType === "investor") {
+      return [
+        {
+          key: "home",
+          label: "Início",
+          icon: Building2,
+          path: "/investor-dashboard"
+        }
+      ];
+    } else {
+      return [
+        {
+          key: "home",
+          label: "Início",
+          icon: Building2,
+          path: "/dashboard"
+        },
+        {
+          key: "dashboard",
+          label: "Dashboard",
+          icon: TrendingUp,
+          path: "/dashboard"
+        },
+        {
+          key: "messages",
+          label: "Mensagens",
+          icon: MessageCircle,
+          path: "/messages",
+          badge: unreadCount > 0 ? unreadCount : null
+        },
+        {
+          key: "network",
+          label: "Rede",
+          icon: Users,
+          path: "/network"
+        }
+      ];
     }
-  ];
+  };
+
+  const navItems = getNavItems();
 
   const getNavbarColor = () => {
     return userType === "investor" 
@@ -106,11 +114,8 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
                 key={item.key}
                 variant="ghost"
                 size="sm"
-                className={`text-white hover:bg-white/20 relative ${
-                  item.disabled ? "opacity-50 cursor-not-allowed" : ""
-                } ${userType === "investor" ? "hover:bg-green-700/30" : "hover:bg-purple-700/30"}`}
-                onClick={() => !item.disabled && setLocation(item.path)}
-                disabled={item.disabled}
+                className={`text-white hover:bg-white/20 relative ${userType === "investor" ? "hover:bg-green-700/30" : "hover:bg-purple-700/30"}`}
+                onClick={() => setLocation(item.path)}
               >
                 <item.icon className="h-4 w-4 mr-2" />
                 {item.label}

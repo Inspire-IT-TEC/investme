@@ -355,9 +355,11 @@ export default function InvestorDashboard() {
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-green-50 border-green-200">
+          <TabsList className={`grid w-full ${companyStatus?.hasApprovedCompany ? 'grid-cols-4' : 'grid-cols-3'} bg-green-50 border-green-200`}>
             <TabsTrigger value="overview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Visão Geral</TabsTrigger>
-            <TabsTrigger value="network" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Rede</TabsTrigger>
+            {companyStatus?.hasApprovedCompany && (
+              <TabsTrigger value="network" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Rede</TabsTrigger>
+            )}
             <TabsTrigger value="analysis" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Em Análise</TabsTrigger>
             <TabsTrigger value="completed" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Finalizadas</TabsTrigger>
           </TabsList>

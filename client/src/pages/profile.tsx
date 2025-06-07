@@ -45,8 +45,18 @@ export default function Profile() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
 
-  // Determine user type based on current user data
-  const userType = user?.role === "investor" ? "investor" : "entrepreneur";
+  // Determine user type based on current path or stored data
+  const getCurrentUserType = () => {
+    // Check if we're in investor context
+    if (window.location.pathname.includes('/investor') || 
+        localStorage.getItem('userType') === 'investor' ||
+        user?.role === 'investor') {
+      return 'investor';
+    }
+    return 'entrepreneur';
+  };
+  
+  const userType = getCurrentUserType();
 
   // Fetch current user profile
   const { data: profile, isLoading } = useQuery({
