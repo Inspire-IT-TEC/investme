@@ -368,10 +368,31 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getCompanyCreditRequests(companyId: number): Promise<CreditRequest[]> {
+  async getCompanyCreditRequests(companyId: number): Promise<any[]> {
     return await db
-      .select()
+      .select({
+        id: creditRequests.id,
+        valorSolicitado: creditRequests.valorSolicitado,
+        prazoMeses: creditRequests.prazoMeses,
+        finalidade: creditRequests.finalidade,
+        status: creditRequests.status,
+        observacoesAnalise: creditRequests.observacoesAnalise,
+        createdAt: creditRequests.createdAt,
+        updatedAt: creditRequests.updatedAt,
+        companyId: companies.id,
+        companyRazaoSocial: companies.razaoSocial,
+        companyCnpj: companies.cnpj,
+        companyStatus: companies.status,
+        investorId: creditRequests.investorId,
+        // Include approving investor company name if available
+        approvingCompanyName: sql<string>`CASE 
+          WHEN ${creditRequests.investorId} IS NOT NULL THEN 
+            (SELECT c.razao_social FROM companies c WHERE c.investor_id = ${creditRequests.investorId} LIMIT 1)
+          ELSE NULL 
+        END`.as('approvingCompanyName')
+      })
       .from(creditRequests)
+      .leftJoin(companies, eq(creditRequests.companyId, companies.id))
       .where(eq(creditRequests.companyId, companyId))
       .orderBy(desc(creditRequests.createdAt));
   }

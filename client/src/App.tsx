@@ -13,6 +13,8 @@ import Dashboard from "@/pages/dashboard";
 import InvestorDashboard from "@/pages/investor-dashboard";
 import CompanyRegistration from "@/pages/company-registration";
 import CreditRequest from "@/pages/credit-request";
+import Profile from "@/pages/profile";
+import InvestorCompanyRegistration from "@/pages/investor-company-registration";
 import BackofficeLogin from "@/pages/backoffice/login";
 import BackofficeDashboard from "@/pages/backoffice/dashboard";
 import BackofficeCompanies from "@/pages/backoffice/companies";
@@ -37,10 +39,13 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/investor-dashboard" component={InvestorDashboard} />
       <Route path="/investor/dashboard" component={InvestorDashboard} />
       <Route path="/company-registration" component={CompanyRegistration} />
+      <Route path="/investor-company-registration" component={InvestorCompanyRegistration} />
       <Route path="/credit-request/:companyId" component={CreditRequest} />
       <Route path="/messages" component={Messages} />
+      <Route path="/profile" component={Profile} />
       <Route path="/backoffice" component={BackofficeLogin} />
       <Route path="/backoffice/login" component={BackofficeLogin} />
       <Route path="/backoffice/dashboard" component={BackofficeDashboard} />

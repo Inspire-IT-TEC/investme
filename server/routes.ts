@@ -1115,6 +1115,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Investor Routes
+  app.get('/api/investor/company-status', authenticateToken, async (req: any, res) => {
+    try {
+      const investor = await storage.getInvestor(req.user.id);
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+
+      // Check if investor has a company registered
+      const companies = await storage.getCompanies(undefined, undefined, undefined);
+      const investorCompany = companies.find(c => c.investorId === investor.id);
+
+      res.json({
+        hasCompany: !!investorCompany,
+        hasApprovedCompany: investorCompany?.status === 'aprovada'
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao verificar status da empresa' });
+    }
+  });
+
+  app.post('/api/investor/company', authenticateToken, async (req: any, res) => {
+    try {
+      const investor = await storage.getInvestor(req.user.id);
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+
+      const companyData = insertCompanySchema.parse({
+        ...req.body,
+        investorId: investor.id,
+        tipoProprietario: 'investidor'
+      });
+
+      const company = await storage.createCompany(companyData);
+      res.status(201).json(company);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao cadastrar empresa' });
+    }
+  });
+
+  app.get('/api/investor/profile', authenticateToken, async (req: any, res) => {
+    try {
+      const investor = await storage.getInvestor(req.user.id);
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+      res.json(investor);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar perfil' });
+    }
+  });
+
+  app.put('/api/investor/profile', authenticateToken, async (req: any, res) => {
+    try {
+      const investor = await storage.getInvestor(req.user.id);
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+
+      // For now, just return success - in a real implementation, 
+      // changes would be stored as pending for backoffice approval
+      res.json({ message: 'Alterações enviadas para aprovação' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao atualizar perfil' });
+    }
+  });
+
+  app.get('/api/investor/pending-profile-changes', authenticateToken, async (req: any, res) => {
+    try {
+      // For now, return null - in a real implementation, 
+      // this would check for pending profile changes
+      res.json(null);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar alterações pendentes' });
+    }
+  });
+
+  app.get('/api/investor/unread-messages', authenticateToken, async (req: any, res) => {
+    try {
+      // For now, return 0 - in a real implementation, 
+      // this would count unread messages for the investor
+      res.json({ count: 0 });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar mensagens não lidas' });
+    }
+  });
+
+  // Entrepreneur Routes for unified navbar
+  app.get('/api/entrepreneur/profile', authenticateToken, async (req: any, res) => {
+    try {
+      const entrepreneur = await storage.getEntrepreneur(req.user.id);
+      if (!entrepreneur) {
+        return res.status(404).json({ message: 'Empreendedor não encontrado' });
+      }
+      res.json(entrepreneur);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar perfil' });
+    }
+  });
+
+  app.put('/api/entrepreneur/profile', authenticateToken, async (req: any, res) => {
+    try {
+      const entrepreneur = await storage.getEntrepreneur(req.user.id);
+      if (!entrepreneur) {
+        return res.status(404).json({ message: 'Empreendedor não encontrado' });
+      }
+
+      // For now, just return success - in a real implementation, 
+      // changes would be stored as pending for backoffice approval
+      res.json({ message: 'Alterações enviadas para aprovação' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao atualizar perfil' });
+    }
+  });
+
+  app.get('/api/entrepreneur/pending-profile-changes', authenticateToken, async (req: any, res) => {
+    try {
+      // For now, return null - in a real implementation, 
+      // this would check for pending profile changes
+      res.json(null);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar alterações pendentes' });
+    }
+  });
+
+  app.get('/api/entrepreneur/unread-messages', authenticateToken, async (req: any, res) => {
+    try {
+      // For now, return 0 - in a real implementation, 
+      // this would count unread messages for the entrepreneur
+      res.json({ count: 0 });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar mensagens não lidas' });
+    }
+  });
+
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
