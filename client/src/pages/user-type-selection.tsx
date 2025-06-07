@@ -1,13 +1,65 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, TrendingUp, ArrowRight } from "lucide-react";
+import { Building2, TrendingUp, ArrowRight, Download, Smartphone } from "lucide-react";
 import { InvestmeLogo } from "@/components/ui/logo";
 
 export default function UserTypeSelection() {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstallButton(false);
+    }
+
+    // For testing purposes, show button always (remove in production)
+    setShowInstallButton(true);
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setShowInstallButton(false);
+      }
+      setDeferredPrompt(null);
+    } else {
+      // Fallback for browsers that don't support PWA installation
+      alert('Para instalar o app:\n\n1. No Chrome mobile: Menu > "Adicionar à tela inicial"\n2. No Safari: Compartilhar > "Adicionar à Tela de Início"\n3. No Edge: Menu > "Aplicativos" > "Instalar este site como aplicativo"');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50">
       <div className="container mx-auto px-4 py-8">
+        {/* Install Button - Fixed position */}
+        {showInstallButton && (
+          <div className="fixed top-4 right-4 z-50">
+            <Button
+              onClick={handleInstallApp}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg"
+              title="Adicionar à tela inicial"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Instalar App</span>
+              <Smartphone className="h-4 w-4 sm:hidden" />
+            </Button>
+          </div>
+        )}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
             <InvestmeLogo className="h-12" />
