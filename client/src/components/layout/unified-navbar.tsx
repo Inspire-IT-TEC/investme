@@ -47,6 +47,12 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
 
   const navItems = [
     {
+      key: "home",
+      label: "Início",
+      icon: Building2,
+      path: userType === "investor" ? "/investor-dashboard" : "/dashboard"
+    },
+    {
       key: "dashboard",
       label: "Dashboard",
       icon: TrendingUp,
@@ -63,7 +69,7 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
       key: "network",
       label: "Rede",
       icon: Users,
-      path: userType === "investor" ? "/investor-network" : "/network",
+      path: userType === "investor" ? "/investor-dashboard" : "/dashboard",
       disabled: userType === "investor" && !isCompanyApproved
     },
     {
@@ -102,7 +108,7 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
                 size="sm"
                 className={`text-white hover:bg-white/20 relative ${
                   item.disabled ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                } ${userType === "investor" ? "hover:bg-green-700/30" : "hover:bg-purple-700/30"}`}
                 onClick={() => !item.disabled && setLocation(item.path)}
                 disabled={item.disabled}
               >

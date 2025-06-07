@@ -1166,11 +1166,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Investidor não encontrado. Verifique se seu cadastro foi aprovado.' });
       }
 
-      const companyData = insertCompanySchema.parse({
+      const companyData = {
         ...req.body,
         investorId: investor.id,
-        tipoProprietario: 'investidor'
-      });
+        tipoProprietario: 'investidor',
+        faturamento: String(req.body.faturamento || 0),
+        ebitda: String(req.body.ebitda || 0),
+        dividaLiquida: String(req.body.dividaLiquida || 0),
+        numeroFuncionarios: Number(req.body.numeroFuncionarios || 1),
+        dataFundacao: new Date(req.body.dataFundacao)
+      };
 
       const company = await storage.createCompany(companyData);
       res.status(201).json(company);
@@ -1181,7 +1186,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/investor/profile', authenticateToken, async (req: any, res) => {
     try {
-      const investor = await storage.getInvestor(req.user.id);
+      // Try to find investor by the user email from the token
+      let investor = await storage.getInvestorByEmail(req.user.email);
+      
+      if (!investor) {
+        // Try alternative approach - find investor by CPF if available
+        const user = await storage.getUser(req.user.id);
+        if (user?.cpf) {
+          investor = await storage.getInvestorByCpf(user.cpf);
+        }
+      }
+
       if (!investor) {
         return res.status(404).json({ message: 'Investidor não encontrado' });
       }

@@ -290,8 +290,14 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  analisadoPor: true,
+  dataAnalise: true,
 }).extend({
   dataFundacao: z.string().transform((str) => new Date(str)),
+  faturamento: z.union([z.string(), z.number()]).transform((val) => String(typeof val === 'string' ? parseFloat(val) : val)),
+  ebitda: z.union([z.string(), z.number()]).transform((val) => String(typeof val === 'string' ? parseFloat(val) : val)),
+  dividaLiquida: z.union([z.string(), z.number()]).transform((val) => String(typeof val === 'string' ? parseFloat(val) : val)),
+  numeroFuncionarios: z.union([z.string(), z.number()]).transform((val) => typeof val === 'string' ? parseInt(val) : val),
 });
 
 export const insertCompanyShareholderSchema = createInsertSchema(companyShareholders).omit({
