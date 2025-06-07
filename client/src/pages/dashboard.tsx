@@ -190,15 +190,22 @@ export default function Dashboard() {
                       <th className="text-left p-2">Valor</th>
                       <th className="text-left p-2">Data</th>
                       <th className="text-left p-2">Status</th>
+                      <th className="text-left p-2">Aprovado por</th>
                     </tr>
                   </thead>
                   <tbody>
                     {creditRequests.slice(0, 5).map((request: any) => (
                       <tr key={request.id} className="border-b">
-                        <td className="p-2 font-medium">{request.companyRazaoSocial}</td>
+                        <td className="p-2 font-medium">{request.companyRazaoSocial || 'Nome não disponível'}</td>
                         <td className="p-2">R$ {parseFloat(request.valorSolicitado).toLocaleString('pt-BR')}</td>
                         <td className="p-2">{new Date(request.createdAt).toLocaleDateString('pt-BR')}</td>
                         <td className="p-2">{getStatusBadge(request.status)}</td>
+                        <td className="p-2 text-sm text-gray-600">
+                          {request.status === 'aprovada' && request.approvingCompanyName 
+                            ? request.approvingCompanyName 
+                            : '-'
+                          }
+                        </td>
                       </tr>
                     ))}
                   </tbody>
