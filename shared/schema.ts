@@ -111,6 +111,8 @@ export const companies = pgTable("companies", {
   dataAnalise: timestamp("data_analise"),
   userId: integer("user_id").references(() => users.id),
   entrepreneurId: integer("entrepreneur_id").references(() => entrepreneurs.id),
+  investorId: integer("investor_id").references(() => investors.id),
+  tipoProprietario: text("tipo_proprietario").notNull().default("empreendedor"), // empreendedor, investidor
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

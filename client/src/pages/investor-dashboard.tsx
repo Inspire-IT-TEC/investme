@@ -8,7 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from "@/lib/utils";
 import { 
   TrendingUp, 
@@ -22,17 +24,37 @@ import {
   LogOut,
   Send,
   Clock,
-  Shield
+  Shield,
+  AlertCircle,
+  Plus
 } from "lucide-react";
+import UnifiedNavbar from "@/components/layout/unified-navbar";
+import { useLocation } from "wouter";
 
 export default function InvestorDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [messageContent, setMessageContent] = useState("");
   const [selectedChatRequest, setSelectedChatRequest] = useState<any>(null);
   const [selectedDetailsRequest, setSelectedDetailsRequest] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Check if user has approved company
+  const { data: companyStatus } = useQuery({
+    queryKey: ["/api/investor/company-status"],
+    queryFn: async () => {
+      const response = await fetch('/api/investor/company-status', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) return { hasApprovedCompany: false, hasCompany: false };
+      return response.json();
+    },
+  });
 
   // Fetch detailed company information
   const { data: companyDetails, isLoading: loadingDetails } = useQuery({
