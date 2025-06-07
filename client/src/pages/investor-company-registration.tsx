@@ -37,6 +37,7 @@ const companySchema = z.object({
   faturamento: z.string().min(1, "Faturamento é obrigatório"),
   ebitda: z.string().min(1, "EBITDA é obrigatório"),
   dividaLiquida: z.string().min(1, "Dívida líquida é obrigatória"),
+  numeroFuncionarios: z.string().min(1, "Número de funcionários é obrigatório"),
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
@@ -69,6 +70,7 @@ export default function InvestorCompanyRegistration() {
       faturamento: "",
       ebitda: "",
       dividaLiquida: "",
+      numeroFuncionarios: "",
     },
   });
 
@@ -84,9 +86,10 @@ export default function InvestorCompanyRegistration() {
           ...data,
           tipoProprietario: 'investidor',
           dataFundacao: new Date(data.dataFundacao).toISOString(),
-          faturamento: parseFloat(data.faturamento.replace(/[^\d.,]/g, '').replace(',', '.')),
-          ebitda: parseFloat(data.ebitda.replace(/[^\d.,]/g, '').replace(',', '.')),
-          dividaLiquida: parseFloat(data.dividaLiquida.replace(/[^\d.,]/g, '').replace(',', '.')),
+          faturamento: parseFloat(data.faturamento.replace(/[^\d.,]/g, '').replace(',', '.')) || 0,
+          ebitda: parseFloat(data.ebitda.replace(/[^\d.,]/g, '').replace(',', '.')) || 0,
+          dividaLiquida: parseFloat(data.dividaLiquida.replace(/[^\d.,]/g, '').replace(',', '.')) || 0,
+          numeroFuncionarios: parseInt(data.numeroFuncionarios) || 1,
         }),
       });
       if (!response.ok) {
@@ -408,6 +411,20 @@ export default function InvestorCompanyRegistration() {
                           <FormLabel>Dívida Líquida (R$) *</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="50.000,00" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="numeroFuncionarios"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Número de Funcionários *</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="number" placeholder="10" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
