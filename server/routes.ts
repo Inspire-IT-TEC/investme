@@ -1140,7 +1140,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if investor has a company registered
       const companies = await storage.getCompanies(undefined, undefined, undefined);
-      const investorCompany = companies.find(c => c.investorId === investor.id);
+      const investorCompany = companies.find(c => c.investorId === investor.id && c.tipoProprietario === 'investidor');
+
+      console.log('Investor ID:', investor.id);
+      console.log('Companies found:', companies.length);
+      console.log('Investor company:', investorCompany);
 
       res.json({
         hasCompany: !!investorCompany,
