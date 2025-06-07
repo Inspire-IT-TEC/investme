@@ -289,8 +289,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       res.json({ 
-        user: { ...user, senha: undefined }, 
-        token 
+        user: { ...user, senha: undefined, role: 'entrepreneur' }, 
+        token,
+        userType: 'entrepreneur'
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message || 'Erro no login do empreendedor' });

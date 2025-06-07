@@ -84,12 +84,15 @@ class AuthManager {
     return { ...this.state };
   }
 
-  login(user: User, token: string) {
+  login(user: User, token: string, userType?: string) {
     this.state = {
       user,
       token,
       isAuthenticated: true,
     };
+    if (userType) {
+      localStorage.setItem('userType', userType);
+    }
     this.saveToStorage();
     this.notifyListeners();
   }
@@ -100,6 +103,7 @@ class AuthManager {
       token: null,
       isAuthenticated: false,
     };
+    localStorage.removeItem('userType');
     this.clearStorage();
     this.notifyListeners();
   }
