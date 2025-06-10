@@ -1414,18 +1414,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Campo inválido' });
       }
 
-      const entrepreneur = await storage.updateEntrepreneurApproval(
-        parseInt(id), 
-        field, 
-        approved, 
-        req.admin.id
-      );
-
-      if (!entrepreneur) {
+      // For entrepreneurs, we update the users table since entrepreneurs are stored there
+      const user = await storage.getUser(parseInt(id));
+      if (!user || user.tipo !== 'entrepreneur') {
         return res.status(404).json({ message: 'Empreendedor não encontrado' });
       }
 
-      res.json({ message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, entrepreneur });
+      const updateData: any = {
+        [field]: approved,
+        updatedAt: new Date()
+      };
+      
+      if (approved) {
+        updateData.aprovadoPor = req.admin.id;
+        updateData.aprovadoEm = new Date();
+      }
+
+      const updatedUser = await storage.updateUser(parseInt(id), updateData);
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'Erro ao atualizar empreendedor' });
+      }
+
+      res.json({ message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, entrepreneur: updatedUser });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
     }
