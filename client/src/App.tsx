@@ -44,9 +44,11 @@ function Router() {
       <Route path="/investor-dashboard" component={InvestorDashboard} />
       <Route path="/investor/dashboard" component={InvestorDashboard} />
       <Route path="/company-registration" component={CompanyRegistration} />
+      <Route path="/nova-empresa" component={CompanyRegistration} />
       <Route path="/company-edit/:id" component={CompanyEdit} />
       <Route path="/investor-company-registration" component={InvestorCompanyRegistration} />
       <Route path="/credit-request/:companyId" component={CreditRequest} />
+      <Route path="/nova-solicitacao" component={CreditRequest} />
       <Route path="/messages" component={Messages} />
       <Route path="/profile" component={Profile} />
       <Route path="/backoffice" component={BackofficeDashboard} />

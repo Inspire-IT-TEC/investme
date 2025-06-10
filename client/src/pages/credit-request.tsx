@@ -19,6 +19,7 @@ export default function CreditRequest() {
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
+    companyId: companyId || "",
     valorSolicitado: "",
     prazoMeses: "",
     finalidade: ""
@@ -26,6 +27,13 @@ export default function CreditRequest() {
 
   const [files, setFiles] = useState<File[]>([]);
 
+  // Fetch all user companies for selection dropdown
+  const { data: companies } = useQuery({
+    queryKey: ["/api/companies"],
+    enabled: !companyId
+  });
+
+  // Fetch specific company if companyId is provided
   const { data: company, isLoading } = useQuery({
     queryKey: ["/api/companies", companyId],
     queryFn: () => {
@@ -89,8 +97,19 @@ export default function CreditRequest() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const selectedCompanyId = companyId || formData.companyId;
+    
+    if (!selectedCompanyId) {
+      toast({
+        title: "Empresa não selecionada",
+        description: "Por favor, selecione uma empresa para a solicitação",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const formDataToSubmit = new FormData();
-    formDataToSubmit.append('companyId', companyId!);
+    formDataToSubmit.append('companyId', selectedCompanyId);
     formDataToSubmit.append('valorSolicitado', formData.valorSolicitado.replace(/[^\d,]/g, '').replace(',', '.'));
     formDataToSubmit.append('prazoMeses', formData.prazoMeses);
     formDataToSubmit.append('finalidade', formData.finalidade);
@@ -116,7 +135,8 @@ export default function CreditRequest() {
     );
   }
 
-  if (!company || company.status !== 'aprovada') {
+  // Only show this validation if we're trying to load a specific company
+  if (companyId && (!company || company.status !== 'aprovada')) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -146,12 +166,14 @@ export default function CreditRequest() {
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Company Info */}
+        {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Solicitar Crédito</h1>
-          <p className="text-gray-600">
-            Empresa: <span className="font-medium">{company.razaoSocial}</span> - {company.cnpj}
-          </p>
+          {companyId && company && (
+            <p className="text-gray-600">
+              Empresa: <span className="font-medium">{company.razaoSocial}</span> - {company.cnpj}
+            </p>
+          )}
         </div>
 
         <Card>
@@ -163,6 +185,33 @@ export default function CreditRequest() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Company Selection - only show when no companyId in URL */}
+              {!companyId && (
+                <div>
+                  <Label htmlFor="companySelect">Selecionar Empresa *</Label>
+                  <Select
+                    value={formData.companyId}
+                    onValueChange={(value) => setFormData({ ...formData, companyId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma empresa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies?.filter((company: any) => company.status === 'aprovada').map((company: any) => (
+                        <SelectItem key={company.id} value={company.id.toString()}>
+                          {company.razaoSocial} - {company.cnpj}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {companies?.filter((company: any) => company.status === 'aprovada').length === 0 && (
+                    <p className="text-sm text-red-600 mt-1">
+                      Nenhuma empresa aprovada encontrada. Você precisa ter uma empresa aprovada para solicitar crédito.
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Dados da Solicitação */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
