@@ -367,10 +367,20 @@ export default function Dashboard() {
           <TabsContent value="requests" className="space-y-6">
             <Card className="border-blue-200">
               <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                <CardTitle className="text-blue-800">Solicitações de Crédito</CardTitle>
-                <CardDescription className="text-blue-600">
-                  Acompanhe suas solicitações de crédito e seus status
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-blue-800">Solicitações de Crédito</CardTitle>
+                    <CardDescription className="text-blue-600">
+                      Acompanhe suas solicitações de crédito e seus status
+                    </CardDescription>
+                  </div>
+                  <Link href="/nova-solicitacao">
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Nova Solicitação
+                    </Button>
+                  </Link>
+                </div>
               </CardHeader>
               <CardContent className="p-6">
                 {loadingRequests ? (
@@ -382,7 +392,13 @@ export default function Dashboard() {
                   <div className="text-center py-12">
                     <CreditCard className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma solicitação enviada</h3>
-                    <p className="text-gray-600 mb-4">Suas solicitações de crédito aparecerão aqui</p>
+                    <p className="text-gray-600 mb-4">Envie sua primeira solicitação de crédito para começar</p>
+                    <Link href="/nova-solicitacao">
+                      <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nova Solicitação
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
                   <Table>
