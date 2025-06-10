@@ -70,17 +70,17 @@ export default function Dashboard() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pendente_analise: { label: "Pendente de Análise", variant: "secondary" as const, color: "text-yellow-600" },
-      em_analise: { label: "Em Análise", variant: "secondary" as const, color: "text-blue-600" },
-      aprovada: { label: "Aprovada", variant: "default" as const, color: "text-green-600" },
-      reprovada: { label: "Reprovada", variant: "destructive" as const, color: "text-red-600" },
-      incompleto: { label: "Incompleto", variant: "secondary" as const, color: "text-gray-600" },
+      pendente_analise: { label: "Pendente de Análise", variant: "secondary" as const, className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
+      em_analise: { label: "Em Análise", variant: "secondary" as const, className: "bg-blue-100 text-blue-800 border-blue-300" },
+      aprovada: { label: "Aprovada", variant: "default" as const, className: "bg-blue-600 text-white border-blue-600" },
+      reprovada: { label: "Reprovada", variant: "destructive" as const, className: "bg-red-100 text-red-800 border-red-300" },
+      incompleto: { label: "Incompleto", variant: "secondary" as const, className: "bg-gray-100 text-gray-800 border-gray-300" },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pendente_analise;
     
     return (
-      <Badge variant={config.variant} className={`${config.color} border-current`}>
+      <Badge variant={config.variant} className={config.className}>
         {config.label}
       </Badge>
     );
@@ -398,7 +398,7 @@ export default function Dashboard() {
                     <TableBody>
                       {creditRequests.map((request: any) => (
                         <TableRow key={request.id}>
-                          <TableCell className="font-medium">{request.company?.razaoSocial}</TableCell>
+                          <TableCell className="font-medium">{request.companyRazaoSocial}</TableCell>
                           <TableCell>{formatCurrency(request.valorSolicitado)}</TableCell>
                           <TableCell>{getStatusBadge(request.status)}</TableCell>
                           <TableCell>{formatDate(request.createdAt)}</TableCell>
@@ -421,7 +421,7 @@ export default function Dashboard() {
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <label className="text-sm font-medium text-gray-500">Empresa</label>
-                                      <p className="text-sm text-gray-900">{request.company?.razaoSocial}</p>
+                                      <p className="text-sm text-gray-900">{request.companyRazaoSocial}</p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-500">Valor Solicitado</label>
@@ -433,7 +433,7 @@ export default function Dashboard() {
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-500">Prazo</label>
-                                      <p className="text-sm text-gray-900">{request.prazoPagamento} meses</p>
+                                      <p className="text-sm text-gray-900">{request.prazoMeses} meses</p>
                                     </div>
                                   </div>
                                   <div>

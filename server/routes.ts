@@ -876,16 +876,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Credit Request Routes
   app.get('/api/credit-requests', authenticateToken, async (req: any, res) => {
     try {
-      const userCompanies = await storage.getUserCompanies(req.user.id);
-      const companyIds = userCompanies.map(c => c.id);
-      
-      const allRequests = [];
-      for (const companyId of companyIds) {
-        const requests = await storage.getCompanyCreditRequests(companyId);
-        allRequests.push(...requests);
-      }
-
-      res.json(allRequests);
+      const creditRequests = await storage.getUserCreditRequests(req.user.id);
+      res.json(creditRequests);
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao buscar solicitações' });
     }

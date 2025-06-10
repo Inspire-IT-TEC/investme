@@ -89,33 +89,7 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
     if (userType === "investor") {
       return [];
     } else {
-      return [
-        {
-          key: "home",
-          label: "Início",
-          icon: Building2,
-          path: "/dashboard"
-        },
-        {
-          key: "dashboard",
-          label: "Dashboard",
-          icon: TrendingUp,
-          path: "/dashboard"
-        },
-        {
-          key: "messages",
-          label: "Mensagens",
-          icon: MessageCircle,
-          path: "/messages",
-          badge: unreadCount > 0 ? unreadCount : null
-        },
-        {
-          key: "network",
-          label: "Rede",
-          icon: Users,
-          path: "/network"
-        }
-      ];
+      return [];
     }
   };
 
@@ -124,7 +98,7 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
   const getNavbarColor = () => {
     return userType === "investor" 
       ? "bg-green-600 hover:bg-green-700" 
-      : "bg-purple-600 hover:bg-purple-700";
+      : "bg-blue-600 hover:bg-blue-700";
   };
 
   return (
