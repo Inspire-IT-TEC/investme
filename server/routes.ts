@@ -1291,6 +1291,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Routes for Granular Profile Approval
+  app.patch('/api/admin/entrepreneurs/:id/approve-field', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { field, approved } = req.body;
+      
+      if (!['cadastroAprovado', 'emailConfirmado', 'documentosVerificados'].includes(field)) {
+        return res.status(400).json({ message: 'Campo inválido' });
+      }
+
+      const entrepreneur = await storage.updateEntrepreneurApproval(
+        parseInt(id), 
+        field, 
+        approved, 
+        req.admin.id
+      );
+
+      if (!entrepreneur) {
+        return res.status(404).json({ message: 'Empreendedor não encontrado' });
+      }
+
+      res.json({ message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, entrepreneur });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
+    }
+  });
+
+  app.patch('/api/admin/investors/:id/approve-field', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { field, approved } = req.body;
+      
+      if (!['cadastroAprovado', 'emailConfirmado', 'documentosVerificados'].includes(field)) {
+        return res.status(400).json({ message: 'Campo inválido' });
+      }
+
+      const investor = await storage.updateInvestorApproval(
+        parseInt(id), 
+        field, 
+        approved, 
+        req.admin.id
+      );
+
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+
+      res.json({ message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, investor });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
+    }
+  });
+
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 

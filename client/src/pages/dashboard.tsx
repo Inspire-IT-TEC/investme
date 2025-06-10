@@ -19,6 +19,11 @@ export default function Dashboard() {
     queryKey: ["/api/credit-requests"],
   });
 
+  // Fetch entrepreneur profile data for status display
+  const { data: entrepreneurProfile } = useQuery({
+    queryKey: ["/api/entrepreneur/profile"],
+  });
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pendente_analise: { label: "Pendente de Análise", variant: "secondary" as const, icon: Clock },

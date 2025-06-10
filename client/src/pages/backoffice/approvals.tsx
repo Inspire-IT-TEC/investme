@@ -127,8 +127,120 @@ export default function BackofficeApprovals() {
     },
   });
 
-  const renderUserDetails = (user: any, userType: 'investor' | 'entrepreneur') => (
+  // Granular approval mutations
+  const approveFieldMutation = useMutation({
+    mutationFn: async ({ userId, userType, field, approved }: { userId: number; userType: string; field: string; approved: boolean }) => {
+      const response = await apiRequest("PATCH", `/api/admin/${userType}s/${userId}/approve-field`, { field, approved });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/investors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/entrepreneurs"] });
+      toast({
+        title: "Status atualizado",
+        description: "Item do perfil atualizado com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar",
+        description: error.message || "Erro ao atualizar status.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const renderProfileApprovalItems = (user: any, userType: 'investor' | 'entrepreneur') => (
     <div className="space-y-4">
+      <h4 className="font-semibold text-lg mb-4">Aprovação de Itens do Perfil</h4>
+      
+      <div className="space-y-3">
+        <div className="flex items-center justify-between p-3 border rounded-lg">
+          <div className="flex items-center space-x-3">
+            <div className={`w-3 h-3 rounded-full ${user.cadastroAprovado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="font-medium">Cadastro Completo</span>
+          </div>
+          <div className="flex space-x-2">
+            <Button 
+              size="sm" 
+              variant={user.cadastroAprovado ? "default" : "outline"}
+              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'cadastroAprovado', approved: true })}
+              disabled={approveFieldMutation.isPending}
+            >
+              <CheckCircle className="w-4 h-4 mr-1" />
+              Aprovar
+            </Button>
+            <Button 
+              size="sm" 
+              variant={!user.cadastroAprovado ? "destructive" : "outline"}
+              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'cadastroAprovado', approved: false })}
+              disabled={approveFieldMutation.isPending}
+            >
+              <XCircle className="w-4 h-4 mr-1" />
+              Rejeitar
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between p-3 border rounded-lg">
+          <div className="flex items-center space-x-3">
+            <div className={`w-3 h-3 rounded-full ${user.emailConfirmado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="font-medium">Email Confirmado</span>
+          </div>
+          <div className="flex space-x-2">
+            <Button 
+              size="sm" 
+              variant={user.emailConfirmado ? "default" : "outline"}
+              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'emailConfirmado', approved: true })}
+              disabled={approveFieldMutation.isPending}
+            >
+              <CheckCircle className="w-4 h-4 mr-1" />
+              Aprovar
+            </Button>
+            <Button 
+              size="sm" 
+              variant={!user.emailConfirmado ? "destructive" : "outline"}
+              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'emailConfirmado', approved: false })}
+              disabled={approveFieldMutation.isPending}
+            >
+              <XCircle className="w-4 h-4 mr-1" />
+              Rejeitar
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between p-3 border rounded-lg">
+          <div className="flex items-center space-x-3">
+            <div className={`w-3 h-3 rounded-full ${user.documentosVerificados ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="font-medium">Documentos Verificados</span>
+          </div>
+          <div className="flex space-x-2">
+            <Button 
+              size="sm" 
+              variant={user.documentosVerificados ? "default" : "outline"}
+              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'documentosVerificados', approved: true })}
+              disabled={approveFieldMutation.isPending}
+            >
+              <CheckCircle className="w-4 h-4 mr-1" />
+              Aprovar
+            </Button>
+            <Button 
+              size="sm" 
+              variant={!user.documentosVerificados ? "destructive" : "outline"}
+              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'documentosVerificados', approved: false })}
+              disabled={approveFieldMutation.isPending}
+            >
+              <XCircle className="w-4 h-4 mr-1" />
+              Rejeitar
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderUserDetails = (user: any, userType: 'investor' | 'entrepreneur') => (
+    <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label className="font-semibold">Nome Completo</Label>
@@ -348,7 +460,12 @@ export default function BackofficeApprovals() {
                                       Informações completas para aprovação
                                     </DialogDescription>
                                   </DialogHeader>
-                                  {selectedUser && renderUserDetails(selectedUser, 'investor')}
+                                  {selectedUser && (
+                                    <div className="space-y-6">
+                                      {renderUserDetails(selectedUser, 'investor')}
+                                      {renderProfileApprovalItems(selectedUser, 'investor')}
+                                    </div>
+                                  )}
                                 </DialogContent>
                               </Dialog>
                             </TableCell>
@@ -414,7 +531,12 @@ export default function BackofficeApprovals() {
                                       Informações completas para aprovação
                                     </DialogDescription>
                                   </DialogHeader>
-                                  {selectedUser && renderUserDetails(selectedUser, 'entrepreneur')}
+                                  {selectedUser && (
+                                    <div className="space-y-6">
+                                      {renderUserDetails(selectedUser, 'entrepreneur')}
+                                      {renderProfileApprovalItems(selectedUser, 'entrepreneur')}
+                                    </div>
+                                  )}
                                 </DialogContent>
                               </Dialog>
                             </TableCell>

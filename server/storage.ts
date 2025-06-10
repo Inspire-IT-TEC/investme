@@ -186,6 +186,26 @@ export class DatabaseStorage implements IStorage {
     return entrepreneur;
   }
 
+  async updateEntrepreneurApproval(id: number, field: 'cadastroAprovado' | 'emailConfirmado' | 'documentosVerificados', approved: boolean, adminId: number): Promise<Entrepreneur | undefined> {
+    const updateData: any = {
+      [field]: approved,
+      updatedAt: new Date()
+    };
+    
+    if (approved) {
+      updateData.aprovadoPor = adminId;
+      updateData.aprovadoEm = new Date();
+    }
+
+    const [entrepreneur] = await db
+      .update(entrepreneurs)
+      .set(updateData)
+      .where(eq(entrepreneurs.id, id))
+      .returning();
+    
+    return entrepreneur || undefined;
+  }
+
   // Investor methods
   async getInvestor(id: number): Promise<Investor | undefined> {
     const [investor] = await db.select().from(investors).where(eq(investors.id, id));
