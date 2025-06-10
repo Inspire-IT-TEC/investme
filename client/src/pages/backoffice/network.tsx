@@ -67,315 +67,247 @@ export default function BackofficeNetwork() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <BackofficeNavbar />
+    <div className="flex h-screen bg-gray-50">
+      <BackofficeSidebar onLogout={logout} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Rede de Negociações</h1>
-            <p className="text-gray-600">Monitore todas as negociações e análises em andamento</p>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total na Rede</CardTitle>
-                <TrendingUp className="h-4 w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {networkStats?.totalInNetwork || 0}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Em Análise</CardTitle>
-                <Clock className="h-4 w-4 text-yellow-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {networkStats?.inAnalysis || 0}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Aprovadas</CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {networkStats?.approved || 0}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Reprovadas</CardTitle>
-                <XCircle className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {networkStats?.rejected || 0}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-                <DollarSign className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(networkStats?.totalValue || 0)}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Filtros</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex space-x-4">
-                <div className="flex-1">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filtrar por status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os Status</SelectItem>
-                      <SelectItem value="na_rede">Na Rede</SelectItem>
-                      <SelectItem value="em_analise">Em Análise</SelectItem>
-                      <SelectItem value="aprovada">Aprovada</SelectItem>
-                      <SelectItem value="reprovada">Reprovada</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="space-y-6">
+              {/* Header */}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Rede de Negociações</h1>
+                <p className="text-gray-600">Monitore todas as negociações e análises em andamento</p>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Network Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Negociações na Rede</CardTitle>
-              <CardDescription>
-                Todas as solicitações de crédito e seu status atual na rede
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8">Carregando negociações...</div>
-              ) : !networkRequests?.length ? (
-                <div className="text-center py-8">
-                  <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhuma negociação encontrada</p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Empresa</TableHead>
-                      <TableHead>CNPJ</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Prazo</TableHead>
-                      <TableHead>Investidor</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Tempo Restante</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {networkRequests.map((request: any) => (
-                      <TableRow key={request.id}>
-                        <TableCell className="font-medium">
-                          {request.companyRazaoSocial || 'Empresa não encontrada'}
-                        </TableCell>
-                        <TableCell>{request.companyCnpj || '-'}</TableCell>
-                        <TableCell>{formatCurrency(request.valorSolicitado)}</TableCell>
-                        <TableCell>{request.prazoMeses} meses</TableCell>
-                        <TableCell>
-                          {request.investorName || (request.status === 'na_rede' ? 'Aguardando' : '-')}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(request.status)}</TableCell>
-                        <TableCell>
-                          {request.status === 'em_analise' && request.dataLimiteAnalise ? (
-                            <span className={
-                              calculateTimeRemaining(request.dataLimiteAnalise).includes('esgotado') 
-                                ? 'text-red-600 font-medium' 
-                                : 'text-orange-600'
-                            }>
-                              {calculateTimeRemaining(request.dataLimiteAnalise)}
-                            </span>
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                        <TableCell>{formatDate(request.createdAt)}</TableCell>
-                        <TableCell>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedRequest(request)}
-                              >
-                                <Eye className="w-4 h-4 mr-1" />
-                                Ver
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>Detalhes da Negociação</DialogTitle>
-                                <DialogDescription>
-                                  Informações completas da solicitação de crédito
-                                </DialogDescription>
-                              </DialogHeader>
-                              {selectedRequest && (
-                                <div className="space-y-6">
-                                  {/* Company Information */}
-                                  <div className="border rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                      <Building2 className="w-5 h-5 mr-2" />
-                                      Informações da Empresa
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div>
-                                        <span className="font-medium text-gray-600">Razão Social:</span>
-                                        <p>{selectedRequest.companyRazaoSocial}</p>
-                                      </div>
-                                      <div>
-                                        <span className="font-medium text-gray-600">CNPJ:</span>
-                                        <p>{selectedRequest.companyCnpj}</p>
-                                      </div>
-                                      <div>
-                                        <span className="font-medium text-gray-600">Status:</span>
-                                        <p>{selectedRequest.companyStatus}</p>
-                                      </div>
-                                    </div>
-                                  </div>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <TrendingUp className="h-8 w-8 text-blue-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-600">Total na Rede</p>
+                        <p className="text-2xl font-bold text-gray-900">{networkStats?.totalInNetwork || 0}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                                  {/* Credit Request Information */}
-                                  <div className="border rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                      <DollarSign className="w-5 h-5 mr-2" />
-                                      Detalhes da Solicitação
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div>
-                                        <span className="font-medium text-gray-600">Valor Solicitado:</span>
-                                        <p className="text-lg font-bold text-green-600">
-                                          {formatCurrency(selectedRequest.valorSolicitado)}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <span className="font-medium text-gray-600">Prazo:</span>
-                                        <p>{selectedRequest.prazoMeses} meses</p>
-                                      </div>
-                                      <div className="col-span-2">
-                                        <span className="font-medium text-gray-600">Finalidade:</span>
-                                        <p>{selectedRequest.finalidade}</p>
-                                      </div>
-                                    </div>
-                                  </div>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Clock className="h-8 w-8 text-yellow-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-600">Em Análise</p>
+                        <p className="text-2xl font-bold text-gray-900">{networkStats?.inAnalysis || 0}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                                  {/* Investor Information */}
-                                  {selectedRequest.investorName && (
-                                    <div className="border rounded-lg p-4">
-                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                        <Users className="w-5 h-5 mr-2" />
-                                        Informações do Investidor
-                                      </h3>
-                                      <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                          <span className="font-medium text-gray-600">Nome:</span>
-                                          <p>{selectedRequest.investorName}</p>
-                                        </div>
-                                        <div>
-                                          <span className="font-medium text-gray-600">Email:</span>
-                                          <p>{selectedRequest.investorEmail}</p>
-                                        </div>
-                                        {selectedRequest.dataAceite && (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <CheckCircle className="h-8 w-8 text-green-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-600">Aprovadas</p>
+                        <p className="text-2xl font-bold text-gray-900">{networkStats?.approved || 0}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <DollarSign className="h-8 w-8 text-green-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-600">Volume Total</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {formatCurrency(networkStats?.totalVolume || 0)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Main Content */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Solicitações na Rede</CardTitle>
+                      <CardDescription>
+                        Visualize todas as solicitações disponíveis para análise dos investidores
+                      </CardDescription>
+                    </div>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="na_rede">Na Rede</SelectItem>
+                        <SelectItem value="em_analise">Em Análise</SelectItem>
+                        <SelectItem value="aprovada">Aprovadas</SelectItem>
+                        <SelectItem value="reprovada">Reprovadas</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="text-center py-8">Carregando solicitações...</div>
+                  ) : !networkRequests?.length ? (
+                    <div className="text-center py-8">
+                      <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">Nenhuma solicitação encontrada na rede</p>
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Empresa</TableHead>
+                          <TableHead>Valor</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Prazo</TableHead>
+                          <TableHead>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {networkRequests.map((request: any) => (
+                          <TableRow key={request.id}>
+                            <TableCell className="font-medium">{request.companyRazaoSocial}</TableCell>
+                            <TableCell>{formatCurrency(request.valorSolicitado)}</TableCell>
+                            <TableCell>{getStatusBadge(request.status)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                <Clock className="w-4 h-4 text-gray-400" />
+                                <span className="text-sm">
+                                  {calculateTimeRemaining(request.dataLimiteAnalise)}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedRequest(request)}
+                                  >
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    Detalhes
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl">
+                                  <DialogHeader>
+                                    <DialogTitle>Detalhes da Solicitação na Rede</DialogTitle>
+                                    <DialogDescription>
+                                      Informações completas da solicitação de crédito
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  {selectedRequest && (
+                                    <div className="space-y-6">
+                                      {/* Company Info */}
+                                      <div className="border rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                          <Building2 className="w-5 h-5 mr-2" />
+                                          Informações da Empresa
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-4">
                                           <div>
-                                            <span className="font-medium text-gray-600">Data de Aceite:</span>
-                                            <p>{formatDate(selectedRequest.dataAceite)}</p>
+                                            <p className="text-sm text-gray-600">Razão Social</p>
+                                            <p className="font-medium">{selectedRequest.companyRazaoSocial}</p>
                                           </div>
-                                        )}
-                                        {selectedRequest.dataLimiteAnalise && (
                                           <div>
-                                            <span className="font-medium text-gray-600">Prazo para Análise:</span>
-                                            <p className="text-orange-600 font-medium">
+                                            <p className="text-sm text-gray-600">CNPJ</p>
+                                            <p className="font-medium">{selectedRequest.companyCnpj}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Request Details */}
+                                      <div className="border rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                          <DollarSign className="w-5 h-5 mr-2" />
+                                          Detalhes da Solicitação
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                          <div>
+                                            <p className="text-sm text-gray-600">Valor Solicitado</p>
+                                            <p className="font-medium text-lg">{formatCurrency(selectedRequest.valorSolicitado)}</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-sm text-gray-600">Prazo de Pagamento</p>
+                                            <p className="font-medium">{selectedRequest.prazoPagamento} meses</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-sm text-gray-600">Finalidade</p>
+                                            <p className="font-medium">{selectedRequest.finalidade}</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-sm text-gray-600">Status</p>
+                                            <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Timeline */}
+                                      <div className="border rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                          <Clock className="w-5 h-5 mr-2" />
+                                          Timeline
+                                        </h3>
+                                        <div className="space-y-3">
+                                          <div className="flex justify-between">
+                                            <span className="text-sm text-gray-600">Entrada na rede:</span>
+                                            <span className="font-medium">{formatDate(selectedRequest.dataEntradaRede)}</span>
+                                          </div>
+                                          {selectedRequest.dataLimiteAnalise && (
+                                            <div className="flex justify-between">
+                                              <span className="text-sm text-gray-600">Limite para análise:</span>
+                                              <span className="font-medium">{formatDate(selectedRequest.dataLimiteAnalise)}</span>
+                                            </div>
+                                          )}
+                                          <div className="flex justify-between">
+                                            <span className="text-sm text-gray-600">Tempo restante:</span>
+                                            <span className="font-medium text-yellow-600">
                                               {calculateTimeRemaining(selectedRequest.dataLimiteAnalise)}
-                                            </p>
+                                            </span>
                                           </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Timeline */}
-                                  <div className="border rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                      <Clock className="w-5 h-5 mr-2" />
-                                      Timeline da Negociação
-                                    </h3>
-                                    <div className="space-y-3">
-                                      <div className="flex items-center space-x-3">
-                                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                                        <div>
-                                          <p className="font-medium">Solicitação Criada</p>
-                                          <p className="text-sm text-gray-600">{formatDate(selectedRequest.createdAt)}</p>
                                         </div>
                                       </div>
-                                      {selectedRequest.dataAceite && (
-                                        <div className="flex items-center space-x-3">
-                                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                                          <div>
-                                            <p className="font-medium">Aceita por Investidor</p>
-                                            <p className="text-sm text-gray-600">{formatDate(selectedRequest.dataAceite)}</p>
-                                          </div>
+
+                                      {/* Observations */}
+                                      {selectedRequest.observacoesAnalise && (
+                                        <div className="border rounded-lg p-4">
+                                          <h3 className="text-lg font-semibold mb-3 flex items-center">
+                                            <MessageCircle className="w-5 h-5 mr-2" />
+                                            Observações da Análise
+                                          </h3>
+                                          <p className="bg-gray-50 p-3 rounded text-sm">
+                                            {selectedRequest.observacoesAnalise}
+                                          </p>
                                         </div>
                                       )}
                                     </div>
-                                  </div>
-
-                                  {/* Observations */}
-                                  {selectedRequest.observacoesAnalise && (
-                                    <div className="border rounded-lg p-4">
-                                      <h3 className="text-lg font-semibold mb-3 flex items-center">
-                                        <MessageCircle className="w-5 h-5 mr-2" />
-                                        Observações da Análise
-                                      </h3>
-                                      <p className="bg-gray-50 p-3 rounded text-sm">
-                                        {selectedRequest.observacoesAnalise}
-                                      </p>
-                                    </div>
                                   )}
-                                </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
