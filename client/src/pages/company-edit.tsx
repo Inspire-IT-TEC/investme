@@ -55,26 +55,27 @@ export default function CompanyEdit() {
   // Update form when company data loads
   useEffect(() => {
     if (company) {
+      const companyData = company as any;
       form.reset({
-        razaoSocial: company.razaoSocial || "",
-        nomeFantasia: company.nomeFantasia || "",
-        cnpj: company.cnpj || "",
-        telefone: company.telefone || "",
-        emailContato: company.emailContato || "",
-        cep: company.cep || "",
-        rua: company.rua || "",
-        numero: company.numero || "",
-        complemento: company.complemento || "",
-        bairro: company.bairro || "",
-        cidade: company.cidade || "",
-        estado: company.estado || "",
-        cnaePrincipal: company.cnaePrincipal || "",
-        cnaeSecundarios: company.cnaeSecundarios || [],
-        dataFundacao: company.dataFundacao ? new Date(company.dataFundacao) : new Date(),
-        faturamento: company.faturamento || "",
-        numeroFuncionarios: company.numeroFuncionarios || 1,
-        descricaoNegocio: company.descricaoNegocio || "",
-        tipoProprietario: company.tipoProprietario || "",
+        razaoSocial: companyData.razaoSocial || "",
+        nomeFantasia: companyData.nomeFantasia || "",
+        cnpj: companyData.cnpj || "",
+        telefone: companyData.telefone || "",
+        emailContato: companyData.emailContato || "",
+        cep: companyData.cep || "",
+        rua: companyData.rua || "",
+        numero: companyData.numero || "",
+        complemento: companyData.complemento || "",
+        bairro: companyData.bairro || "",
+        cidade: companyData.cidade || "",
+        estado: companyData.estado || "",
+        cnaePrincipal: companyData.cnaePrincipal || "",
+        cnaeSecundarios: companyData.cnaeSecundarios || [],
+        dataFundacao: companyData.dataFundacao ? new Date(companyData.dataFundacao) : new Date(),
+        faturamento: companyData.faturamento || "",
+        numeroFuncionarios: companyData.numeroFuncionarios || 1,
+        descricaoNegocio: companyData.descricaoNegocio || "",
+        tipoProprietario: companyData.tipoProprietario || "",
       });
     }
   }, [company, form]);
