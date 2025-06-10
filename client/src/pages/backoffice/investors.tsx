@@ -94,12 +94,14 @@ export default function BackofficeInvestors() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <BackofficeNavbar />
+    <div className="flex h-screen bg-gray-50">
+      <BackofficeSidebar onLogout={logout} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          {/* Header */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="space-y-6">
+              {/* Header */}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Gestão de Investidores</h1>
             <p className="text-gray-600">Gerencie e aprove cadastros de investidores</p>
@@ -330,8 +332,10 @@ export default function BackofficeInvestors() {
                 </Table>
               )}
             </CardContent>
-          </Card>
-        </div>
+            </Card>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );

@@ -11,11 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import BackofficeNavbar from "@/components/layout/backoffice-navbar";
+import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
+import { useAuth } from "@/hooks/use-auth";
 import { Search, Eye, Check, X, CreditCard, FileText } from "lucide-react";
 
 export default function BackofficeCreditRequests() {
   const { toast } = useToast();
+  const { logout } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
@@ -152,10 +154,12 @@ export default function BackofficeCreditRequests() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <BackofficeNavbar />
+    <div className="flex h-screen bg-gray-50">
+      <BackofficeSidebar onLogout={logout} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-7xl mx-auto">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -442,7 +446,9 @@ export default function BackofficeCreditRequests() {
               </div>
             )}
           </CardContent>
-        </Card>
+            </Card>
+          </div>
+        </main>
       </div>
     </div>
   );
