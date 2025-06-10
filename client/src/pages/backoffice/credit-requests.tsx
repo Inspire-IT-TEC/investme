@@ -38,45 +38,7 @@ export default function BackofficeCreditRequests() {
     },
   });
 
-  const { data: requestDetails } = useQuery({
-    queryKey: ["/api/admin/credit-requests", selectedRequest?.id],
-    queryFn: () => 
-      fetch(`/api/admin/credit-requests/${selectedRequest.id}`, {
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      }).then(res => res.json()),
-    enabled: !!selectedRequest?.id,
-  });
-
   const updateRequestMutation = useMutation({
-    mutationFn: async (data: { id: number; status: string; observacoesAnalise: string }) => {
-      const response = await apiRequest("PATCH", `/api/admin/credit-requests/${data.id}`, {
-        status: data.status,
-        observacoesAnalise: data.observacoesAnalise
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Solicitação atualizada",
-        description: "Status da solicitação foi atualizado com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/credit-requests"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-      setEditDialogOpen(false);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao atualizar",
-        description: error.message || "Erro ao atualizar solicitação",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const quickUpdateMutation = useMutation({
     mutationFn: async (data: { id: number; status: string; message: string }) => {
       const response = await apiRequest("PATCH", `/api/admin/credit-requests/${data.id}`, {
         status: data.status,
@@ -117,36 +79,7 @@ export default function BackofficeCreditRequests() {
     );
   };
 
-  const handleQuickApprove = (requestId: number) => {
-    quickUpdateMutation.mutate({
-      id: requestId,
-      status: 'aprovada',
-      message: `Solicitação aprovada em ${new Date().toLocaleDateString('pt-BR')}`
-    });
-  };
-
-  const handleQuickReject = (requestId: number) => {
-    quickUpdateMutation.mutate({
-      id: requestId,
-      status: 'reprovada',
-      message: `Solicitação reprovada em ${new Date().toLocaleDateString('pt-BR')}`
-    });
-  };
-
-  const handleUpdateRequest = (formData: FormData) => {
-    if (!selectedRequest) return;
-    
-    const status = formData.get('status') as string;
-    const observacoesAnalise = formData.get('observacoesAnalise') as string;
-    
-    updateRequestMutation.mutate({
-      id: selectedRequest.id,
-      status,
-      observacoesAnalise
-    });
-  };
-
-  const formatCurrency = (value: string | number) => {
+  const formatCurrency = (value: number | string) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
@@ -160,292 +93,162 @@ export default function BackofficeCreditRequests() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Solicitações de Crédito
-                </CardTitle>
-                <CardDescription>
-                  Analise e aprove solicitações de crédito das empresas
-                </CardDescription>
-              </div>
-              <div className="flex space-x-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Buscar empresa..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10 w-64"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Todas as Solicitações" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as Solicitações</SelectItem>
-                    <SelectItem value="pendente">Pendentes</SelectItem>
-                    <SelectItem value="em_analise">Em Análise</SelectItem>
-                    <SelectItem value="aprovada">Aprovadas</SelectItem>
-                    <SelectItem value="reprovada">Reprovadas</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-16 bg-gray-200 rounded"></div>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      Solicitações de Crédito
+                    </CardTitle>
+                    <CardDescription>
+                      Gerencie e analise solicitações de crédito
+                    </CardDescription>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Empresa</TableHead>
-                      <TableHead>Valor Solicitado</TableHead>
-                      <TableHead>Prazo</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {creditRequests && creditRequests.length > 0 ? (
-                      creditRequests.map((request: any) => (
-                        <TableRow key={request.id} className="hover:bg-gray-50">
-                          <TableCell>
-                            <div>
-                              <div className="font-medium text-gray-900">{request.companyRazaoSocial}</div>
-                              <div className="text-sm text-gray-500 font-mono">{request.companyCnpj}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {formatCurrency(request.valorSolicitado)}
-                          </TableCell>
-                          <TableCell>{request.prazoMeses} meses</TableCell>
-                          <TableCell>
-                            {new Date(request.createdAt).toLocaleDateString('pt-BR')}
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(request.status)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              {request.status === 'pendente' || request.status === 'em_analise' ? (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    className="bg-green-600 hover:bg-green-700"
-                                    onClick={() => handleQuickApprove(request.id)}
-                                    disabled={quickUpdateMutation.isPending}
-                                  >
-                                    <Check className="w-3 h-3 mr-1" />
-                                    Aprovar
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => handleQuickReject(request.id)}
-                                    disabled={quickUpdateMutation.isPending}
-                                  >
-                                    <X className="w-3 h-3 mr-1" />
-                                    Reprovar
-                                  </Button>
-                                </>
-                              ) : null}
-
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedRequest(request)}
-                                  >
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    Ver Detalhes
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                                  <DialogHeader>
-                                    <DialogTitle>Detalhes da Solicitação</DialogTitle>
-                                    <DialogDescription>
-                                      Informações completas da solicitação de crédito
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  {requestDetails && (
-                                    <div className="space-y-6">
-                                      {/* Dados da Solicitação */}
-                                      <div>
-                                        <h3 className="text-lg font-medium mb-3">Dados da Solicitação</h3>
-                                        <div className="grid grid-cols-2 gap-4 text-sm">
-                                          <div>
-                                            <span className="font-medium">Valor Solicitado:</span>
-                                            <p>{formatCurrency(requestDetails.valorSolicitado)}</p>
-                                          </div>
-                                          <div>
-                                            <span className="font-medium">Prazo:</span>
-                                            <p>{requestDetails.prazoMeses} meses</p>
-                                          </div>
-                                          <div className="col-span-2">
-                                            <span className="font-medium">Finalidade:</span>
-                                            <p>{requestDetails.finalidade}</p>
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* Dados da Empresa */}
-                                      {requestDetails.company && (
-                                        <div>
-                                          <h3 className="text-lg font-medium mb-3">Dados da Empresa</h3>
-                                          <div className="grid grid-cols-2 gap-4 text-sm">
-                                            <div>
-                                              <span className="font-medium">Razão Social:</span>
-                                              <p>{requestDetails.company.razaoSocial}</p>
-                                            </div>
-                                            <div>
-                                              <span className="font-medium">CNPJ:</span>
-                                              <p>{requestDetails.company.cnpj}</p>
-                                            </div>
-                                            <div>
-                                              <span className="font-medium">Faturamento:</span>
-                                              <p>R$ {parseFloat(requestDetails.company.faturamento).toLocaleString('pt-BR')}</p>
-                                            </div>
-                                            <div>
-                                              <span className="font-medium">EBITDA:</span>
-                                              <p>R$ {parseFloat(requestDetails.company.ebitda).toLocaleString('pt-BR')}</p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      {/* Documentos */}
-                                      {requestDetails.documentos && requestDetails.documentos.length > 0 && (
-                                        <div>
-                                          <h3 className="text-lg font-medium mb-3">Documentos</h3>
-                                          <div className="space-y-2">
-                                            {requestDetails.documentos.map((doc: string, index: number) => (
-                                              <div key={index} className="flex items-center justify-between p-2 border border-gray-200 rounded">
-                                                <div className="flex items-center space-x-2">
-                                                  <FileText className="w-4 h-4 text-gray-400" />
-                                                  <span className="text-sm">Documento {index + 1}</span>
-                                                </div>
-                                                <Button size="sm" variant="outline" asChild>
-                                                  <a href={doc} target="_blank" rel="noopener noreferrer">
-                                                    Visualizar
-                                                  </a>
-                                                </Button>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      {/* Observações */}
-                                      {requestDetails.observacoesAnalise && (
-                                        <div>
-                                          <h3 className="text-lg font-medium mb-3">Observações da Análise</h3>
-                                          <p className="text-sm bg-gray-50 p-3 rounded">
-                                            {requestDetails.observacoesAnalise}
-                                          </p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </DialogContent>
-                              </Dialog>
-
-                              <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedRequest(request)}
-                                  >
-                                    Editar
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Editar Solicitação</DialogTitle>
-                                    <DialogDescription>
-                                      Altere o status e observações da solicitação
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <form onSubmit={(e) => {
-                                    e.preventDefault();
-                                    const formData = new FormData(e.currentTarget);
-                                    handleUpdateRequest(formData);
-                                  }} className="space-y-4">
-                                    <div>
-                                      <Label htmlFor="status">Status da Solicitação</Label>
-                                      <Select name="status" defaultValue={selectedRequest?.status}>
-                                        <SelectTrigger>
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="pendente">Pendente</SelectItem>
-                                          <SelectItem value="em_analise">Em Análise</SelectItem>
-                                          <SelectItem value="aprovada">Aprovada</SelectItem>
-                                          <SelectItem value="reprovada">Reprovada</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-
-                                    <div>
-                                      <Label htmlFor="observacoesAnalise">Observações da Análise</Label>
-                                      <Textarea
-                                        name="observacoesAnalise"
-                                        defaultValue={selectedRequest?.observacoesAnalise || ""}
-                                        placeholder="Adicione observações sobre a análise..."
-                                        rows={4}
-                                      />
-                                    </div>
-
-                                    <div className="flex justify-end space-x-2">
+                </div>
+                
+                <div className="flex gap-4 mt-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar solicitações..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos os status</SelectItem>
+                      <SelectItem value="pendente">Pendente</SelectItem>
+                      <SelectItem value="em_analise">Em Análise</SelectItem>
+                      <SelectItem value="aprovada">Aprovada</SelectItem>
+                      <SelectItem value="reprovada">Reprovada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                {isLoading ? (
+                  <div className="text-center py-8">Carregando solicitações...</div>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Empresa</TableHead>
+                          <TableHead>Valor Solicitado</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {creditRequests && creditRequests.length > 0 ? (
+                          creditRequests.map((request: any) => (
+                            <TableRow key={request.id}>
+                              <TableCell className="font-medium">{request.companyRazaoSocial}</TableCell>
+                              <TableCell>{formatCurrency(request.valorSolicitado)}</TableCell>
+                              <TableCell>{getStatusBadge(request.status)}</TableCell>
+                              <TableCell>{new Date(request.createdAt).toLocaleDateString('pt-BR')}</TableCell>
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
                                       <Button
-                                        type="button"
                                         variant="outline"
-                                        onClick={() => setEditDialogOpen(false)}
+                                        size="sm"
+                                        onClick={() => setSelectedRequest(request)}
                                       >
-                                        Cancelar
+                                        <Eye className="w-4 h-4 mr-1" />
+                                        Ver
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-2xl">
+                                      <DialogHeader>
+                                        <DialogTitle>Detalhes da Solicitação</DialogTitle>
+                                        <DialogDescription>
+                                          Informações completas da solicitação de crédito
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      {selectedRequest && (
+                                        <div className="space-y-4">
+                                          <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                              <Label className="text-sm font-medium text-gray-500">Empresa</Label>
+                                              <p className="mt-1">{selectedRequest.companyRazaoSocial}</p>
+                                            </div>
+                                            <div>
+                                              <Label className="text-sm font-medium text-gray-500">Valor</Label>
+                                              <p className="mt-1">{formatCurrency(selectedRequest.valorSolicitado)}</p>
+                                            </div>
+                                            <div>
+                                              <Label className="text-sm font-medium text-gray-500">Status</Label>
+                                              <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
+                                            </div>
+                                            <div>
+                                              <Label className="text-sm font-medium text-gray-500">Data</Label>
+                                              <p className="mt-1">{new Date(selectedRequest.createdAt).toLocaleDateString('pt-BR')}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </DialogContent>
+                                  </Dialog>
+                                  
+                                  {request.status === 'pendente' && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        onClick={() => updateRequestMutation.mutate({
+                                          id: request.id,
+                                          status: 'aprovada',
+                                          message: 'Aprovada automaticamente'
+                                        })}
+                                        disabled={updateRequestMutation.isPending}
+                                        className="bg-green-600 hover:bg-green-700"
+                                      >
+                                        <Check className="w-4 h-4 mr-1" />
+                                        Aprovar
                                       </Button>
                                       <Button
-                                        type="submit"
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => updateRequestMutation.mutate({
+                                          id: request.id,
+                                          status: 'reprovada',
+                                          message: 'Reprovada automaticamente'
+                                        })}
                                         disabled={updateRequestMutation.isPending}
                                       >
-                                        {updateRequestMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                                        <X className="w-4 h-4 mr-1" />
+                                        Reprovar
                                       </Button>
-                                    </div>
-                                  </form>
-                                </DialogContent>
-                              </Dialog>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-600">Nenhuma solicitação encontrada</p>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
+                                    </>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-8">
+                              <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                              <p className="text-gray-600">Nenhuma solicitação encontrada</p>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
             </Card>
           </div>
         </main>
