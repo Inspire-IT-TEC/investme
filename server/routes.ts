@@ -331,6 +331,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Password change routes
+  app.post('/api/entrepreneur/change-password', authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { senhaAtual, novaSenha } = req.body;
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+
+      const isValidPassword = await bcrypt.compare(senhaAtual, user.senha);
+      if (!isValidPassword) {
+        return res.status(400).json({ message: 'Senha atual incorreta' });
+      }
+
+      const hashedPassword = await bcrypt.hash(novaSenha, SALT_ROUNDS);
+      await storage.updateUser(userId, { senha: hashedPassword });
+
+      res.json({ message: 'Senha alterada com sucesso' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao alterar senha' });
+    }
+  });
+
+  app.post('/api/investor/change-password', authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { senhaAtual, novaSenha } = req.body;
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+
+      const isValidPassword = await bcrypt.compare(senhaAtual, user.senha);
+      if (!isValidPassword) {
+        return res.status(400).json({ message: 'Senha atual incorreta' });
+      }
+
+      const hashedPassword = await bcrypt.hash(novaSenha, SALT_ROUNDS);
+      await storage.updateUser(userId, { senha: hashedPassword });
+
+      res.json({ message: 'Senha alterada com sucesso' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao alterar senha' });
+    }
+  });
+
   // Investor API Routes
   app.get('/api/investor/credit-requests', authenticateToken, async (req: any, res) => {
     try {
@@ -723,6 +772,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(fullCompany);
     } catch (error: any) {
       res.status(400).json({ message: error.message || 'Erro ao criar empresa' });
+    }
+  });
+
+  // Company edit route
+  app.put('/api/companies/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const company = await storage.getCompany(companyId);
+      
+      if (!company) {
+        return res.status(404).json({ message: 'Empresa não encontrada' });
+      }
+
+      // Verify ownership
+      if (company.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const updateData = {
+        razaoSocial: req.body.razaoSocial,
+        nomeFantasia: req.body.nomeFantasia,
+        cnpj: req.body.cnpj,
+        telefone: req.body.telefone,
+        emailContato: req.body.emailContato,
+        cep: req.body.cep,
+        rua: req.body.rua,
+        numero: req.body.numero,
+        complemento: req.body.complemento,
+        bairro: req.body.bairro,
+        cidade: req.body.cidade,
+        estado: req.body.estado,
+        cnaePrincipal: req.body.cnaePrincipal,
+        cnaeSecundarios: req.body.cnaeSecundarios,
+        dataFundacao: req.body.dataFundacao ? new Date(req.body.dataFundacao) : company.dataFundacao,
+        faturamento: req.body.faturamento,
+        numeroFuncionarios: req.body.numeroFuncionarios,
+        descricaoNegocio: req.body.descricaoNegocio,
+        tipoProprietario: req.body.tipoProprietario
+      };
+
+      const updatedCompany = await storage.updateCompany(companyId, updateData);
+      
+      if (!updatedCompany) {
+        return res.status(404).json({ message: 'Erro ao atualizar empresa' });
+      }
+
+      res.json(updatedCompany);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao editar empresa' });
     }
   });
 

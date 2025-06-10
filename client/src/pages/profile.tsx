@@ -193,6 +193,54 @@ export default function Profile() {
     setIsEditing(false);
   };
 
+  // Password change form
+  const passwordForm = useForm<PasswordChangeData>({
+    resolver: zodResolver(passwordChangeSchema),
+    defaultValues: {
+      senhaAtual: "",
+      novaSenha: "",
+      confirmarSenha: "",
+    },
+  });
+
+  // Password change mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: PasswordChangeData) => {
+      const response = await fetch(`/api/${userType}/change-password`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao alterar senha');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Senha alterada!",
+        description: "Sua senha foi alterada com sucesso.",
+      });
+      passwordForm.reset();
+      setShowPasswordChange(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao alterar senha",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onPasswordSubmit = (data: PasswordChangeData) => {
+    changePasswordMutation.mutate(data);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
