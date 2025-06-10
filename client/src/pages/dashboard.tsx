@@ -40,41 +40,41 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-violet-50">
+    <div className="min-h-screen bg-slate-50">
       <UnifiedNavbar 
         userType="entrepreneur" 
         userName={user?.nomeCompleto || user?.nome || "Empreendedor"}
         isCompanyApproved={true}
       />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Welcome Section */}
-        <div className="text-white rounded-lg p-8 mb-8 shadow-xl" style={{ background: 'linear-gradient(135deg, #3c3494 0%, #403494 100%)' }}>
-          <div className="flex items-center mb-4">
-            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mr-4">
-              <Building2 className="w-8 h-8 text-white" />
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl p-6 mb-6 shadow-sm">
+          <div className="flex items-center">
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mr-4">
+              <Building2 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold mb-2">Bem-vindo, {user?.nomeCompleto}</h1>
-              <p className="text-indigo-100">Gerencie suas empresas e solicitações de crédito</p>
+              <h1 className="text-2xl font-semibold mb-1">Bem-vindo, {user?.nomeCompleto}</h1>
+              <p className="text-blue-100 text-sm">Gerencie suas empresas e solicitações de crédito</p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
           {/* Companies Section */}
-          <div className="lg:col-span-2">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="text-white rounded-t-lg" style={{ background: 'linear-gradient(90deg, #3c3494 0%, #403494 100%)' }}>
-                <CardTitle className="flex items-center gap-2">
+          <div className="lg:col-span-3">
+            <Card className="shadow-sm border border-slate-200">
+              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Building2 className="w-5 h-5" />
                   Minhas Empresas
                 </CardTitle>
-                <CardDescription className="text-purple-100">
+                <CardDescription className="text-blue-100 text-sm">
                   Gerencie suas empresas cadastradas
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 {isLoading ? (
                   <div className="space-y-4">
                     {[1, 2].map((i) => (
@@ -85,21 +85,21 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : companies && Array.isArray(companies) && companies.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {companies.map((company: any) => (
-                      <div key={company.id} className="border border-purple-200 rounded-lg p-4 hover:border-purple-400 hover:bg-purple-50 transition-all">
+                      <div key={company.id} className="border border-slate-200 rounded-lg p-3 hover:border-blue-300 hover:bg-blue-50/50 transition-all">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">{company.razaoSocial}</h4>
-                            <p className="text-sm text-gray-600">{company.cnpj}</p>
+                            <h4 className="font-medium text-gray-900 text-base">{company.razaoSocial}</h4>
+                            <p className="text-sm text-gray-500">{company.cnpj}</p>
                             <div className="mt-2">
                               {getStatusBadge(company.status)}
                             </div>
                           </div>
-                          <div className="flex space-x-2">
+                          <div>
                             {company.status === 'aprovada' && (
                               <Link href={`/credit-request/${company.id}`}>
-                                <Button size="sm" style={{ backgroundColor: '#3c3494' }} className="hover:opacity-90">
+                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
                                   <CreditCard className="w-4 h-4 mr-1" />
                                   Solicitar Crédito
                                 </Button>
@@ -111,23 +111,18 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Building2 className="w-12 h-12 mx-auto mb-4" style={{ color: '#3c3494' }} />
-                    <p className="text-gray-600 mb-4">Nenhuma empresa cadastrada</p>
+                  <div className="text-center py-6">
+                    <Building2 className="w-10 h-10 mx-auto mb-3 text-blue-400" />
+                    <p className="text-gray-500 text-sm">Nenhuma empresa cadastrada</p>
                   </div>
                 )}
 
                 <Link href="/company-registration">
                   <Button 
                     variant="outline" 
-                    className="w-full mt-6 border-dashed border-2 h-16 hover:opacity-80"
-                    style={{ 
-                      borderColor: '#3c3494', 
-                      color: '#3c3494',
-                      backgroundColor: 'transparent'
-                    }}
+                    className="w-full mt-4 border-dashed border-2 h-12 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400"
                   >
-                    <Plus className="w-6 h-6 mr-2" />
+                    <Plus className="w-4 h-4 mr-2" />
                     Cadastrar Nova Empresa
                   </Button>
                 </Link>
@@ -136,14 +131,14 @@ export default function Dashboard() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="text-white rounded-t-lg" style={{ background: 'linear-gradient(90deg, #3c3494 0%, #403494 100%)' }}>
-                <CardTitle>Ações Rápidas</CardTitle>
+          <div className="space-y-4">
+            <Card className="shadow-sm border border-slate-200">
+              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-3">
+                <CardTitle className="text-base">Ações Rápidas</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 p-6">
+              <CardContent className="p-3">
                 <Link href="/company-registration">
-                  <Button variant="outline" className="w-full justify-start hover:opacity-80" style={{ borderColor: '#3c3494', color: '#3c3494' }}>
+                  <Button variant="outline" className="w-full justify-start text-sm border-blue-300 text-blue-600 hover:bg-blue-50">
                     <Building2 className="w-4 h-4 mr-2" />
                     Nova Empresa
                   </Button>
@@ -151,9 +146,9 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0">
-              <CardHeader className="text-white rounded-t-lg" style={{ background: 'linear-gradient(90deg, #3c3494 0%, #403494 100%)' }}>
-                <CardTitle>Status do Perfil</CardTitle>
+            <Card className="shadow-sm border border-slate-200">
+              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-3">
+                <CardTitle className="text-base">Status do Perfil</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-3">
