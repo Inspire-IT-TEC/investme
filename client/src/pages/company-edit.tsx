@@ -1,53 +1,28 @@
-import { useParams, useLocation } from "wouter";
-import { useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Building2, Save } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
-import UnifiedNavbar from "@/components/layout/unified-navbar";
 import { useToast } from "@/hooks/use-toast";
-import { insertCompanySchema } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
+import { editCompanySchema } from "@shared/schema";
 import { z } from "zod";
-
-const editCompanySchema = insertCompanySchema.pick({
-  razaoSocial: true,
-  nomeFantasia: true,
-  cnpj: true,
-  telefone: true,
-  emailContato: true,
-  rua: true,
-  numero: true,
-  bairro: true,
-  cep: true,
-  cidade: true,
-  estado: true,
-  cnaePrincipal: true,
-  descricaoAtividade: true,
-  faturamento: true,
-  numeroFuncionarios: true,
-});
+import { ArrowLeft, Save } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 
 type EditCompanyForm = z.infer<typeof editCompanySchema>;
 
 export default function CompanyEdit() {
-  const { id } = useParams<{ id: string }>();
-  const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { id } = useParams();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Fetch company data
-  const { data: company, isLoading } = useQuery({
+  const { data: company, isLoading: isLoadingCompany } = useQuery({
     queryKey: [`/api/companies/${id}`],
     enabled: !!id,
   });
@@ -59,54 +34,78 @@ export default function CompanyEdit() {
       nomeFantasia: "",
       cnpj: "",
       telefone: "",
-      email: "",
-      endereco: "",
+      emailContato: "",
       cep: "",
+      rua: "",
+      numero: "",
+      complemento: "",
+      bairro: "",
       cidade: "",
       estado: "",
-      setor: "",
+      cnaePrincipal: "",
+      cnaeSecundarios: [],
+      dataFundacao: new Date(),
+      faturamento: "",
+      numeroFuncionarios: 1,
       descricaoNegocio: "",
-      faturamentoAnual: "",
-      numeroFuncionarios: 0,
+      tipoProprietario: "",
     },
   });
 
-  // Update form when company data is loaded
-  React.useEffect(() => {
+  // Update form when company data loads
+  useEffect(() => {
     if (company) {
       form.reset({
         razaoSocial: company.razaoSocial || "",
         nomeFantasia: company.nomeFantasia || "",
         cnpj: company.cnpj || "",
         telefone: company.telefone || "",
-        email: company.email || "",
-        endereco: company.endereco || "",
+        emailContato: company.emailContato || "",
         cep: company.cep || "",
+        rua: company.rua || "",
+        numero: company.numero || "",
+        complemento: company.complemento || "",
+        bairro: company.bairro || "",
         cidade: company.cidade || "",
         estado: company.estado || "",
-        setor: company.setor || "",
+        cnaePrincipal: company.cnaePrincipal || "",
+        cnaeSecundarios: company.cnaeSecundarios || [],
+        dataFundacao: company.dataFundacao ? new Date(company.dataFundacao) : new Date(),
+        faturamento: company.faturamento || "",
+        numeroFuncionarios: company.numeroFuncionarios || 1,
         descricaoNegocio: company.descricaoNegocio || "",
-        faturamentoAnual: company.faturamentoAnual || "",
-        numeroFuncionarios: company.numeroFuncionarios || 0,
+        tipoProprietario: company.tipoProprietario || "",
       });
     }
   }, [company, form]);
 
+  // Update company mutation
   const updateCompanyMutation = useMutation({
     mutationFn: async (data: EditCompanyForm) => {
-      return apiRequest(`/api/companies/${id}`, {
-        method: "PATCH",
+      const response = await fetch(`/api/companies/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao atualizar empresa');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Empresa atualizada!",
-        description: "Os dados da empresa foram atualizados com sucesso.",
+        description: "As informações da empresa foram atualizadas com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       queryClient.invalidateQueries({ queryKey: [`/api/companies/${id}`] });
-      setLocation("/dashboard");
+      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
+      navigate('/dashboard');
     },
     onError: (error: Error) => {
       toast({
@@ -121,92 +120,47 @@ export default function CompanyEdit() {
     updateCompanyMutation.mutate(data);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'aprovada':
-        return <Badge className="bg-green-100 text-green-800">Aprovada</Badge>;
-      case 'pendente':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
-      case 'reprovada':
-        return <Badge className="bg-red-100 text-red-800">Reprovada</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">Desconhecido</Badge>;
-    }
-  };
-
-  if (isLoading) {
+  if (isLoadingCompany) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <UnifiedNavbar 
-          userType="entrepreneur" 
-          userName={user?.nomeCompleto || "Empreendedor"}
-        />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-lg font-medium text-gray-600">Carregando dados da empresa...</p>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Carregando...</div>
       </div>
     );
   }
 
   if (!company) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <UnifiedNavbar 
-          userType="entrepreneur" 
-          userName={user?.nomeCompleto || "Empreendedor"}
-        />
-        <div className="max-w-4xl mx-auto p-6">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-gray-500">Empresa não encontrada.</p>
-              <Button 
-                onClick={() => setLocation("/dashboard")} 
-                className="mt-4"
-              >
-                Voltar ao Dashboard
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Empresa não encontrada</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <UnifiedNavbar 
-        userType="entrepreneur" 
-        userName={user?.nomeCompleto || "Empreendedor"}
-      />
-
       <div className="max-w-4xl mx-auto p-6">
-        <div className="mb-6">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
           <Button 
             variant="ghost" 
-            onClick={() => setLocation("/dashboard")}
-            className="mb-4"
+            size="sm" 
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar ao Dashboard
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
           </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Editar Empresa</h1>
         </div>
 
         <Card>
-          <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
-              Editar Empresa
-            </CardTitle>
-            <CardDescription className="text-blue-100">
-              Atualize os dados da sua empresa. Status atual: {getStatusBadge(company.status)}
-            </CardDescription>
+          <CardHeader>
+            <CardTitle>Informações da Empresa</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Basic Company Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -215,7 +169,7 @@ export default function CompanyEdit() {
                       <FormItem>
                         <FormLabel>Razão Social *</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input placeholder="Razão social da empresa" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -229,7 +183,7 @@ export default function CompanyEdit() {
                       <FormItem>
                         <FormLabel>Nome Fantasia</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input placeholder="Nome fantasia" {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -243,7 +197,7 @@ export default function CompanyEdit() {
                       <FormItem>
                         <FormLabel>CNPJ *</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="00.000.000/0000-00" />
+                          <Input placeholder="00.000.000/0000-00" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -255,116 +209,15 @@ export default function CompanyEdit() {
                     name="telefone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telefone *</FormLabel>
+                        <FormLabel>Telefone</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="(00) 00000-0000" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email *</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="email" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="setor"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Setor *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o setor" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="tecnologia">Tecnologia</SelectItem>
-                            <SelectItem value="varejo">Varejo</SelectItem>
-                            <SelectItem value="servicos">Serviços</SelectItem>
-                            <SelectItem value="industria">Indústria</SelectItem>
-                            <SelectItem value="agronegocio">Agronegócio</SelectItem>
-                            <SelectItem value="saude">Saúde</SelectItem>
-                            <SelectItem value="educacao">Educação</SelectItem>
-                            <SelectItem value="financeiro">Financeiro</SelectItem>
-                            <SelectItem value="outros">Outros</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="cep"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CEP *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="00000-000" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="cidade"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cidade *</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="estado"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Estado *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="SP" maxLength={2} />
+                          <Input placeholder="(00) 00000-0000" {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-
-                <FormField
-                  control={form.control}
-                  name="endereco"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Endereço Completo *</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={form.control}
@@ -374,9 +227,9 @@ export default function CompanyEdit() {
                       <FormLabel>Descrição do Negócio *</FormLabel>
                       <FormControl>
                         <Textarea 
-                          {...field} 
                           rows={4}
-                          placeholder="Descreva o que sua empresa faz, seus produtos/serviços..."
+                          placeholder="Descreva a atividade principal da empresa"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -384,15 +237,16 @@ export default function CompanyEdit() {
                   )}
                 />
 
+                {/* Financial Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="faturamentoAnual"
+                    name="faturamento"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Faturamento Anual (R$) *</FormLabel>
+                        <FormLabel>Faturamento Anual *</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="500000" />
+                          <Input placeholder="R$ 0,00" {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -407,10 +261,10 @@ export default function CompanyEdit() {
                         <FormLabel>Número de Funcionários *</FormLabel>
                         <FormControl>
                           <Input 
-                            {...field} 
                             type="number" 
-                            min="0"
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            placeholder="0" 
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -419,22 +273,123 @@ export default function CompanyEdit() {
                   />
                 </div>
 
-                <div className="flex gap-4 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setLocation("/dashboard")}
-                    className="flex-1"
-                  >
-                    Cancelar
-                  </Button>
+                {/* Address Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Endereço</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="cep"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>CEP *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="00000-000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="cidade"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cidade *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Cidade" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="estado"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Estado *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="UF" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="md:col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="rua"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Rua *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Nome da rua" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="numero"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Número *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="123" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="complemento"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Complemento</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Apto 101" {...field} value={field.value || ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="bairro"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bairro *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nome do bairro" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex justify-end pt-6">
                   <Button 
                     type="submit" 
                     disabled={updateCompanyMutation.isPending}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    className="flex items-center gap-2"
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    {updateCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                    <Save className="h-4 w-4" />
+                    {updateCompanyMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
                   </Button>
                 </div>
               </form>

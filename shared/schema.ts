@@ -310,6 +310,37 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   numeroFuncionarios: z.union([z.string(), z.number()]).transform((val) => typeof val === 'string' ? parseInt(val) : val),
 });
 
+export const editCompanySchema = z.object({
+  razaoSocial: z.string().min(1, "Razão social é obrigatória"),
+  nomeFantasia: z.string().optional(),
+  cnpj: z.string().min(1, "CNPJ é obrigatório"),
+  telefone: z.string().optional(),
+  emailContato: z.string().email("Email inválido").optional(),
+  cep: z.string().min(1, "CEP é obrigatório"),
+  rua: z.string().min(1, "Rua é obrigatória"),
+  numero: z.string().min(1, "Número é obrigatório"),
+  complemento: z.string().optional(),
+  bairro: z.string().min(1, "Bairro é obrigatório"),
+  cidade: z.string().min(1, "Cidade é obrigatória"),
+  estado: z.string().min(1, "Estado é obrigatório"),
+  cnaePrincipal: z.string().min(1, "CNAE principal é obrigatório"),
+  cnaeSecundarios: z.array(z.string()).optional(),
+  dataFundacao: z.date(),
+  faturamento: z.string().min(1, "Faturamento é obrigatório"),
+  numeroFuncionarios: z.number().min(1, "Número de funcionários é obrigatório"),
+  descricaoNegocio: z.string().min(1, "Descrição do negócio é obrigatória"),
+  tipoProprietario: z.string().optional(),
+});
+
+export const passwordChangeSchema = z.object({
+  senhaAtual: z.string().min(1, "Senha atual é obrigatória"),
+  novaSenha: z.string().min(6, "Nova senha deve ter pelo menos 6 caracteres"),
+  confirmarSenha: z.string().min(1, "Confirmação de senha é obrigatória"),
+}).refine((data) => data.novaSenha === data.confirmarSenha, {
+  message: "Senhas não coincidem",
+  path: ["confirmarSenha"],
+});
+
 export const insertCompanyShareholderSchema = createInsertSchema(companyShareholders).omit({
   id: true,
   createdAt: true,

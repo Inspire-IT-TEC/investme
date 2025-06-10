@@ -514,6 +514,104 @@ export default function Profile() {
             </Form>
           </CardContent>
         </Card>
+
+        {/* Password Change Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Alterar Senha</CardTitle>
+                <CardDescription>
+                  Altere sua senha de acesso à plataforma
+                </CardDescription>
+              </div>
+              {!showPasswordChange && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowPasswordChange(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Alterar Senha
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          
+          {showPasswordChange && (
+            <CardContent>
+              <Form {...passwordForm}>
+                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                  <FormField
+                    control={passwordForm.control}
+                    name="senhaAtual"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Senha Atual *</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Digite sua senha atual" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={passwordForm.control}
+                    name="novaSenha"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nova Senha *</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Digite a nova senha" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={passwordForm.control}
+                    name="confirmarSenha"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirmar Nova Senha *</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Confirme a nova senha" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="flex space-x-4 pt-4">
+                    <Button 
+                      type="submit" 
+                      disabled={changePasswordMutation.isPending}
+                      className="flex items-center"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {changePasswordMutation.isPending ? "Alterando..." : "Alterar Senha"}
+                    </Button>
+                    
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowPasswordChange(false);
+                        passwordForm.reset();
+                      }}
+                      disabled={changePasswordMutation.isPending}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          )}
+        </Card>
       </div>
     </div>
   );

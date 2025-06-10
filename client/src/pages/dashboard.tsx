@@ -88,7 +88,7 @@ export default function Dashboard() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-600">Cadastro Completo</span>
-                        {entrepreneurProfile?.cadastroAprovado ? (
+                        {(entrepreneurProfile as any)?.cadastroAprovado ? (
                           <CheckCircle className="w-4 h-4 text-green-500" />
                         ) : (
                           <Clock className="w-4 h-4 text-yellow-500" />
@@ -96,7 +96,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-600">Email Confirmado</span>
-                        {entrepreneurProfile?.emailConfirmado ? (
+                        {(entrepreneurProfile as any)?.emailConfirmado ? (
                           <CheckCircle className="w-4 h-4 text-green-500" />
                         ) : (
                           <Clock className="w-4 h-4 text-yellow-500" />
@@ -104,13 +104,13 @@ export default function Dashboard() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-600">Documentos Verificados</span>
-                        {entrepreneurProfile?.documentosVerificados ? (
+                        {(entrepreneurProfile as any)?.documentosVerificados ? (
                           <CheckCircle className="w-4 h-4 text-green-500" />
                         ) : (
                           <Clock className="w-4 h-4 text-yellow-500" />
                         )}
                       </div>
-                      {(!entrepreneurProfile?.cadastroAprovado || !entrepreneurProfile?.emailConfirmado || !entrepreneurProfile?.documentosVerificados) && (
+                      {(!(entrepreneurProfile as any)?.cadastroAprovado || !(entrepreneurProfile as any)?.emailConfirmado || !(entrepreneurProfile as any)?.documentosVerificados) && (
                         <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
                           <p className="text-xs text-blue-700">
                             Aguardando validação pelo backoffice
