@@ -159,21 +159,35 @@ export default function Dashboard() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-600">Cadastro Completo</span>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    {entrepreneurProfile?.cadastroAprovado ? (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Clock className="w-4 h-4 text-yellow-500" />
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-600">Email Confirmado</span>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    {entrepreneurProfile?.emailConfirmado ? (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Clock className="w-4 h-4 text-yellow-500" />
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-600">Documentos Verificados</span>
-                    <Clock className="w-4 h-4 text-yellow-500" />
+                    {entrepreneurProfile?.documentosVerificados ? (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Clock className="w-4 h-4 text-yellow-500" />
+                    )}
                   </div>
-                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
-                    <p className="text-xs text-blue-700">
-                      Aguardando validação pelo backoffice
-                    </p>
-                  </div>
+                  {(!entrepreneurProfile?.cadastroAprovado || !entrepreneurProfile?.emailConfirmado || !entrepreneurProfile?.documentosVerificados) && (
+                    <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                      <p className="text-xs text-blue-700">
+                        Aguardando validação pelo backoffice
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
