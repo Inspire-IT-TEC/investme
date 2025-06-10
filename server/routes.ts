@@ -673,6 +673,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Granular approval endpoint for entrepreneurs
+  app.patch('/api/admin/entrepreneurs/:id/approve-field', authenticateAdminToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { field, approved } = req.body;
+      
+      // Validate field name
+      const validFields = ['cadastroAprovado', 'emailConfirmado', 'documentosVerificados'];
+      if (!validFields.includes(field)) {
+        return res.status(400).json({ message: 'Campo inválido' });
+      }
+
+      const entrepreneur = await storage.updateEntrepreneurApproval(parseInt(id), field as any, approved, 1);
+      if (!entrepreneur) {
+        return res.status(404).json({ message: 'Empreendedor não encontrado' });
+      }
+      res.json(entrepreneur);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
+    }
+  });
+
   // Admin Network Routes
   app.get('/api/admin/network', authenticateAdminToken, async (req, res) => {
     try {

@@ -24,6 +24,7 @@ import AuditPage from "@/pages/backoffice/audit";
 import Messages from "@/pages/messages";
 import BackofficeMessages from "@/pages/backoffice/messages";
 import BackofficeInvestors from "@/pages/backoffice/investors";
+import BackofficeEntrepreneurs from "@/pages/backoffice/entrepreneurs";
 import BackofficeNetwork from "@/pages/backoffice/network";
 import BackofficeApprovals from "@/pages/backoffice/approvals";
 import CompanyEdit from "@/pages/company-edit";
@@ -48,13 +49,14 @@ function Router() {
       <Route path="/credit-request/:companyId" component={CreditRequest} />
       <Route path="/messages" component={Messages} />
       <Route path="/profile" component={Profile} />
-      <Route path="/backoffice" component={BackofficeLogin} />
+      <Route path="/backoffice" component={BackofficeDashboard} />
       <Route path="/backoffice/login" component={BackofficeLogin} />
       <Route path="/backoffice/dashboard" component={BackofficeDashboard} />
       <Route path="/backoffice/approvals" component={BackofficeApprovals} />
       <Route path="/backoffice/companies" component={BackofficeCompanies} />
       <Route path="/backoffice/credit-requests" component={BackofficeCreditRequests} />
       <Route path="/backoffice/investors" component={BackofficeInvestors} />
+      <Route path="/backoffice/entrepreneurs" component={BackofficeEntrepreneurs} />
       <Route path="/backoffice/network" component={BackofficeNetwork} />
       <Route path="/backoffice/admin-users" component={AdminUsers} />
       <Route path="/backoffice/audit" component={AuditPage} />
