@@ -150,22 +150,22 @@ export default function Dashboard() {
               <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-3">
                 <CardTitle className="text-base">Status do Perfil</CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3">
+              <CardContent className="p-3">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Cadastro Completo</span>
+                    <span className="text-xs text-gray-600">Cadastro Completo</span>
                     <CheckCircle className="w-4 h-4 text-green-500" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Email Confirmado</span>
+                    <span className="text-xs text-gray-600">Email Confirmado</span>
                     <CheckCircle className="w-4 h-4 text-green-500" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Documentos Verificados</span>
+                    <span className="text-xs text-gray-600">Documentos Verificados</span>
                     <Clock className="w-4 h-4 text-yellow-500" />
                   </div>
-                  <div className="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-md">
-                    <p className="text-xs text-indigo-800">
+                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-xs text-blue-700">
                       Aguardando validação pelo backoffice
                     </p>
                   </div>
@@ -177,11 +177,11 @@ export default function Dashboard() {
 
         {/* Recent Credit Requests */}
         {creditRequests && Array.isArray(creditRequests) && creditRequests.length > 0 && (
-          <Card className="shadow-lg border-0">
-            <CardHeader className="text-white rounded-t-lg" style={{ background: 'linear-gradient(90deg, #3c3494 0%, #403494 100%)' }}>
-              <CardTitle>Solicitações de Crédito Recentes</CardTitle>
+          <Card className="shadow-sm border border-slate-200">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-4">
+              <CardTitle className="text-lg">Solicitações de Crédito Recentes</CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
