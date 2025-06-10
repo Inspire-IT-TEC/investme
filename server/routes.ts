@@ -195,7 +195,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...entrepreneurData,
         senha: hashedPassword,
         tipo: 'entrepreneur',
-        status: 'ativo'
+        status: 'pendente',
+        cadastroAprovado: false,
+        emailConfirmado: false,
+        documentosVerificados: false
       });
 
       res.status(201).json({ 
@@ -275,6 +278,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user is actually an entrepreneur
       if (user.tipo !== 'entrepreneur') {
         return res.status(401).json({ message: 'Acesso não autorizado para empreendedores' });
+      }
+
+      // Check if entrepreneur account is approved
+      if (user.status === 'pendente') {
+        return res.status(401).json({ message: 'Conta aguardando aprovação do backoffice' });
+      }
+
+      if (user.status === 'inativo') {
+        return res.status(401).json({ message: 'Conta inativa. Entre em contato com o suporte.' });
       }
 
       const isValidPassword = await bcrypt.compare(senha, user.senha);
