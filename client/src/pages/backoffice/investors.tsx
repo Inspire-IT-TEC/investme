@@ -14,10 +14,12 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { TrendingUp, Users, CheckCircle, XCircle, Eye, UserCheck, AlertCircle } from "lucide-react";
-import BackofficeNavbar from "@/components/layout/backoffice-navbar";
+import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function BackofficeInvestors() {
   const { toast } = useToast();
+  const { logout } = useAuth();
   const queryClient = useQueryClient();
   const [selectedInvestor, setSelectedInvestor] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");

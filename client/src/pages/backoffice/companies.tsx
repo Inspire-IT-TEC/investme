@@ -11,11 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import BackofficeNavbar from "@/components/layout/backoffice-navbar";
+import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
+import { useAuth } from "@/hooks/use-auth";
 import { Search, Eye, Edit, Building2 } from "lucide-react";
 
 export default function BackofficeCompanies() {
   const { toast } = useToast();
+  const { logout } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
@@ -51,25 +53,21 @@ export default function BackofficeCompanies() {
   });
 
   const updateCompanyMutation = useMutation({
-    mutationFn: async (data: { id: number; status: string; observacoesInternas: string }) => {
-      const response = await apiRequest("PATCH", `/api/admin/companies/${data.id}`, {
-        status: data.status,
-        observacoesInternas: data.observacoesInternas
-      });
-      return response.json();
-    },
+    mutationFn: ({ id, status, observacoesInternas }: any) =>
+      apiRequest("PATCH", `/api/admin/companies/${id}`, { status, observacoesInternas }),
     onSuccess: () => {
-      toast({
-        title: "Empresa atualizada",
-        description: "Status da empresa foi atualizado com sucesso.",
-      });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/companies"] });
       setEditDialogOpen(false);
+      setSelectedCompany(null);
+      toast({
+        title: "Empresa atualizada",
+        description: "A empresa foi atualizada com sucesso.",
+      });
     },
     onError: (error: any) => {
       toast({
         title: "Erro ao atualizar",
-        description: error.message || "Erro ao atualizar empresa",
+        description: error.message || "Erro ao atualizar empresa.",
         variant: "destructive",
       });
     },
@@ -110,271 +108,204 @@ export default function BackofficeCompanies() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <BackofficeNavbar />
+    <div className="flex h-screen bg-gray-50">
+      <BackofficeSidebar onLogout={logout} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="w-5 h-5" />
-                  Empresas Cadastradas
-                </CardTitle>
-                <CardDescription>
-                  Gerencie e analise empresas cadastradas na plataforma
-                </CardDescription>
-              </div>
-              <div className="flex space-x-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Buscar empresa..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10 w-64"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Todos os Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os Status</SelectItem>
-                    <SelectItem value="pendente_analise">Pendente de Análise</SelectItem>
-                    <SelectItem value="em_analise">Em Análise</SelectItem>
-                    <SelectItem value="aprovada">Aprovada</SelectItem>
-                    <SelectItem value="reprovada">Reprovada</SelectItem>
-                    <SelectItem value="incompleto">Incompleto</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-16 bg-gray-200 rounded"></div>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-7xl mx-auto">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="w-5 h-5" />
+                      Gestão de Empresas
+                    </CardTitle>
+                    <CardDescription>
+                      Gerencie empresas cadastradas na plataforma
+                    </CardDescription>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Empresa</TableHead>
-                      <TableHead>CNPJ</TableHead>
-                      <TableHead>Data Cadastro</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {companies && companies.length > 0 ? (
-                      companies.map((company: any) => (
-                        <TableRow key={company.id} className="hover:bg-gray-50">
-                          <TableCell>
-                            <div>
-                              <div className="font-medium text-gray-900">{company.razaoSocial}</div>
-                              <div className="text-sm text-gray-500">{company.nomeFantasia}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-mono">{company.cnpj}</TableCell>
-                          <TableCell>
-                            {new Date(company.createdAt).toLocaleDateString('pt-BR')}
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(company.status)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedCompany(company)}
-                                  >
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    Ver Detalhes
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                                  <DialogHeader>
-                                    <DialogTitle>Detalhes da Empresa</DialogTitle>
-                                    <DialogDescription>
-                                      Informações completas da empresa cadastrada
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  {companyDetails && (
-                                    <div className="space-y-6">
-                                      {/* Dados Básicos */}
-                                      <div>
-                                        <h3 className="text-lg font-medium mb-3">Dados Básicos</h3>
-                                        <div className="grid grid-cols-2 gap-4 text-sm">
-                                          <div>
-                                            <span className="font-medium">Razão Social:</span>
-                                            <p>{companyDetails.razaoSocial}</p>
-                                          </div>
-                                          <div>
-                                            <span className="font-medium">Nome Fantasia:</span>
-                                            <p>{companyDetails.nomeFantasia || '-'}</p>
-                                          </div>
-                                          <div>
-                                            <span className="font-medium">CNPJ:</span>
-                                            <p>{companyDetails.cnpj}</p>
-                                          </div>
-                                          <div>
-                                            <span className="font-medium">Data Fundação:</span>
-                                            <p>{new Date(companyDetails.dataFundacao).toLocaleDateString('pt-BR')}</p>
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* Dados Financeiros */}
-                                      <div>
-                                        <h3 className="text-lg font-medium mb-3">Dados Financeiros</h3>
-                                        <div className="grid grid-cols-3 gap-4 text-sm">
-                                          <div>
-                                            <span className="font-medium">Faturamento:</span>
-                                            <p>R$ {parseFloat(companyDetails.faturamento).toLocaleString('pt-BR')}</p>
-                                          </div>
-                                          <div>
-                                            <span className="font-medium">EBITDA:</span>
-                                            <p>R$ {parseFloat(companyDetails.ebitda).toLocaleString('pt-BR')}</p>
-                                          </div>
-                                          <div>
-                                            <span className="font-medium">Dívida Líquida:</span>
-                                            <p>R$ {parseFloat(companyDetails.dividaLiquida).toLocaleString('pt-BR')}</p>
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* Sócios */}
-                                      {companyDetails.shareholders && companyDetails.shareholders.length > 0 && (
-                                        <div>
-                                          <h3 className="text-lg font-medium mb-3">Quadro Societário</h3>
-                                          <div className="space-y-2">
-                                            {companyDetails.shareholders.map((shareholder: any, index: number) => (
-                                              <div key={index} className="flex justify-between text-sm">
-                                                <span>{shareholder.nomeCompleto}</span>
-                                                <span className="font-mono">{shareholder.cpf}</span>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      {/* Garantias */}
-                                      {companyDetails.guarantees && companyDetails.guarantees.length > 0 && (
-                                        <div>
-                                          <h3 className="text-lg font-medium mb-3">Garantias</h3>
-                                          <div className="space-y-3">
-                                            {companyDetails.guarantees.map((guarantee: any, index: number) => (
-                                              <div key={index} className="border border-gray-200 rounded p-3 text-sm">
-                                                <div className="flex justify-between">
-                                                  <span className="font-medium capitalize">{guarantee.tipo}</span>
-                                                  <span>R$ {parseFloat(guarantee.valorEstimado).toLocaleString('pt-BR')}</span>
-                                                </div>
-                                                {guarantee.matricula && <p>Matrícula: {guarantee.matricula}</p>}
-                                                {guarantee.renavam && <p>RENAVAM: {guarantee.renavam}</p>}
-                                                {guarantee.descricao && <p>Descrição: {guarantee.descricao}</p>}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </DialogContent>
-                              </Dialog>
-
-                              <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => openEditDialog(company)}
-                                  >
-                                    <Edit className="w-4 h-4 mr-1" />
-                                    Editar
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Editar Empresa</DialogTitle>
-                                    <DialogDescription>
-                                      Altere o status e observações da empresa
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="space-y-4">
-                                    <div>
-                                      <Label htmlFor="status">Status da Empresa</Label>
-                                      <Select value={editStatus} onValueChange={setEditStatus}>
-                                        <SelectTrigger>
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="pendente_analise">Pendente de Análise</SelectItem>
-                                          <SelectItem value="em_analise">Em Análise</SelectItem>
-                                          <SelectItem value="aprovada">Aprovada</SelectItem>
-                                          <SelectItem value="reprovada">Reprovada</SelectItem>
-                                          <SelectItem value="incompleto">Incompleto</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-
-                                    <div>
-                                      <Label htmlFor="observacoesInternas">Observações Internas</Label>
-                                      <Textarea
-                                        value={editObservacoes}
-                                        onChange={(e) => setEditObservacoes(e.target.value)}
-                                        placeholder="Adicione observações sobre a análise..."
-                                        rows={4}
-                                      />
-                                    </div>
-
-                                    <div className="flex justify-end space-x-2">
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setEditDialogOpen(false)}
-                                      >
-                                        Cancelar
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        disabled={updateCompanyMutation.isPending}
-                                        onClick={handleUpdateCompany}
-                                      >
-                                        {updateCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            </div>
-                          </TableCell>
+                </div>
+                
+                <div className="flex gap-4 mt-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar empresas..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos os status</SelectItem>
+                      <SelectItem value="pendente_analise">Pendente de Análise</SelectItem>
+                      <SelectItem value="em_analise">Em Análise</SelectItem>
+                      <SelectItem value="aprovada">Aprovada</SelectItem>
+                      <SelectItem value="reprovada">Reprovada</SelectItem>
+                      <SelectItem value="incompleto">Incompleto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                {isLoading ? (
+                  <div className="text-center py-8">Carregando empresas...</div>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Razão Social</TableHead>
+                          <TableHead>Nome Fantasia</TableHead>
+                          <TableHead>CNPJ</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Ações</TableHead>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8">
-                          <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-600">Nenhuma empresa encontrada</p>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                      </TableHeader>
+                      <TableBody>
+                        {companies && companies.length > 0 ? (
+                          companies.map((company: any) => (
+                            <TableRow key={company.id}>
+                              <TableCell className="font-medium">{company.razaoSocial}</TableCell>
+                              <TableCell>{company.nomeFantasia}</TableCell>
+                              <TableCell>{company.cnpj}</TableCell>
+                              <TableCell>{getStatusBadge(company.status)}</TableCell>
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setSelectedCompany(company)}
+                                      >
+                                        <Eye className="w-4 h-4 mr-1" />
+                                        Visualizar
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-2xl">
+                                      <DialogHeader>
+                                        <DialogTitle>Detalhes da Empresa</DialogTitle>
+                                        <DialogDescription>
+                                          Informações completas da empresa
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      {selectedCompany && (
+                                        <div className="space-y-4">
+                                          <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                              <Label className="text-sm font-medium text-gray-500">Razão Social</Label>
+                                              <p className="mt-1">{selectedCompany.razaoSocial}</p>
+                                            </div>
+                                            <div>
+                                              <Label className="text-sm font-medium text-gray-500">Nome Fantasia</Label>
+                                              <p className="mt-1">{selectedCompany.nomeFantasia}</p>
+                                            </div>
+                                            <div>
+                                              <Label className="text-sm font-medium text-gray-500">CNPJ</Label>
+                                              <p className="mt-1">{selectedCompany.cnpj}</p>
+                                            </div>
+                                            <div>
+                                              <Label className="text-sm font-medium text-gray-500">Status</Label>
+                                              <div className="mt-1">{getStatusBadge(selectedCompany.status)}</div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </DialogContent>
+                                  </Dialog>
+                                  
+                                  <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => openEditDialog(company)}
+                                      >
+                                        <Edit className="w-4 h-4 mr-1" />
+                                        Editar
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Editar Empresa</DialogTitle>
+                                        <DialogDescription>
+                                          Altere o status e observações da empresa
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <div>
+                                          <Label htmlFor="edit-status">Status</Label>
+                                          <Select value={editStatus} onValueChange={setEditStatus}>
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="pendente_analise">Pendente de Análise</SelectItem>
+                                              <SelectItem value="em_analise">Em Análise</SelectItem>
+                                              <SelectItem value="aprovada">Aprovada</SelectItem>
+                                              <SelectItem value="reprovada">Reprovada</SelectItem>
+                                              <SelectItem value="incompleto">Incompleto</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        <div>
+                                          <Label htmlFor="edit-observacoes">Observações Internas</Label>
+                                          <Textarea
+                                            id="edit-observacoes"
+                                            value={editObservacoes}
+                                            onChange={(e) => setEditObservacoes(e.target.value)}
+                                            placeholder="Adicione observações internas..."
+                                          />
+                                        </div>
+                                        <div className="flex space-x-2">
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setEditDialogOpen(false)}
+                                          >
+                                            Cancelar
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            disabled={updateCompanyMutation.isPending}
+                                            onClick={handleUpdateCompany}
+                                          >
+                                            {updateCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-8">
+                              <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                              <p className="text-gray-600">Nenhuma empresa encontrada</p>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
     </div>
   );
