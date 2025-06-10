@@ -40,7 +40,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-violet-50">
       <UnifiedNavbar 
         userType="entrepreneur" 
         userName={user?.nomeCompleto || user?.nome || "Empreendedor"}
@@ -49,7 +49,7 @@ export default function Dashboard() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-lg p-8 mb-8 shadow-xl">
+        <div className="text-white rounded-lg p-8 mb-8 shadow-xl" style={{ background: 'linear-gradient(135deg, #3c3494 0%, #403494 100%)' }}>
           <div className="flex items-center mb-4">
             <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mr-4">
               <Building2 className="w-8 h-8 text-white" />
@@ -65,12 +65,12 @@ export default function Dashboard() {
           {/* Companies Section */}
           <div className="lg:col-span-2">
             <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
+              <CardHeader className="text-white rounded-t-lg" style={{ background: 'linear-gradient(90deg, #3c3494 0%, #403494 100%)' }}>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="w-5 h-5" />
                   Minhas Empresas
                 </CardTitle>
-                <CardDescription className="text-indigo-100">
+                <CardDescription className="text-purple-100">
                   Gerencie suas empresas cadastradas
                 </CardDescription>
               </CardHeader>
@@ -87,7 +87,7 @@ export default function Dashboard() {
                 ) : companies && Array.isArray(companies) && companies.length > 0 ? (
                   <div className="space-y-4">
                     {companies.map((company: any) => (
-                      <div key={company.id} className="border border-indigo-200 rounded-lg p-4 hover:border-indigo-400 hover:bg-indigo-50 transition-all">
+                      <div key={company.id} className="border border-purple-200 rounded-lg p-4 hover:border-purple-400 hover:bg-purple-50 transition-all">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <h4 className="font-semibold text-gray-900">{company.razaoSocial}</h4>
@@ -99,7 +99,7 @@ export default function Dashboard() {
                           <div className="flex space-x-2">
                             {company.status === 'aprovada' && (
                               <Link href={`/credit-request/${company.id}`}>
-                                <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                                <Button size="sm" style={{ backgroundColor: '#3c3494' }} className="hover:opacity-90">
                                   <CreditCard className="w-4 h-4 mr-1" />
                                   Solicitar Crédito
                                 </Button>
@@ -112,7 +112,7 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Building2 className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
+                    <Building2 className="w-12 h-12 mx-auto mb-4" style={{ color: '#3c3494' }} />
                     <p className="text-gray-600 mb-4">Nenhuma empresa cadastrada</p>
                   </div>
                 )}

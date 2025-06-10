@@ -33,6 +33,13 @@
   --investme-success-dark: 123 43% 27%; /* #1B5E20 */
   --investme-warning: 36 100% 48%; /* #F57C00 */
   --investme-warning-dark: 38 100% 45%; /* #E65100 */
+  
+  /* Entrepreneur Portal Colors */
+  --entrepreneur-primary: 252 54% 41%; /* #3c3494 */
+  --entrepreneur-primary-variant: 252 54% 40%; /* #3c348c */
+  --entrepreneur-secondary: 249 50% 40%; /* #403494 */
+  --entrepreneur-accent: 249 50% 40%; /* #403494 */
+  --entrepreneur-surface: 249 50% 40%; /* #403494 */
 }
 
 .dark {
