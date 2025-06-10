@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Plus, CreditCard, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Building2, Plus, CreditCard, CheckCircle, Clock, AlertCircle, TrendingUp, MessageCircle, Users, Edit } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import UnifiedNavbar from "@/components/layout/unified-navbar";
 import { Link } from "wouter";
@@ -66,9 +67,85 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-          {/* Companies Section */}
-          <div className="lg:col-span-3">
+        {/* Main Content with Tabs */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 bg-blue-50 border-blue-200">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Visão Geral</TabsTrigger>
+            <TabsTrigger value="companies" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Minhas Empresas</TabsTrigger>
+            <TabsTrigger value="messages" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Mensagens</TabsTrigger>
+            <TabsTrigger value="network" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Rede</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+              {/* Status do Perfil Card */}
+              <div className="lg:col-span-1">
+                <Card className="shadow-sm border border-slate-200">
+                  <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-3">
+                    <CardTitle className="text-base">Status do Perfil</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600">Cadastro Completo</span>
+                        {entrepreneurProfile?.cadastroAprovado ? (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Clock className="w-4 h-4 text-yellow-500" />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600">Email Confirmado</span>
+                        {entrepreneurProfile?.emailConfirmado ? (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Clock className="w-4 h-4 text-yellow-500" />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600">Documentos Verificados</span>
+                        {entrepreneurProfile?.documentosVerificados ? (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Clock className="w-4 h-4 text-yellow-500" />
+                        )}
+                      </div>
+                      {(!entrepreneurProfile?.cadastroAprovado || !entrepreneurProfile?.emailConfirmado || !entrepreneurProfile?.documentosVerificados) && (
+                        <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                          <p className="text-xs text-blue-700">
+                            Aguardando validação pelo backoffice
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Resumo das Empresas */}
+              <div className="lg:col-span-3">
+                <Card className="shadow-sm border border-slate-200">
+                  <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-4">
+                    <CardTitle className="text-lg">Resumo das Atividades</CardTitle>
+                    <CardDescription className="text-blue-100 text-sm">
+                      Suas estatísticas na plataforma
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="text-center py-8">
+                      <TrendingUp className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">Bem-vindo ao seu painel</h3>
+                      <p className="text-gray-600">
+                        Gerencie suas empresas e solicitações de crédito de forma simples e eficiente
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="companies" className="space-y-6">
             <Card className="shadow-sm border border-slate-200">
               <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -133,106 +210,65 @@ export default function Dashboard() {
                 </Link>
               </CardContent>
             </Card>
-          </div>
+          </TabsContent>
 
-          {/* Sidebar */}
-          <div className="space-y-4">
+          <TabsContent value="messages" className="space-y-6">
             <Card className="shadow-sm border border-slate-200">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-3">
-                <CardTitle className="text-base">Ações Rápidas</CardTitle>
+              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <MessageCircle className="w-5 h-5" />
+                  Mensagens
+                </CardTitle>
+                <CardDescription className="text-blue-100 text-sm">
+                  Comunique-se com investidores e administradores
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-3">
-                <Link href="/company-registration">
-                  <Button variant="outline" className="w-full justify-start text-sm border-blue-300 text-blue-600 hover:bg-blue-50">
-                    <Building2 className="w-4 h-4 mr-2" />
-                    Nova Empresa
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-sm border border-slate-200">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-3">
-                <CardTitle className="text-base">Status do Perfil</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600">Cadastro Completo</span>
-                    {entrepreneurProfile?.cadastroAprovado ? (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <Clock className="w-4 h-4 text-yellow-500" />
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600">Email Confirmado</span>
-                    {entrepreneurProfile?.emailConfirmado ? (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <Clock className="w-4 h-4 text-yellow-500" />
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600">Documentos Verificados</span>
-                    {entrepreneurProfile?.documentosVerificados ? (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <Clock className="w-4 h-4 text-yellow-500" />
-                    )}
-                  </div>
-                  {(!entrepreneurProfile?.cadastroAprovado || !entrepreneurProfile?.emailConfirmado || !entrepreneurProfile?.documentosVerificados) && (
-                    <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
-                      <p className="text-xs text-blue-700">
-                        Aguardando validação pelo backoffice
-                      </p>
-                    </div>
-                  )}
+              <CardContent className="p-6">
+                <div className="text-center py-8">
+                  <MessageCircle className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Centro de Mensagens</h3>
+                  <p className="text-gray-600 mb-4">
+                    Acesse suas conversas com investidores e administradores
+                  </p>
+                  <Link href="/messages">
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      Acessar Mensagens
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
+          </TabsContent>
 
-        {/* Recent Credit Requests */}
-        {creditRequests && Array.isArray(creditRequests) && creditRequests.length > 0 && (
-          <Card className="shadow-sm border border-slate-200">
-            <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-4">
-              <CardTitle className="text-lg">Solicitações de Crédito Recentes</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Empresa</th>
-                      <th className="text-left p-2">Valor</th>
-                      <th className="text-left p-2">Data</th>
-                      <th className="text-left p-2">Status</th>
-                      <th className="text-left p-2">Aprovado por</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {creditRequests.slice(0, 5).map((request: any) => (
-                      <tr key={request.id} className="border-b">
-                        <td className="p-2 font-medium">{request.companyRazaoSocial || 'Nome não disponível'}</td>
-                        <td className="p-2">R$ {parseFloat(request.valorSolicitado).toLocaleString('pt-BR')}</td>
-                        <td className="p-2">{new Date(request.createdAt).toLocaleDateString('pt-BR')}</td>
-                        <td className="p-2">{getStatusBadge(request.status)}</td>
-                        <td className="p-2 text-sm text-gray-600">
-                          {request.status === 'aprovada' && request.approvingCompanyName 
-                            ? request.approvingCompanyName 
-                            : '-'
-                          }
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          <TabsContent value="network" className="space-y-6">
+            <Card className="shadow-sm border border-slate-200">
+              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg py-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="w-5 h-5" />
+                  Rede de Investidores
+                </CardTitle>
+                <CardDescription className="text-blue-100 text-sm">
+                  Conecte-se com investidores interessados
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="text-center py-8">
+                  <Users className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Rede de Investimentos</h3>
+                  <p className="text-gray-600 mb-4">
+                    Explore oportunidades de networking e parcerias
+                  </p>
+                  <Link href="/network">
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      Acessar Rede
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
       </div>
     </div>
   );

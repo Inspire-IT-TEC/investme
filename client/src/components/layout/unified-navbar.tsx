@@ -87,14 +87,7 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
 
   const getNavItems = () => {
     if (userType === "investor") {
-      return [
-        {
-          key: "home",
-          label: "Início",
-          icon: Building2,
-          path: "/investor-dashboard"
-        }
-      ];
+      return [];
     } else {
       return [
         {
