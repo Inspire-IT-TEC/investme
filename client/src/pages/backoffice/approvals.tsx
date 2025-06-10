@@ -13,10 +13,12 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate } from "@/lib/utils";
 import { CheckCircle, XCircle, Eye, UserCheck, Building, AlertCircle } from "lucide-react";
-import BackofficeNavbar from "@/components/layout/backoffice-navbar";
+import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function BackofficeApprovals() {
   const { toast } = useToast();
+  const { logout } = useAuth();
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -85,8 +87,8 @@ export default function BackofficeApprovals() {
 
   // Approve entrepreneur mutation
   const approveEntrepreneurMutation = useMutation({
-    mutationFn: async (entrepreneurId: number) => {
-      const response = await apiRequest("POST", `/api/admin/users/${entrepreneurId}/approve`);
+    mutationFn: async (userId: number) => {
+      const response = await apiRequest("POST", `/api/admin/users/${userId}/approve`);
       return response.json();
     },
     onSuccess: () => {
@@ -107,8 +109,8 @@ export default function BackofficeApprovals() {
 
   // Reject entrepreneur mutation
   const rejectEntrepreneurMutation = useMutation({
-    mutationFn: async ({ entrepreneurId, reason }: { entrepreneurId: number; reason: string }) => {
-      const response = await apiRequest("POST", `/api/admin/users/${entrepreneurId}/reject`, { reason });
+    mutationFn: async ({ userId, reason }: { userId: number; reason: string }) => {
+      const response = await apiRequest("POST", `/api/admin/users/${userId}/reject`, { reason });
       return response.json();
     },
     onSuccess: () => {
@@ -127,429 +129,257 @@ export default function BackofficeApprovals() {
     },
   });
 
-  // Granular approval mutations
-  const approveFieldMutation = useMutation({
-    mutationFn: async ({ userId, userType, field, approved }: { userId: number; userType: string; field: string; approved: boolean }) => {
-      const response = await apiRequest("PATCH", `/api/admin/${userType}s/${userId}/approve-field`, { field, approved });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/investors"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/entrepreneurs"] });
-      toast({
-        title: "Status atualizado",
-        description: "Item do perfil atualizado com sucesso.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao atualizar",
-        description: error.message || "Erro ao atualizar status.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const renderProfileApprovalItems = (user: any, userType: 'investor' | 'entrepreneur') => (
-    <div className="space-y-4">
-      <h4 className="font-semibold text-lg mb-4">Aprovação de Itens do Perfil</h4>
-      
-      <div className="space-y-3">
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className={`w-3 h-3 rounded-full ${user.cadastroAprovado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span className="font-medium">Cadastro Completo</span>
-          </div>
-          <div className="flex space-x-2">
-            <Button 
-              size="sm" 
-              variant={user.cadastroAprovado ? "default" : "outline"}
-              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'cadastroAprovado', approved: true })}
-              disabled={approveFieldMutation.isPending}
-            >
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Aprovar
-            </Button>
-            <Button 
-              size="sm" 
-              variant={!user.cadastroAprovado ? "destructive" : "outline"}
-              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'cadastroAprovado', approved: false })}
-              disabled={approveFieldMutation.isPending}
-            >
-              <XCircle className="w-4 h-4 mr-1" />
-              Rejeitar
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className={`w-3 h-3 rounded-full ${user.emailConfirmado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span className="font-medium">Email Confirmado</span>
-          </div>
-          <div className="flex space-x-2">
-            <Button 
-              size="sm" 
-              variant={user.emailConfirmado ? "default" : "outline"}
-              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'emailConfirmado', approved: true })}
-              disabled={approveFieldMutation.isPending}
-            >
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Aprovar
-            </Button>
-            <Button 
-              size="sm" 
-              variant={!user.emailConfirmado ? "destructive" : "outline"}
-              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'emailConfirmado', approved: false })}
-              disabled={approveFieldMutation.isPending}
-            >
-              <XCircle className="w-4 h-4 mr-1" />
-              Rejeitar
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className={`w-3 h-3 rounded-full ${user.documentosVerificados ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span className="font-medium">Documentos Verificados</span>
-          </div>
-          <div className="flex space-x-2">
-            <Button 
-              size="sm" 
-              variant={user.documentosVerificados ? "default" : "outline"}
-              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'documentosVerificados', approved: true })}
-              disabled={approveFieldMutation.isPending}
-            >
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Aprovar
-            </Button>
-            <Button 
-              size="sm" 
-              variant={!user.documentosVerificados ? "destructive" : "outline"}
-              onClick={() => approveFieldMutation.mutate({ userId: user.id, userType, field: 'documentosVerificados', approved: false })}
-              disabled={approveFieldMutation.isPending}
-            >
-              <XCircle className="w-4 h-4 mr-1" />
-              Rejeitar
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderUserDetails = (user: any, userType: 'investor' | 'entrepreneur') => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label className="font-semibold">Nome Completo</Label>
-          <p>{user.nomeCompleto}</p>
-        </div>
-        <div>
-          <Label className="font-semibold">Email</Label>
-          <p>{user.email}</p>
-        </div>
-        <div>
-          <Label className="font-semibold">CPF</Label>
-          <p>{user.cpf}</p>
-        </div>
-        <div>
-          <Label className="font-semibold">RG</Label>
-          <p>{user.rg}</p>
-        </div>
-        <div>
-          <Label className="font-semibold">CEP</Label>
-          <p>{user.cep}</p>
-        </div>
-        <div>
-          <Label className="font-semibold">Endereço</Label>
-          <p>{user.rua}, {user.numero} {user.complemento ? `, ${user.complemento}` : ''}</p>
-        </div>
-        <div>
-          <Label className="font-semibold">Bairro</Label>
-          <p>{user.bairro}</p>
-        </div>
-        <div>
-          <Label className="font-semibold">Cidade/Estado</Label>
-          <p>{user.cidade}, {user.estado}</p>
-        </div>
-        <div>
-          <Label className="font-semibold">Data de Cadastro</Label>
-          <p>{formatDate(user.createdAt)}</p>
-        </div>
-        {userType === 'investor' && user.limiteInvestimento && (
-          <div>
-            <Label className="font-semibold">Limite de Investimento</Label>
-            <p>{user.limiteInvestimento}</p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex space-x-2 pt-4 border-t">
-        <Button
-          onClick={() => {
-            if (userType === 'investor') {
-              approveInvestorMutation.mutate(user.id);
-            } else {
-              approveEntrepreneurMutation.mutate(user.id);
-            }
-          }}
-          disabled={approveInvestorMutation.isPending || approveEntrepreneurMutation.isPending}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <CheckCircle className="w-4 h-4 mr-2" />
-          Aprovar
-        </Button>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50">
-              <XCircle className="w-4 h-4 mr-2" />
-              Rejeitar
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Rejeitar {userType === 'investor' ? 'Investidor' : 'Empreendedor'}</DialogTitle>
-              <DialogDescription>
-                Informe o motivo da rejeição
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="rejection-reason">Motivo da Rejeição</Label>
-                <Textarea
-                  id="rejection-reason"
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="Descreva o motivo da rejeição..."
-                  rows={3}
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  onClick={() => {
-                    if (rejectionReason.trim()) {
-                      if (userType === 'investor') {
-                        rejectInvestorMutation.mutate({
-                          investorId: user.id,
-                          reason: rejectionReason
-                        });
-                      } else {
-                        rejectEntrepreneurMutation.mutate({
-                          entrepreneurId: user.id,
-                          reason: rejectionReason
-                        });
-                      }
-                      setRejectionReason("");
-                    }
-                  }}
-                  disabled={rejectInvestorMutation.isPending || rejectEntrepreneurMutation.isPending || !rejectionReason.trim()}
-                  variant="destructive"
-                >
-                  Confirmar Rejeição
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <BackofficeNavbar />
+    <div className="flex h-screen bg-gray-50">
+      <BackofficeSidebar onLogout={logout} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Aprovação de Cadastros</h1>
-            <p className="text-gray-600">Aprove ou rejeite cadastros de investidores e empreendedores</p>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="space-y-6">
+              {/* Header */}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Aprovação de Cadastros</h1>
+                <p className="text-gray-600">Aprove ou rejeite cadastros de investidores e empreendedores</p>
+              </div>
+
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Investidores Pendentes</CardTitle>
+                    <UserCheck className="h-4 w-4 text-green-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{pendingInvestors?.length || 0}</div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Empreendedores Pendentes</CardTitle>
+                    <Building className="h-4 w-4 text-blue-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{pendingEntrepreneurs?.length || 0}</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Main Content */}
+              <Tabs defaultValue="investors" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="investors">
+                    Investidores ({pendingInvestors?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="entrepreneurs">
+                    Empreendedores ({pendingEntrepreneurs?.length || 0})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="investors" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Investidores Pendentes de Aprovação</CardTitle>
+                      <CardDescription>
+                        Analise e aprove cadastros de investidores
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {investorsLoading ? (
+                        <div className="text-center py-8">Carregando investidores...</div>
+                      ) : !pendingInvestors?.length ? (
+                        <div className="text-center py-8">
+                          <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-600">Nenhum investidor pendente de aprovação</p>
+                        </div>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Nome</TableHead>
+                              <TableHead>Email</TableHead>
+                              <TableHead>CPF</TableHead>
+                              <TableHead>Data</TableHead>
+                              <TableHead>Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {pendingInvestors.map((investor: any) => (
+                              <TableRow key={investor.id}>
+                                <TableCell className="font-medium">{investor.nomeCompleto}</TableCell>
+                                <TableCell>{investor.email}</TableCell>
+                                <TableCell>{investor.cpf}</TableCell>
+                                <TableCell>{formatDate(investor.createdAt)}</TableCell>
+                                <TableCell>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => approveInvestorMutation.mutate(investor.id)}
+                                      disabled={approveInvestorMutation.isPending}
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      <CheckCircle className="w-4 h-4 mr-1" />
+                                      Aprovar
+                                    </Button>
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="border-red-200 text-red-600 hover:bg-red-50"
+                                        >
+                                          <XCircle className="w-4 h-4 mr-1" />
+                                          Rejeitar
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>Rejeitar Investidor</DialogTitle>
+                                          <DialogDescription>
+                                            Informe o motivo da rejeição
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="space-y-4">
+                                          <div>
+                                            <Label htmlFor="rejection-reason">Motivo da Rejeição</Label>
+                                            <Textarea
+                                              id="rejection-reason"
+                                              value={rejectionReason}
+                                              onChange={(e) => setRejectionReason(e.target.value)}
+                                              placeholder="Descreva o motivo da rejeição..."
+                                            />
+                                          </div>
+                                          <Button
+                                            onClick={() => {
+                                              rejectInvestorMutation.mutate({
+                                                investorId: investor.id,
+                                                reason: rejectionReason
+                                              });
+                                              setRejectionReason("");
+                                            }}
+                                            disabled={rejectInvestorMutation.isPending || !rejectionReason.trim()}
+                                            variant="destructive"
+                                          >
+                                            Confirmar Rejeição
+                                          </Button>
+                                        </div>
+                                      </DialogContent>
+                                    </Dialog>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="entrepreneurs" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Empreendedores Pendentes de Aprovação</CardTitle>
+                      <CardDescription>
+                        Analise e aprove cadastros de empreendedores
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {entrepreneursLoading ? (
+                        <div className="text-center py-8">Carregando empreendedores...</div>
+                      ) : !pendingEntrepreneurs?.length ? (
+                        <div className="text-center py-8">
+                          <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-600">Nenhum empreendedor pendente de aprovação</p>
+                        </div>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Nome</TableHead>
+                              <TableHead>Email</TableHead>
+                              <TableHead>CPF</TableHead>
+                              <TableHead>Data</TableHead>
+                              <TableHead>Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {pendingEntrepreneurs.map((entrepreneur: any) => (
+                              <TableRow key={entrepreneur.id}>
+                                <TableCell className="font-medium">{entrepreneur.nomeCompleto}</TableCell>
+                                <TableCell>{entrepreneur.email}</TableCell>
+                                <TableCell>{entrepreneur.cpf}</TableCell>
+                                <TableCell>{formatDate(entrepreneur.createdAt)}</TableCell>
+                                <TableCell>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => approveEntrepreneurMutation.mutate(entrepreneur.id)}
+                                      disabled={approveEntrepreneurMutation.isPending}
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      <CheckCircle className="w-4 h-4 mr-1" />
+                                      Aprovar
+                                    </Button>
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="border-red-200 text-red-600 hover:bg-red-50"
+                                        >
+                                          <XCircle className="w-4 h-4 mr-1" />
+                                          Rejeitar
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>Rejeitar Empreendedor</DialogTitle>
+                                          <DialogDescription>
+                                            Informe o motivo da rejeição
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="space-y-4">
+                                          <div>
+                                            <Label htmlFor="rejection-reason">Motivo da Rejeição</Label>
+                                            <Textarea
+                                              id="rejection-reason"
+                                              value={rejectionReason}
+                                              onChange={(e) => setRejectionReason(e.target.value)}
+                                              placeholder="Descreva o motivo da rejeição..."
+                                            />
+                                          </div>
+                                          <Button
+                                            onClick={() => {
+                                              rejectEntrepreneurMutation.mutate({
+                                                userId: entrepreneur.id,
+                                                reason: rejectionReason
+                                              });
+                                              setRejectionReason("");
+                                            }}
+                                            disabled={rejectEntrepreneurMutation.isPending || !rejectionReason.trim()}
+                                            variant="destructive"
+                                          >
+                                            Confirmar Rejeição
+                                          </Button>
+                                        </div>
+                                      </DialogContent>
+                                    </Dialog>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Investidores Pendentes</CardTitle>
-                <UserCheck className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {pendingInvestors?.length || 0}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Empreendedores Pendentes</CardTitle>
-                <Building className="h-4 w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {pendingEntrepreneurs?.length || 0}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Tabs for different user types */}
-          <Tabs defaultValue="investors" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="investors">
-                Investidores ({pendingInvestors?.length || 0})
-              </TabsTrigger>
-              <TabsTrigger value="entrepreneurs">
-                Empreendedores ({pendingEntrepreneurs?.length || 0})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="investors" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Investidores Pendentes de Aprovação</CardTitle>
-                  <CardDescription>
-                    Analise e aprove ou rejeite cadastros de investidores
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {investorsLoading ? (
-                    <div className="text-center py-8">Carregando investidores...</div>
-                  ) : !pendingInvestors?.length ? (
-                    <div className="text-center py-8">
-                      <UserCheck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600">Nenhum investidor pendente de aprovação</p>
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Nome</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>CPF</TableHead>
-                          <TableHead>Data de Cadastro</TableHead>
-                          <TableHead>Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {pendingInvestors.map((investor: any) => (
-                          <TableRow key={investor.id}>
-                            <TableCell className="font-medium">{investor.nomeCompleto}</TableCell>
-                            <TableCell>{investor.email}</TableCell>
-                            <TableCell>{investor.cpf}</TableCell>
-                            <TableCell>{formatDate(investor.createdAt)}</TableCell>
-                            <TableCell>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedUser(investor)}
-                                  >
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    Analisar
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle>Análise do Investidor</DialogTitle>
-                                    <DialogDescription>
-                                      Informações completas para aprovação
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  {selectedUser && (
-                                    <div className="space-y-6">
-                                      {renderUserDetails(selectedUser, 'investor')}
-                                      {renderProfileApprovalItems(selectedUser, 'investor')}
-                                    </div>
-                                  )}
-                                </DialogContent>
-                              </Dialog>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="entrepreneurs" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Empreendedores Pendentes de Aprovação</CardTitle>
-                  <CardDescription>
-                    Analise e aprove ou rejeite cadastros de empreendedores
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {entrepreneursLoading ? (
-                    <div className="text-center py-8">Carregando empreendedores...</div>
-                  ) : !pendingEntrepreneurs?.length ? (
-                    <div className="text-center py-8">
-                      <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600">Nenhum empreendedor pendente de aprovação</p>
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Nome</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>CPF</TableHead>
-                          <TableHead>Data de Cadastro</TableHead>
-                          <TableHead>Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {pendingEntrepreneurs.map((entrepreneur: any) => (
-                          <TableRow key={entrepreneur.id}>
-                            <TableCell className="font-medium">{entrepreneur.nomeCompleto}</TableCell>
-                            <TableCell>{entrepreneur.email}</TableCell>
-                            <TableCell>{entrepreneur.cpf}</TableCell>
-                            <TableCell>{formatDate(entrepreneur.createdAt)}</TableCell>
-                            <TableCell>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedUser(entrepreneur)}
-                                  >
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    Analisar
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle>Análise do Empreendedor</DialogTitle>
-                                    <DialogDescription>
-                                      Informações completas para aprovação
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  {selectedUser && (
-                                    <div className="space-y-6">
-                                      {renderUserDetails(selectedUser, 'entrepreneur')}
-                                      {renderProfileApprovalItems(selectedUser, 'entrepreneur')}
-                                    </div>
-                                  )}
-                                </DialogContent>
-                              </Dialog>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+        </main>
       </div>
     </div>
   );

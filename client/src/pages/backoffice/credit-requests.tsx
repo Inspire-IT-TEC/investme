@@ -19,7 +19,7 @@ export default function BackofficeCreditRequests() {
   const { toast } = useToast();
   const { logout } = useAuth();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
@@ -124,7 +124,7 @@ export default function BackofficeCreditRequests() {
                       <SelectValue placeholder="Filtrar por status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos os status</SelectItem>
+                      <SelectItem value="all">Todos os status</SelectItem>
                       <SelectItem value="pendente">Pendente</SelectItem>
                       <SelectItem value="em_analise">Em Análise</SelectItem>
                       <SelectItem value="aprovada">Aprovada</SelectItem>

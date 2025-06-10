@@ -19,7 +19,7 @@ export default function BackofficeCompanies() {
   const { toast } = useToast();
   const { logout } = useAuth();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editStatus, setEditStatus] = useState("");
@@ -145,7 +145,7 @@ export default function BackofficeCompanies() {
                       <SelectValue placeholder="Filtrar por status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos os status</SelectItem>
+                      <SelectItem value="all">Todos os status</SelectItem>
                       <SelectItem value="pendente_analise">Pendente de Análise</SelectItem>
                       <SelectItem value="em_analise">Em Análise</SelectItem>
                       <SelectItem value="aprovada">Aprovada</SelectItem>
