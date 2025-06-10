@@ -78,6 +78,20 @@ export default function InvestorDashboard() {
     queryKey: ["/api/investor/my-analysis"],
   });
 
+  // Fetch approved/rejected analyses by this investor
+  const { data: approvedAnalysis, isLoading: loadingApprovedAnalysis } = useQuery({
+    queryKey: ["/api/investor/approved-analysis"],
+    queryFn: async () => {
+      const response = await fetch('/api/investor/approved-analysis', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) throw new Error('Erro ao carregar análises finalizadas');
+      return response.json();
+    },
+  });
+
   // Accept credit request mutation
   const acceptRequestMutation = useMutation({
     mutationFn: async (requestId: number) => {
@@ -355,12 +369,13 @@ export default function InvestorDashboard() {
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className={`grid w-full ${companyStatus?.hasApprovedCompany ? 'grid-cols-4' : 'grid-cols-3'} bg-green-50 border-green-200`}>
+          <TabsList className={`grid w-full ${companyStatus?.hasApprovedCompany ? 'grid-cols-5' : 'grid-cols-4'} bg-green-50 border-green-200`}>
             <TabsTrigger value="overview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Visão Geral</TabsTrigger>
             {companyStatus?.hasApprovedCompany && (
               <TabsTrigger value="network" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Rede</TabsTrigger>
             )}
             <TabsTrigger value="analysis" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Em Análise</TabsTrigger>
+            <TabsTrigger value="approved" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Aprovadas</TabsTrigger>
             <TabsTrigger value="completed" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Finalizadas</TabsTrigger>
           </TabsList>
 
@@ -642,6 +657,136 @@ export default function InvestorDashboard() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="approved" className="space-y-6">
+            <Card className="shadow-md border-green-100">
+              <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-t-lg border-b border-green-200">
+                <CardTitle className="text-green-800">Análises Aprovadas</CardTitle>
+                <CardDescription className="text-green-600">
+                  Solicitações que você aprovou - envie mensagens aos empreendedores
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingApprovedAnalysis ? (
+                  <div className="text-center py-8">Carregando análises aprovadas...</div>
+                ) : !approvedAnalysis?.length ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">Nenhuma análise aprovada ainda</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Solicitações aprovadas por você aparecerão aqui
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {approvedAnalysis.filter(req => req.status === 'aprovada').map((request: any) => (
+                      <Card key={request.id} className="border border-green-200 bg-green-50/30">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <Building2 className="h-5 w-5 text-green-600" />
+                                <h3 className="font-medium text-gray-900">{request.companyName}</h3>
+                                <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+                                  Aprovada
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                                <span>Valor: {formatCurrency(parseFloat(request.valorSolicitado))}</span>
+                                <span>Aprovada em: {formatDate(request.updatedAt)}</span>
+                              </div>
+                              {request.observacoes && (
+                                <div className="bg-white rounded-lg p-3 border border-green-200 mb-3">
+                                  <p className="text-sm text-gray-700">
+                                    <strong>Suas observações:</strong> {request.observacoes}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="border-green-300 text-green-700 hover:bg-green-50"
+                                    onClick={() => setSelectedDetailsRequest(request)}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Detalhes
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl">
+                                  <DialogHeader>
+                                    <DialogTitle>Detalhes da Solicitação - {selectedDetailsRequest?.companyName}</DialogTitle>
+                                  </DialogHeader>
+                                  {selectedDetailsRequest && (
+                                    <div className="space-y-6">
+                                      <div className="grid grid-cols-2 gap-6">
+                                        <div>
+                                          <h4 className="font-medium mb-2">Informações da Empresa</h4>
+                                          <div className="space-y-1 text-sm">
+                                            <p><strong>Razão Social:</strong> {selectedDetailsRequest.companyName}</p>
+                                            <p><strong>CNPJ:</strong> {selectedDetailsRequest.companyCnpj}</p>
+                                            <p><strong>Setor:</strong> {selectedDetailsRequest.companySector}</p>
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <h4 className="font-medium mb-2">Solicitação</h4>
+                                          <div className="space-y-1 text-sm">
+                                            <p><strong>Valor:</strong> {formatCurrency(parseFloat(selectedDetailsRequest.valorSolicitado))}</p>
+                                            <p><strong>Prazo:</strong> {selectedDetailsRequest.prazo} meses</p>
+                                            <p><strong>Finalidade:</strong> {selectedDetailsRequest.finalidade}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {selectedDetailsRequest.justificativa && (
+                                        <div>
+                                          <h4 className="font-medium mb-2">Justificativa</h4>
+                                          <p className="text-sm bg-gray-50 p-3 rounded">{selectedDetailsRequest.justificativa}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </DialogContent>
+                              </Dialog>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button 
+                                    size="sm"
+                                    className="bg-green-600 hover:bg-green-700"
+                                    onClick={() => {
+                                      setSelectedChatRequest(request);
+                                      // Fetch messages for this conversation
+                                      queryClient.invalidateQueries({ 
+                                        queryKey: ["/api/investor/messages", `${request.companyId}_${request.id}`] 
+                                      });
+                                    }}
+                                  >
+                                    <MessageCircle className="h-4 w-4 mr-1" />
+                                    Mensagem
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                                  <DialogHeader>
+                                    <DialogTitle>Chat com {selectedChatRequest?.companyName}</DialogTitle>
+                                    <DialogDescription>
+                                      Converse com o empreendedor sobre a solicitação aprovada
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  {selectedChatRequest && <ChatSection request={selectedChatRequest} />}
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="completed" className="space-y-6">
             <Card className="shadow-md border-green-100">
               <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-t-lg border-b border-green-200">
@@ -662,6 +807,144 @@ export default function InvestorDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
+    </div>
+  );
+}
+
+// Chat Section Component
+function ChatSection({ request }: { request: any }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [messageContent, setMessageContent] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const conversationId = `${request.companyId}_${request.id}`;
+
+  // Fetch messages for this conversation
+  const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
+    queryKey: ["/api/investor/messages", conversationId],
+    queryFn: async () => {
+      const response = await fetch(`/api/investor/messages/${conversationId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) throw new Error('Erro ao carregar mensagens');
+      return response.json();
+    },
+  });
+
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const response = await fetch('/api/investor/messages', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversationId,
+          content,
+          companyId: request.companyId,
+          creditRequestId: request.id,
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao enviar mensagem');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setMessageContent("");
+      refetchMessages();
+      queryClient.invalidateQueries({ queryKey: ["/api/investor/unread-messages"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendMessage = () => {
+    if (!messageContent.trim()) return;
+    sendMessageMutation.mutate(messageContent);
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  return (
+    <div className="flex flex-col h-96">
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-4 border rounded-lg bg-gray-50 mb-4">
+        {loadingMessages ? (
+          <div className="text-center py-8">Carregando mensagens...</div>
+        ) : !messages?.length ? (
+          <div className="text-center py-8 text-gray-500">
+            <MessageCircle className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+            <p>Nenhuma mensagem ainda</p>
+            <p className="text-sm">Inicie a conversa com o empreendedor</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {messages.map((message: any) => (
+              <div
+                key={message.id}
+                className={`flex ${message.remetenteTipo === 'investor' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    message.remetenteTipo === 'investor'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-white border border-gray-200'
+                  }`}
+                >
+                  <p className="text-sm">{message.conteudo}</p>
+                  <p className={`text-xs mt-1 ${
+                    message.remetenteTipo === 'investor' ? 'text-green-100' : 'text-gray-500'
+                  }`}>
+                    {formatDate(message.createdAt)}
+                  </p>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
+
+      {/* Message Input */}
+      <div className="flex gap-2">
+        <Textarea
+          placeholder="Digite sua mensagem..."
+          value={messageContent}
+          onChange={(e) => setMessageContent(e.target.value)}
+          className="flex-1 min-h-[80px] resize-none"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage();
+            }
+          }}
+        />
+        <Button
+          onClick={handleSendMessage}
+          disabled={!messageContent.trim() || sendMessageMutation.isPending}
+          className="px-6 bg-green-600 hover:bg-green-700"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

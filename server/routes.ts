@@ -463,6 +463,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/investor/approved-analysis', authenticateToken, async (req: any, res) => {
+    try {
+      const investorId = req.user.id;
+      
+      // Get approved requests by this investor
+      const approvedRequests = await storage.getCreditRequestsByInvestor(investorId, 'aprovada');
+      const rejectedRequests = await storage.getCreditRequestsByInvestor(investorId, 'reprovada');
+      
+      const allFinalized = [...approvedRequests, ...rejectedRequests];
+      res.json(allFinalized);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar análises finalizadas' });
+    }
+  });
+
   app.post('/api/investor/credit-requests/:id/approve', authenticateToken, async (req: any, res) => {
     try {
       const requestId = parseInt(req.params.id);
