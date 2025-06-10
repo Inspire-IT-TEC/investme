@@ -19,6 +19,12 @@ export const entrepreneurs = pgTable("entrepreneurs", {
   cidade: text("cidade").notNull(),
   estado: text("estado").notNull(),
   status: text("status").notNull().default("ativo"), // ativo, inativo
+  // Campos de aprovação granular
+  cadastroAprovado: boolean("cadastro_aprovado").default(false),
+  emailConfirmado: boolean("email_confirmado").default(false),
+  documentosVerificados: boolean("documentos_verificados").default(false),
+  aprovadoPor: integer("aprovado_por").references(() => adminUsers.id),
+  aprovadoEm: timestamp("aprovado_em"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -40,6 +46,10 @@ export const investors = pgTable("investors", {
   estado: text("estado").notNull(),
   limiteInvestimento: text("limite_investimento"),
   status: text("status").notNull().default("pendente"), // pendente, ativo, inativo
+  // Campos de aprovação granular
+  cadastroAprovado: boolean("cadastro_aprovado").default(false),
+  emailConfirmado: boolean("email_confirmado").default(false),
+  documentosVerificados: boolean("documentos_verificados").default(false),
   aprovadoPor: integer("aprovado_por").references(() => adminUsers.id),
   aprovadoEm: timestamp("aprovado_em"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

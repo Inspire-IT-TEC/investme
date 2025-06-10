@@ -46,12 +46,14 @@ export interface IStorage {
   getEntrepreneurByEmail(email: string): Promise<Entrepreneur | undefined>;
   getEntrepreneurByCpf(cpf: string): Promise<Entrepreneur | undefined>;
   createEntrepreneur(entrepreneur: InsertEntrepreneur): Promise<Entrepreneur>;
+  updateEntrepreneurApproval(id: number, field: 'cadastroAprovado' | 'emailConfirmado' | 'documentosVerificados', approved: boolean, adminId: number): Promise<Entrepreneur | undefined>;
 
   // Investor methods
   getInvestor(id: number): Promise<Investor | undefined>;
   getInvestorByEmail(email: string): Promise<Investor | undefined>;
   getInvestorByCpf(cpf: string): Promise<Investor | undefined>;
   createInvestor(investor: InsertInvestor): Promise<Investor>;
+  updateInvestorApproval(id: number, field: 'cadastroAprovado' | 'emailConfirmado' | 'documentosVerificados', approved: boolean, adminId: number): Promise<Investor | undefined>;
 
   // Admin user methods
   getAdminUser(id: number): Promise<AdminUser | undefined>;
@@ -203,6 +205,26 @@ export class DatabaseStorage implements IStorage {
   async createInvestor(insertInvestor: InsertInvestor): Promise<Investor> {
     const [investor] = await db.insert(investors).values(insertInvestor).returning();
     return investor;
+  }
+
+  async updateInvestorApproval(id: number, field: 'cadastroAprovado' | 'emailConfirmado' | 'documentosVerificados', approved: boolean, adminId: number): Promise<Investor | undefined> {
+    const updateData: any = {
+      [field]: approved,
+      updatedAt: new Date()
+    };
+    
+    if (approved) {
+      updateData.aprovadoPor = adminId;
+      updateData.aprovadoEm = new Date();
+    }
+
+    const [investor] = await db
+      .update(investors)
+      .set(updateData)
+      .where(eq(investors.id, id))
+      .returning();
+    
+    return investor || undefined;
   }
 
   // Company methods
