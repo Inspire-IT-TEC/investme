@@ -37,13 +37,24 @@ const profileUpdateSchema = z.object({
   telefone: z.string().optional(),
 });
 
+const passwordChangeSchema = z.object({
+  senhaAtual: z.string().min(1, "Senha atual é obrigatória"),
+  novaSenha: z.string().min(6, "Nova senha deve ter pelo menos 6 caracteres"),
+  confirmarSenha: z.string().min(1, "Confirmação de senha é obrigatória"),
+}).refine((data) => data.novaSenha === data.confirmarSenha, {
+  message: "As senhas não coincidem",
+  path: ["confirmarSenha"],
+});
+
 type ProfileFormData = z.infer<typeof profileUpdateSchema>;
+type PasswordChangeData = z.infer<typeof passwordChangeSchema>;
 
 export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
 
   // Determine user type based on current path or stored data
   const getCurrentUserType = () => {

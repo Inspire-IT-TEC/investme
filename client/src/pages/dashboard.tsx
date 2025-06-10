@@ -178,7 +178,13 @@ export default function Dashboard() {
                               {getStatusBadge(company.status)}
                             </div>
                           </div>
-                          <div>
+                          <div className="flex gap-2">
+                            <Link href={`/company-edit/${company.id}`}>
+                              <Button size="sm" variant="outline" className="border-blue-300 text-blue-600 hover:bg-blue-50">
+                                <Edit className="w-4 h-4 mr-1" />
+                                Editar
+                              </Button>
+                            </Link>
                             {company.status === 'aprovada' && (
                               <Link href={`/credit-request/${company.id}`}>
                                 <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">

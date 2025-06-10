@@ -26,6 +26,7 @@ import BackofficeMessages from "@/pages/backoffice/messages";
 import BackofficeInvestors from "@/pages/backoffice/investors";
 import BackofficeNetwork from "@/pages/backoffice/network";
 import BackofficeApprovals from "@/pages/backoffice/approvals";
+import CompanyEdit from "@/pages/company-edit";
 
 function Router() {
   return (
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/investor-dashboard" component={InvestorDashboard} />
       <Route path="/investor/dashboard" component={InvestorDashboard} />
       <Route path="/company-registration" component={CompanyRegistration} />
+      <Route path="/company-edit/:id" component={CompanyEdit} />
       <Route path="/investor-company-registration" component={InvestorCompanyRegistration} />
       <Route path="/credit-request/:companyId" component={CreditRequest} />
       <Route path="/messages" component={Messages} />
