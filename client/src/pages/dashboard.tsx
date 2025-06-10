@@ -120,7 +120,12 @@ export default function Dashboard() {
                 <Link href="/company-registration">
                   <Button 
                     variant="outline" 
-                    className="w-full mt-6 border-dashed border-2 h-16 border-indigo-300 text-indigo-600 hover:text-indigo-700 hover:border-indigo-400 hover:bg-indigo-50"
+                    className="w-full mt-6 border-dashed border-2 h-16 hover:opacity-80"
+                    style={{ 
+                      borderColor: '#3c3494', 
+                      color: '#3c3494',
+                      backgroundColor: 'transparent'
+                    }}
                   >
                     <Plus className="w-6 h-6 mr-2" />
                     Cadastrar Nova Empresa
@@ -133,12 +138,12 @@ export default function Dashboard() {
           {/* Sidebar */}
           <div className="space-y-6">
             <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
+              <CardHeader className="text-white rounded-t-lg" style={{ background: 'linear-gradient(90deg, #3c3494 0%, #403494 100%)' }}>
                 <CardTitle>Ações Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 p-6">
                 <Link href="/company-registration">
-                  <Button variant="outline" className="w-full justify-start border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400">
+                  <Button variant="outline" className="w-full justify-start hover:opacity-80" style={{ borderColor: '#3c3494', color: '#3c3494' }}>
                     <Building2 className="w-4 h-4 mr-2" />
                     Nova Empresa
                   </Button>
@@ -147,7 +152,7 @@ export default function Dashboard() {
             </Card>
 
             <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
+              <CardHeader className="text-white rounded-t-lg" style={{ background: 'linear-gradient(90deg, #3c3494 0%, #403494 100%)' }}>
                 <CardTitle>Status do Perfil</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -178,7 +183,7 @@ export default function Dashboard() {
         {/* Recent Credit Requests */}
         {creditRequests && Array.isArray(creditRequests) && creditRequests.length > 0 && (
           <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
+            <CardHeader className="text-white rounded-t-lg" style={{ background: 'linear-gradient(90deg, #3c3494 0%, #403494 100%)' }}>
               <CardTitle>Solicitações de Crédito Recentes</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
