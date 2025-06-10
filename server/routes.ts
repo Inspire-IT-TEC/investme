@@ -1359,11 +1359,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Entrepreneur Routes for unified navbar
   app.get('/api/entrepreneur/profile', authenticateToken, async (req: any, res) => {
     try {
-      const entrepreneur = await storage.getEntrepreneur(req.user.id);
-      if (!entrepreneur) {
+      const user = await storage.getUser(req.user.id);
+      if (!user || user.tipo !== 'entrepreneur') {
         return res.status(404).json({ message: 'Empreendedor não encontrado' });
       }
-      res.json(entrepreneur);
+      res.json(user);
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao buscar perfil' });
     }
@@ -1371,8 +1371,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/entrepreneur/profile', authenticateToken, async (req: any, res) => {
     try {
-      const entrepreneur = await storage.getEntrepreneur(req.user.id);
-      if (!entrepreneur) {
+      const user = await storage.getUser(req.user.id);
+      if (!user || user.tipo !== 'entrepreneur') {
         return res.status(404).json({ message: 'Empreendedor não encontrado' });
       }
 

@@ -75,6 +75,11 @@ export const users = pgTable("users", {
   status: text("status").notNull().default("ativo"), // ativo, pendente, inativo
   telefone: text("telefone"),
   limiteInvestimento: text("limite_investimento"),
+  cadastroAprovado: boolean("cadastro_aprovado").default(false),
+  emailConfirmado: boolean("email_confirmado").default(false),
+  documentosVerificados: boolean("documentos_verificados").default(false),
+  aprovadoPor: integer("aprovado_por").references(() => adminUsers.id),
+  aprovadoEm: timestamp("aprovado_em"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
