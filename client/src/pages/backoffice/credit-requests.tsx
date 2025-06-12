@@ -12,12 +12,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 import { Search, Eye, Check, X, CreditCard, FileText } from "lucide-react";
 
 export default function BackofficeCreditRequests() {
   const { toast } = useToast();
   const { logout } = useAuth();
+  const isAuthorized = useRequireAdmin();
+
+  if (!isAuthorized) {
+    return null;
+  }
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedRequest, setSelectedRequest] = useState<any>(null);

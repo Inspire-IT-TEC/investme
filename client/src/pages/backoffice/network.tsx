@@ -10,10 +10,15 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { TrendingUp, Eye, Clock, CheckCircle, XCircle, AlertCircle, Users, DollarSign, Building2, MessageCircle } from "lucide-react";
 import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 
 export default function BackofficeNetwork() {
   const { logout } = useAuth();
+  const isAuthorized = useRequireAdmin();
+
+  if (!isAuthorized) {
+    return null;
+  }
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 

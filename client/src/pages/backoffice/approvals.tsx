@@ -14,12 +14,17 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatDate } from "@/lib/utils";
 import { CheckCircle, XCircle, Eye, UserCheck, Building, AlertCircle } from "lucide-react";
 import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 
 export default function BackofficeApprovals() {
   const { toast } = useToast();
   const { logout } = useAuth();
   const queryClient = useQueryClient();
+  const isAuthorized = useRequireAdmin();
+
+  if (!isAuthorized) {
+    return null;
+  }
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 

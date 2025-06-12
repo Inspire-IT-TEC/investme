@@ -3,10 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Building2, Clock, CheckCircle, DollarSign, Users } from "lucide-react";
 import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 
 export default function BackofficeDashboard() {
   const { logout } = useAuth();
+  const isAuthorized = useRequireAdmin();
+
+  if (!isAuthorized) {
+    return null; // Will redirect to login
+  }
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/admin/stats"],
   });

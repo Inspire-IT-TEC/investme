@@ -11,10 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import BackofficeNavbar from "@/components/layout/backoffice-navbar";
+import { useRequireAdmin } from "@/hooks/use-auth";
 import { MessageCircle, Send, Building2, Clock, CheckCircle2, User, Plus } from "lucide-react";
 
 export default function BackofficeMessages() {
   const { toast } = useToast();
+  const isAuthorized = useRequireAdmin();
+
+  if (!isAuthorized) {
+    return null;
+  }
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messageContent, setMessageContent] = useState("");
   const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
