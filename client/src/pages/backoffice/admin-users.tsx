@@ -10,10 +10,16 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import BackofficeNavbar from "@/components/layout/backoffice-navbar";
+import { useRequireAdmin } from "@/hooks/use-auth";
 import { Plus, Users, Shield, Eye, CheckCircle } from "lucide-react";
 
 export default function AdminUsers() {
   const { toast } = useToast();
+  const isAuthorized = useRequireAdmin();
+
+  if (!isAuthorized) {
+    return null;
+  }
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);

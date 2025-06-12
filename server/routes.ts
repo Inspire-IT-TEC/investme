@@ -737,7 +737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       res.json({ 
-        user: { ...adminUser, senha: undefined }, 
+        user: { ...adminUser, senha: undefined, role: 'admin' }, 
         token 
       });
     } catch (error: any) {

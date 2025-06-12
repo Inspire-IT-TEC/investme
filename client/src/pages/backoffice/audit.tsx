@@ -5,9 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import BackofficeNavbar from "@/components/layout/backoffice-navbar";
+import { useRequireAdmin } from "@/hooks/use-auth";
 import { FileSearch, Shield, Building2, CreditCard, Eye } from "lucide-react";
 
 export default function AuditPage() {
+  const isAuthorized = useRequireAdmin();
+
+  if (!isAuthorized) {
+    return null;
+  }
+  
   const [entidadeFilter, setEntidadeFilter] = useState("");
   const [acaoFilter, setAcaoFilter] = useState("");
 

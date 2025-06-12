@@ -15,12 +15,17 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Briefcase, Users, CheckCircle, XCircle, Eye, UserCheck, AlertCircle } from "lucide-react";
 import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 
 export default function BackofficeEntrepreneurs() {
   const { toast } = useToast();
   const { logout } = useAuth();
   const queryClient = useQueryClient();
+  const isAuthorized = useRequireAdmin();
+
+  if (!isAuthorized) {
+    return null;
+  }
   const [selectedEntrepreneur, setSelectedEntrepreneur] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [rejectionReason, setRejectionReason] = useState("");
