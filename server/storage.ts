@@ -116,6 +116,15 @@ export interface IStorage {
   // Admin network methods
   getNetworkRequests(status?: string): Promise<any[]>;
   getNetworkStats(): Promise<any>;
+
+  // Valuation methods
+  getValuation(id: number): Promise<Valuation | undefined>;
+  getCompanyValuations(companyId: number): Promise<Valuation[]>;
+  getLatestCompanyValuation(companyId: number): Promise<Valuation | undefined>;
+  createValuation(valuation: InsertValuation): Promise<Valuation>;
+  updateValuation(id: number, valuation: Partial<InsertValuation>): Promise<Valuation | undefined>;
+  deleteValuation(id: number): Promise<void>;
+  getUserValuations(userId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {

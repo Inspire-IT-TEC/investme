@@ -1,0 +1,49 @@
+4. Requisitos Funcionais
+4.1. Acesso ao Módulo de Valuation
+RF001: Para Empreendedores, um botão "Valuation" deve ser habilitado dentro da página de detalhes de cada empresa que ele possui cadastrada.
+RF002: Para Investidores, um botão "Valuation" deve ser habilitado dentro da página de detalhes de cada empresa que ele possui cadastrada.
+RF003: O acesso ao módulo de valuation via o botão deve direcionar o usuário para uma interface dedicada ao cálculo, pré-carregando os dados da empresa selecionada.
+4.2. Inserção e Gerenciamento de Dados para Valuation
+RF004: Ao clicar no botão "Valuation", o sistema deve apresentar uma interface clara para a inserção de dados específicos de valuation que não estão presentes no cadastro atual da empresa. Exemplos de dados necessários:
+Para DCF (Fluxo de Caixa Descontado):
+Projeções Financeiras: Receita, Custos, Despesas Operacionais (para 5 a 10 anos futuros).
+Projeção de Investimentos: Capex, Variação de Capital de Giro.
+Dados de Custo de Capital: Custo de Capital Próprio (Ke), Custo de Dívida (Kd), Alíquota de Imposto de Renda.
+Estrutura de Capital: % Dívida / % Patrimônio Líquido.
+Taxa de Crescimento na Perpetuidade (g).
+Para Múltiplos de Mercado:
+Múltiplos de Comparáveis: P/L (Preço/Lucro), EV/EBITDA (Valor da Firma/EBITDA), P/VP (Preço/Valor Patrimonial) - com campos para inserção dos múltiplos e suas fontes.
+Fatores de Ajuste: Descontos por iliquidez, prêmios por controle (com valores percentuais configuráveis).
+RF005: Os campos de entrada de dados devem ter validações para garantir a integridade e o formato correto (ex: valores numéricos, porcentagens, datas).
+RF006: O sistema deve permitir que o usuário salve os dados inseridos como "rascunho" antes de finalizar o cálculo, para que possa retornar e continuar depois.
+RF007: O sistema deve permitir que o usuário edite os dados inseridos a qualquer momento para refazer o cálculo, mesmo após um valuation ter sido salvo.
+4.3. Seleção e Aplicação de Métodos de Valuation
+RF008: O sistema deve permitir que o usuário selecione o método de valuation desejado (DCF ou Múltiplos).
+RF009: Para o método DCF, o sistema deve:
+RF009.1: Calcular o Fluxo de Caixa Livre da Empresa (FCFF) ou Fluxo de Caixa Livre do Acionista (FCFE) para os anos projetados, com base nos dados fornecidos.
+RF009.2: Calcular o WACC (Custo Médio Ponderado de Capital) com base nos dados de custo de capital e estrutura de capital fornecidos.
+RF009.3: Calcular o Valor Presente dos Fluxos de Caixa projetados.
+RF009.4: Calcular o Valor Residual (Terminal Value) utilizando a fórmula da perpetuidade.
+RF009.5: Apresentar o Valor da Empresa (Enterprise Value) e o Valor do Capital Próprio (Equity Value).
+RF010: Para o método de Múltiplos de Mercado, o sistema deve:
+RF010.1: Aplicar os múltiplos inseridos aos dados financeiros da empresa-alvo (ex: EBITDA, Lucro Líquido, Vendas) para derivar o valor da empresa.
+RF010.2: Permitir a aplicação de fatores de ajuste (ex: prêmio/desconto por tamanho, liquidez) para refinar o valuation.
+4.4. Apresentação de Resultados e Relatórios
+RF011: O sistema deve exibir os resultados do valuation de forma clara e organizada, incluindo o valor da empresa, valor do equity, premissas utilizadas e detalhamento dos cálculos (tabelas de fluxo de caixa, WACC, etc.).
+RF012: O sistema deve gerar relatórios de valuation exportáveis em formatos comuns (ex: PDF, Excel) contendo:
+Resumo do Valuation
+Premissas Utilizadas
+Detalhamento dos Fluxos de Caixa (para DCF)
+Análise de Sensibilidade (RF013)
+Dados de Entrada
+RF013: O sistema deve permitir a realização de análises de sensibilidade, permitindo que o usuário varie algumas premissas-chave (ex: taxa de crescimento na perpetuidade, WACC) para ver o impacto no valuation.
+4.5. Histórico e Gerenciamento de Valuations
+RF014: O sistema deve armazenar cada valuation realizado para uma empresa, com registro da data, usuário que o realizou e as premissas utilizadas.
+RF015: O usuário (Empreendedor ou Investidor para suas próprias empresas) deve poder visualizar o histórico de valuations de uma empresa e comparar diferentes valuations.
+RF016: O sistema deve permitir que o usuário que criou o valuation (Empreendedor para suas empresas, Investidor para as empresas que ele cadastrou) possa remover (excluir) um valuation existente.
+RF017: Ao remover um valuation, o sistema deve solicitar uma confirmação para evitar exclusões acidentais.
+RF018: Se um valuation for removido, a empresa volta ao estado de "sem valuation", permitindo que um novo seja calculado.
+4.6. Visualização do Valuation na "Rede" (Módulo Investidor)
+RF019: Uma vez que um valuation seja calculado e salvo para uma empresa (seja por um Empreendedor ou um Investidor que a cadastrou), seu resultado principal (ex: Valor do Equity ou Valor da Empresa) deve ser exibido de forma destacada no perfil da empresa dentro da área "Rede" do módulo Investidor.
+RF020: Ao clicar no valor do valuation na "Rede", o Investidor deve ser direcionado para uma visualização detalhada do valuation, sem, no entanto, ter permissão para editar as premissas, a menos que ele seja o investidor que cadastrou e realizou o valuation daquela empresa específica.
+RF021: A visualização na "Rede" deve indicar quem realizou o valuation (ex: "Valuation realizado pelo Empreendedor X" ou "Valuation realizado pelo Investidor Y").

@@ -204,6 +204,36 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Valuations table
+export const valuations = pgTable("valuations", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id").notNull().references(() => companies.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  userType: text("user_type").notNull(), // 'entrepreneur' or 'investor'
+  method: text("method").notNull(), // 'dcf' or 'multiples'
+  status: text("status").notNull().default("draft"), // 'draft' or 'completed'
+  
+  // Common valuation results
+  enterpriseValue: decimal("enterprise_value", { precision: 15, scale: 2 }),
+  equityValue: decimal("equity_value", { precision: 15, scale: 2 }),
+  
+  // DCF specific data
+  dcfData: jsonb("dcf_data"), // Stores DCF calculations and projections
+  
+  // Multiples specific data
+  multiplesData: jsonb("multiples_data"), // Stores multiples and comparable data
+  
+  // Sensitivity analysis data
+  sensitivityData: jsonb("sensitivity_data"),
+  
+  // Metadata
+  assumptions: text("assumptions"),
+  notes: text("notes"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const entrepreneursRelations = relations(entrepreneurs, ({ many }) => ({
   companies: many(companies),
@@ -229,6 +259,18 @@ export const companiesRelations = relations(companies, ({ one, many }) => ({
   shareholders: many(companyShareholders),
   guarantees: many(companyGuarantees),
   creditRequests: many(creditRequests),
+  valuations: many(valuations),
+}));
+
+export const valuationsRelations = relations(valuations, ({ one }) => ({
+  company: one(companies, {
+    fields: [valuations.companyId],
+    references: [companies.id],
+  }),
+  user: one(users, {
+    fields: [valuations.userId],
+    references: [users.id],
+  }),
 }));
 
 export const companyShareholdersRelations = relations(companyShareholders, ({ one }) => ({
@@ -378,6 +420,54 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   lida: true,
 });
 
+export const insertValuationSchema = createInsertSchema(valuations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// DCF Schema for validation
+export const dcfDataSchema = z.object({
+  projectionYears: z.number().min(3).max(15).default(5),
+  // Financial Projections
+  revenues: z.array(z.number()),
+  costs: z.array(z.number()),
+  operatingExpenses: z.array(z.number()),
+  capex: z.array(z.number()),
+  workingCapitalChange: z.array(z.number()),
+  // Cost of Capital
+  costOfEquity: z.number().min(0).max(1),
+  costOfDebt: z.number().min(0).max(1),
+  taxRate: z.number().min(0).max(1),
+  debtWeight: z.number().min(0).max(1),
+  equityWeight: z.number().min(0).max(1),
+  // Terminal Value
+  terminalGrowthRate: z.number().min(0).max(0.1),
+  // Company specific
+  netDebt: z.number().optional(),
+  sharesOutstanding: z.number().optional(),
+});
+
+// Multiples Schema for validation
+export const multiplesDataSchema = z.object({
+  // Comparable multiples
+  peLuMultiple: z.number().optional(),
+  evEbitdaMultiple: z.number().optional(),
+  pvVpMultiple: z.number().optional(),
+  evRevenueMultiple: z.number().optional(),
+  // Current financials for application
+  netIncome: z.number().optional(),
+  ebitda: z.number().optional(),
+  bookValue: z.number().optional(),
+  revenue: z.number().optional(),
+  enterpriseValue: z.number().optional(),
+  // Adjustments
+  liquidityDiscount: z.number().min(0).max(1).default(0),
+  controlPremium: z.number().min(0).max(1).default(0),
+  // Sources and notes
+  comparablesSources: z.string().optional(),
+});
+
 // Types
 export type InsertEntrepreneur = z.infer<typeof insertEntrepreneurSchema>;
 export type Entrepreneur = typeof entrepreneurs.$inferSelect;
@@ -408,3 +498,9 @@ export type AuditLog = typeof auditLog.$inferSelect;
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
+export type InsertValuation = z.infer<typeof insertValuationSchema>;
+export type Valuation = typeof valuations.$inferSelect;
+
+export type DCFData = z.infer<typeof dcfDataSchema>;
+export type MultiplesData = z.infer<typeof multiplesDataSchema>;
