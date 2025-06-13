@@ -109,18 +109,13 @@ const ValuationPage = () => {
   const createValuationMutation = useMutation({
     mutationFn: async (data: any) => {
       if (valuationId) {
-        return apiRequest(`/api/valuations/${valuationId}`, {
-          method: "PUT",
-          body: data,
-        });
+        return apiRequest("PUT", `/api/valuations/${valuationId}`, data);
       } else {
-        return apiRequest(`/api/companies/${companyId}/valuations`, {
-          method: "POST",
-          body: data,
-        });
+        return apiRequest("POST", `/api/companies/${companyId}/valuations`, data);
       }
     },
-    onSuccess: (data) => {
+    onSuccess: async (response) => {
+      const data = await response.json();
       toast({ title: "Valuation salvo com sucesso" });
       if (!valuationId) {
         setLocation(`/companies/${companyId}/valuation/${data.id}`);
@@ -139,12 +134,10 @@ const ValuationPage = () => {
   // Calculate DCF Mutation
   const calculateDcfMutation = useMutation({
     mutationFn: async (dcfData: any) => {
-      return apiRequest(`/api/valuations/${valuationId}/calculate/dcf`, {
-        method: "POST",
-        body: { dcfData },
-      });
+      return apiRequest("POST", `/api/valuations/${valuationId}/calculate/dcf`, { dcfData });
     },
-    onSuccess: (data) => {
+    onSuccess: async (response) => {
+      const data = await response.json();
       setCalculationResults(data);
       toast({ title: "Cálculo DCF realizado com sucesso" });
     },
@@ -160,12 +153,10 @@ const ValuationPage = () => {
   // Calculate Multiples Mutation
   const calculateMultiplesMutation = useMutation({
     mutationFn: async (multiplesData: any) => {
-      return apiRequest(`/api/valuations/${valuationId}/calculate/multiples`, {
-        method: "POST",
-        body: { multiplesData },
-      });
+      return apiRequest("POST", `/api/valuations/${valuationId}/calculate/multiples`, { multiplesData });
     },
-    onSuccess: (data) => {
+    onSuccess: async (response) => {
+      const data = await response.json();
       setCalculationResults(data);
       toast({ title: "Cálculo por múltiplos realizado com sucesso" });
     },
@@ -181,9 +172,7 @@ const ValuationPage = () => {
   // Delete Valuation Mutation
   const deleteValuationMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/valuations/${valuationId}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/valuations/${valuationId}`);
     },
     onSuccess: () => {
       toast({ title: "Valuation excluído com sucesso" });
