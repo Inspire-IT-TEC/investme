@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -274,7 +275,7 @@ const ValuationPage = () => {
         <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
-            onClick={() => setLocation(`/companies/${companyId}`)}
+            onClick={() => setLocation(`/empresa/${companyId}`)}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
@@ -654,11 +655,9 @@ const ValuationPage = () => {
                               <FormItem>
                                 <FormLabel>Lucro Líquido</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
+                                  <CurrencyInput
                                     {...field}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                    onChange={(value) => field.onChange(parseFloat(value) || undefined)}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -672,11 +671,9 @@ const ValuationPage = () => {
                               <FormItem>
                                 <FormLabel>EBITDA</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
+                                  <CurrencyInput
                                     {...field}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                    onChange={(value) => field.onChange(parseFloat(value) || undefined)}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -690,11 +687,9 @@ const ValuationPage = () => {
                               <FormItem>
                                 <FormLabel>Valor Patrimonial</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
+                                  <CurrencyInput
                                     {...field}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                    onChange={(value) => field.onChange(parseFloat(value) || undefined)}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -708,11 +703,9 @@ const ValuationPage = () => {
                               <FormItem>
                                 <FormLabel>Receita</FormLabel>
                                 <FormControl>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
+                                  <CurrencyInput
                                     {...field}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                    onChange={(value) => field.onChange(parseFloat(value) || undefined)}
                                   />
                                 </FormControl>
                                 <FormMessage />
