@@ -32,7 +32,7 @@ import CompanyEdit from "@/pages/company-edit";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Login} />
+      <Route path="/" component={UserTypeSelection} />
       <Route path="/user-type-selection" component={UserTypeSelection} />
       <Route path="/register/entrepreneur" component={RegisterEntrepreneur} />
       <Route path="/register/investor" component={RegisterInvestor} />
