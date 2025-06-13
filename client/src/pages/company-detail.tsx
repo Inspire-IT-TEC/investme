@@ -62,9 +62,7 @@ const CompanyDetailPage = () => {
   // Delete valuation mutation
   const deleteValuationMutation = useMutation({
     mutationFn: async (valuationId: number) => {
-      return apiRequest(`/api/valuations/${valuationId}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/valuations/${valuationId}`);
     },
     onSuccess: () => {
       toast({ title: "Valuation excluído com sucesso" });
