@@ -1460,6 +1460,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get available credit requests for investor network
+  app.get('/api/investor/credit-requests', authenticateToken, async (req: any, res) => {
+    try {
+      // Get credit requests that are available in the network (status: na_rede)
+      const availableRequests = await storage.getCreditRequests('na_rede');
+      
+      // Return requests with company information for display
+      res.json(availableRequests);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar solicitações disponíveis' });
+    }
+  });
+
   // Entrepreneur Routes for unified navbar
   app.get('/api/entrepreneur/profile', authenticateToken, async (req: any, res) => {
     try {
