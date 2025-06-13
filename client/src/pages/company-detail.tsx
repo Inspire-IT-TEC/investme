@@ -43,13 +43,13 @@ const CompanyDetailPage = () => {
 
   // Fetch company valuations
   const { data: valuations } = useQuery({
-    queryKey: ["/api/companies", companyId, "valuations"],
+    queryKey: [`/api/companies/${companyId}/valuations`],
     enabled: !!companyId,
   });
 
   // Fetch latest valuation
   const { data: latestValuation } = useQuery({
-    queryKey: ["/api/companies", companyId, "valuations", "latest"],
+    queryKey: [`/api/companies/${companyId}/valuations/latest`],
     enabled: !!companyId,
   });
 
@@ -106,8 +106,17 @@ const CompanyDetailPage = () => {
     }).format(numValue);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+  const formatDate = (dateString: string | Date | null | undefined) => {
+    if (!dateString) return 'Data não informada';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Data inválida';
+      
+      return date.toLocaleDateString('pt-BR');
+    } catch {
+      return 'Data inválida';
+    }
   };
 
   if (isLoading) {
@@ -496,7 +505,7 @@ const CompanyDetailPage = () => {
                 
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Realizado em {formatDate(latestValuation.createdAt)}
+                    Realizado em {formatDate(latestValuation?.createdAt)}
                   </p>
                 </div>
                 

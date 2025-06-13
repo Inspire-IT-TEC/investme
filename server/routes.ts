@@ -848,6 +848,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get company valuations
+  app.get('/api/companies/:id/valuations', authenticateToken, async (req: any, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const company = await storage.getCompany(companyId);
+      
+      if (!company) {
+        return res.status(404).json({ message: 'Empresa não encontrada' });
+      }
+
+      // Verify ownership
+      if (company.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const valuations = await storage.getCompanyValuations(companyId);
+      res.json(valuations);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar valuations' });
+    }
+  });
+
+  // Get latest company valuation
+  app.get('/api/companies/:id/valuations/latest', authenticateToken, async (req: any, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const company = await storage.getCompany(companyId);
+      
+      if (!company) {
+        return res.status(404).json({ message: 'Empresa não encontrada' });
+      }
+
+      // Verify ownership
+      if (company.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const latestValuation = await storage.getLatestCompanyValuation(companyId);
+      res.json(latestValuation || null);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar último valuation' });
+    }
+  });
+
   // Company edit route
   app.put('/api/companies/:id', authenticateToken, async (req: any, res) => {
     try {
