@@ -38,7 +38,7 @@ export default function AdminUsers() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/admin-users"] });
       setIsCreateDialogOpen(false);
       toast({
         title: "Usuário criado com sucesso!",
@@ -60,7 +60,7 @@ export default function AdminUsers() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/admin-users"] });
       setIsEditDialogOpen(false);
       setSelectedUser(null);
       toast({

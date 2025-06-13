@@ -1061,6 +1061,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin user management routes (dedicated endpoint)
+  app.get('/api/admin/admin-users', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const adminUsers = await storage.getAdminUsers();
+      res.json(adminUsers);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar usuários administrativos' });
+    }
+  });
+
   // Audit logs
   app.get('/api/admin/audit', authenticateAdminToken, async (req: any, res) => {
     try {
