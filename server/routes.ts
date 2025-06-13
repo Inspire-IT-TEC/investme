@@ -15,7 +15,10 @@ import {
   insertCompanySchema,
   insertCompanyShareholderSchema,
   insertCompanyGuaranteeSchema,
-  insertCreditRequestSchema
+  insertCreditRequestSchema,
+  insertValuationSchema,
+  dcfDataSchema,
+  multiplesDataSchema
 } from "@shared/schema";
 
 const JWT_SECRET = process.env.JWT_SECRET || "investme-secret-key";
@@ -1503,6 +1506,327 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
     }
   });
+
+  // =============================================================================
+  // VALUATION ROUTES
+  // =============================================================================
+
+  // Get company valuations
+  app.get('/api/companies/:companyId/valuations', authenticateToken, async (req: any, res) => {
+    try {
+      const { companyId } = req.params;
+      const valuations = await storage.getCompanyValuations(parseInt(companyId));
+      res.json(valuations);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar valuations' });
+    }
+  });
+
+  // Get latest company valuation
+  app.get('/api/companies/:companyId/valuations/latest', authenticateToken, async (req: any, res) => {
+    try {
+      const { companyId } = req.params;
+      const valuation = await storage.getLatestCompanyValuation(parseInt(companyId));
+      res.json(valuation || null);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar valuation' });
+    }
+  });
+
+  // Get specific valuation
+  app.get('/api/valuations/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const valuation = await storage.getValuation(parseInt(id));
+      
+      if (!valuation) {
+        return res.status(404).json({ message: 'Valuation não encontrado' });
+      }
+
+      res.json(valuation);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar valuation' });
+    }
+  });
+
+  // Create new valuation
+  app.post('/api/companies/:companyId/valuations', authenticateToken, async (req: any, res) => {
+    try {
+      const { companyId } = req.params;
+      const { method, dcfData, multiplesData, assumptions, notes } = req.body;
+
+      // Validate input data based on method
+      let validatedData: any = {};
+      if (method === 'dcf' && dcfData) {
+        validatedData.dcfData = dcfDataSchema.parse(dcfData);
+      } else if (method === 'multiples' && multiplesData) {
+        validatedData.multiplesData = multiplesDataSchema.parse(multiplesData);
+      }
+
+      const valuationData = insertValuationSchema.parse({
+        companyId: parseInt(companyId),
+        userId: req.user.id,
+        userType: req.user.type || 'entrepreneur',
+        method,
+        status: 'draft',
+        ...validatedData,
+        assumptions,
+        notes,
+      });
+
+      const valuation = await storage.createValuation(valuationData);
+      res.status(201).json(valuation);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao criar valuation' });
+    }
+  });
+
+  // Update valuation (for editing and completing calculations)
+  app.put('/api/valuations/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const existingValuation = await storage.getValuation(parseInt(id));
+
+      if (!existingValuation) {
+        return res.status(404).json({ message: 'Valuation não encontrado' });
+      }
+
+      // Check ownership
+      if (existingValuation.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Não autorizado a editar este valuation' });
+      }
+
+      const { method, dcfData, multiplesData, assumptions, notes, status, enterpriseValue, equityValue, sensitivityData } = req.body;
+
+      let validatedData: any = {};
+      if (method === 'dcf' && dcfData) {
+        validatedData.dcfData = dcfDataSchema.parse(dcfData);
+      } else if (method === 'multiples' && multiplesData) {
+        validatedData.multiplesData = multiplesDataSchema.parse(multiplesData);
+      }
+
+      const updateData = {
+        ...validatedData,
+        assumptions,
+        notes,
+        status,
+        enterpriseValue,
+        equityValue,
+        sensitivityData,
+      };
+
+      const updatedValuation = await storage.updateValuation(parseInt(id), updateData);
+      res.json(updatedValuation);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao atualizar valuation' });
+    }
+  });
+
+  // Calculate DCF valuation
+  app.post('/api/valuations/:id/calculate/dcf', authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { dcfData } = req.body;
+
+      const existingValuation = await storage.getValuation(parseInt(id));
+      if (!existingValuation || existingValuation.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Não autorizado' });
+      }
+
+      const validatedDcfData = dcfDataSchema.parse(dcfData);
+
+      // Calculate WACC
+      const wacc = (validatedDcfData.costOfEquity * validatedDcfData.equityWeight) + 
+                  (validatedDcfData.costOfDebt * validatedDcfData.debtWeight * (1 - validatedDcfData.taxRate));
+
+      // Calculate Free Cash Flows
+      const freeCashFlows = [];
+      const presentValues = [];
+      
+      for (let i = 0; i < validatedDcfData.projectionYears; i++) {
+        const ebit = validatedDcfData.revenues[i] - validatedDcfData.costs[i] - validatedDcfData.operatingExpenses[i];
+        const ebitda = ebit; // Simplified - should add depreciation back
+        const taxes = ebit * validatedDcfData.taxRate;
+        const nopat = ebit - taxes;
+        
+        const fcf = nopat - validatedDcfData.capex[i] - validatedDcfData.workingCapitalChange[i];
+        freeCashFlows.push(fcf);
+        
+        const presentValue = fcf / Math.pow(1 + wacc, i + 1);
+        presentValues.push(presentValue);
+      }
+
+      // Calculate Terminal Value
+      const finalYearFcf = freeCashFlows[freeCashFlows.length - 1];
+      const terminalFcf = finalYearFcf * (1 + validatedDcfData.terminalGrowthRate);
+      const terminalValue = terminalFcf / (wacc - validatedDcfData.terminalGrowthRate);
+      const presentValueOfTerminalValue = terminalValue / Math.pow(1 + wacc, validatedDcfData.projectionYears);
+
+      // Calculate Enterprise Value
+      const sumOfPresentValues = presentValues.reduce((a, b) => a + b, 0);
+      const enterpriseValue = sumOfPresentValues + presentValueOfTerminalValue;
+
+      // Calculate Equity Value
+      const netDebt = validatedDcfData.netDebt || 0;
+      const equityValue = enterpriseValue - netDebt;
+
+      // Sensitivity Analysis
+      const sensitivityRanges = {
+        wacc: [-0.01, -0.005, 0, 0.005, 0.01],
+        terminalGrowth: [-0.01, -0.005, 0, 0.005, 0.01]
+      };
+
+      const sensitivityMatrix = [];
+      for (const waccAdj of sensitivityRanges.wacc) {
+        const row = [];
+        for (const terminalAdj of sensitivityRanges.terminalGrowth) {
+          const adjWacc = wacc + waccAdj;
+          const adjTerminalGrowth = validatedDcfData.terminalGrowthRate + terminalAdj;
+          
+          const adjPresentValues = freeCashFlows.map((fcf, i) => fcf / Math.pow(1 + adjWacc, i + 1));
+          const adjTerminalValue = (finalYearFcf * (1 + adjTerminalGrowth)) / (adjWacc - adjTerminalGrowth);
+          const adjPvTerminal = adjTerminalValue / Math.pow(1 + adjWacc, validatedDcfData.projectionYears);
+          const adjEnterpriseValue = adjPresentValues.reduce((a, b) => a + b, 0) + adjPvTerminal;
+          const adjEquityValue = adjEnterpriseValue - netDebt;
+          
+          row.push(adjEquityValue);
+        }
+        sensitivityMatrix.push(row);
+      }
+
+      const calculationResults = {
+        wacc,
+        freeCashFlows,
+        presentValues,
+        terminalValue,
+        presentValueOfTerminalValue,
+        enterpriseValue,
+        equityValue,
+        sensitivityMatrix,
+        assumptions: {
+          projectionYears: validatedDcfData.projectionYears,
+          costOfEquity: validatedDcfData.costOfEquity,
+          costOfDebt: validatedDcfData.costOfDebt,
+          taxRate: validatedDcfData.taxRate,
+          terminalGrowthRate: validatedDcfData.terminalGrowthRate,
+        }
+      };
+
+      // Update valuation with results
+      await storage.updateValuation(parseInt(id), {
+        dcfData: validatedDcfData,
+        enterpriseValue: enterpriseValue.toString(),
+        equityValue: equityValue.toString(),
+        sensitivityData: { dcf: sensitivityMatrix },
+        status: 'completed'
+      });
+
+      res.json(calculationResults);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro no cálculo DCF' });
+    }
+  });
+
+  // Calculate Multiples valuation
+  app.post('/api/valuations/:id/calculate/multiples', authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { multiplesData } = req.body;
+
+      const existingValuation = await storage.getValuation(parseInt(id));
+      if (!existingValuation || existingValuation.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Não autorizado' });
+      }
+
+      const validatedMultiplesData = multiplesDataSchema.parse(multiplesData);
+
+      const results: any = {};
+
+      // P/E Multiple Valuation
+      if (validatedMultiplesData.peLuMultiple && validatedMultiplesData.netIncome) {
+        results.peValuation = validatedMultiplesData.peLuMultiple * validatedMultiplesData.netIncome;
+      }
+
+      // EV/EBITDA Multiple Valuation
+      if (validatedMultiplesData.evEbitdaMultiple && validatedMultiplesData.ebitda) {
+        results.evEbitdaValuation = validatedMultiplesData.evEbitdaMultiple * validatedMultiplesData.ebitda;
+      }
+
+      // P/BV Multiple Valuation
+      if (validatedMultiplesData.pvVpMultiple && validatedMultiplesData.bookValue) {
+        results.pvVpValuation = validatedMultiplesData.pvVpMultiple * validatedMultiplesData.bookValue;
+      }
+
+      // EV/Revenue Multiple Valuation
+      if (validatedMultiplesData.evRevenueMultiple && validatedMultiplesData.revenue) {
+        results.evRevenueValuation = validatedMultiplesData.evRevenueMultiple * validatedMultiplesData.revenue;
+      }
+
+      // Calculate average valuation
+      const valuations = Object.values(results).filter(v => v !== undefined) as number[];
+      const averageValuation = valuations.length > 0 ? valuations.reduce((a, b) => a + b, 0) / valuations.length : 0;
+
+      // Apply adjustments
+      const liquidityAdjustment = 1 - validatedMultiplesData.liquidityDiscount;
+      const controlAdjustment = 1 + validatedMultiplesData.controlPremium;
+      const adjustedValuation = averageValuation * liquidityAdjustment * controlAdjustment;
+
+      results.averageValuation = averageValuation;
+      results.adjustedValuation = adjustedValuation;
+      results.adjustments = {
+        liquidityDiscount: validatedMultiplesData.liquidityDiscount,
+        controlPremium: validatedMultiplesData.controlPremium,
+      };
+
+      // Update valuation with results
+      await storage.updateValuation(parseInt(id), {
+        multiplesData: validatedMultiplesData,
+        enterpriseValue: adjustedValuation.toString(),
+        equityValue: adjustedValuation.toString(), // For multiples, assuming enterprise = equity
+        status: 'completed'
+      });
+
+      res.json(results);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro no cálculo por múltiplos' });
+    }
+  });
+
+  // Delete valuation
+  app.delete('/api/valuations/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const existingValuation = await storage.getValuation(parseInt(id));
+
+      if (!existingValuation) {
+        return res.status(404).json({ message: 'Valuation não encontrado' });
+      }
+
+      // Check ownership
+      if (existingValuation.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Não autorizado a excluir este valuation' });
+      }
+
+      await storage.deleteValuation(parseInt(id));
+      res.json({ message: 'Valuation excluído com sucesso' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao excluir valuation' });
+    }
+  });
+
+  // Get user's valuations
+  app.get('/api/users/me/valuations', authenticateToken, async (req: any, res) => {
+    try {
+      const valuations = await storage.getUserValuations(req.user.id);
+      res.json(valuations);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar valuations do usuário' });
+    }
+  });
+
+  // =============================================================================
+  // END VALUATION ROUTES
+  // =============================================================================
 
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

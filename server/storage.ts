@@ -28,7 +28,10 @@ import {
   type AuditLog,
   type InsertAuditLog,
   type Message,
-  type InsertMessage
+  type InsertMessage,
+  valuations,
+  type Valuation,
+  type InsertValuation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, like, ilike, sql, or, lt, ne } from "drizzle-orm";
@@ -1039,6 +1042,85 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return updatedUser;
+  }
+
+  // Valuation methods
+  async getValuation(id: number): Promise<Valuation | undefined> {
+    const valuation = await db
+      .select()
+      .from(valuations)
+      .where(eq(valuations.id, id))
+      .limit(1);
+
+    return valuation[0];
+  }
+
+  async getCompanyValuations(companyId: number): Promise<Valuation[]> {
+    return await db
+      .select()
+      .from(valuations)
+      .where(eq(valuations.companyId, companyId))
+      .orderBy(desc(valuations.createdAt));
+  }
+
+  async getLatestCompanyValuation(companyId: number): Promise<Valuation | undefined> {
+    const valuation = await db
+      .select()
+      .from(valuations)
+      .where(and(
+        eq(valuations.companyId, companyId),
+        eq(valuations.status, 'completed')
+      ))
+      .orderBy(desc(valuations.createdAt))
+      .limit(1);
+
+    return valuation[0];
+  }
+
+  async createValuation(insertValuation: InsertValuation): Promise<Valuation> {
+    const [valuation] = await db
+      .insert(valuations)
+      .values(insertValuation)
+      .returning();
+
+    return valuation;
+  }
+
+  async updateValuation(id: number, updateData: Partial<InsertValuation>): Promise<Valuation | undefined> {
+    const [updatedValuation] = await db
+      .update(valuations)
+      .set({
+        ...updateData,
+        updatedAt: new Date(),
+      })
+      .where(eq(valuations.id, id))
+      .returning();
+
+    return updatedValuation;
+  }
+
+  async deleteValuation(id: number): Promise<void> {
+    await db.delete(valuations).where(eq(valuations.id, id));
+  }
+
+  async getUserValuations(userId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: valuations.id,
+        companyId: valuations.companyId,
+        method: valuations.method,
+        status: valuations.status,
+        enterpriseValue: valuations.enterpriseValue,
+        equityValue: valuations.equityValue,
+        createdAt: valuations.createdAt,
+        updatedAt: valuations.updatedAt,
+        companyName: companies.razaoSocial,
+        companyFantasyName: companies.nomeFantasia,
+      })
+      .from(valuations)
+      .leftJoin(companies, eq(valuations.companyId, companies.id))
+      .where(eq(valuations.userId, userId))
+      .orderBy(desc(valuations.createdAt));
   }
 }
 
