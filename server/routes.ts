@@ -1473,6 +1473,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get company valuation for credit request analysis (investor access)
+  app.get('/api/investor/credit-requests/:requestId/valuation', authenticateToken, async (req: any, res) => {
+    try {
+      const requestId = parseInt(req.params.requestId);
+      
+      // Get the credit request to find the company
+      const creditRequest = await storage.getCreditRequest(requestId);
+      if (!creditRequest) {
+        return res.status(404).json({ message: 'Solicitação não encontrada' });
+      }
+      
+      // Check if request is available in network (na_rede) for analysis
+      if (creditRequest.status !== 'na_rede') {
+        return res.status(403).json({ message: 'Solicitação não disponível para análise' });
+      }
+      
+      // Get the latest valuation for this company
+      const latestValuation = await storage.getLatestCompanyValuation(creditRequest.companyId);
+      res.json(latestValuation || null);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar valuation da empresa' });
+    }
+  });
+
   // Entrepreneur Routes for unified navbar
   app.get('/api/entrepreneur/profile', authenticateToken, async (req: any, res) => {
     try {
