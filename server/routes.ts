@@ -1824,6 +1824,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Network API for investors to view companies with valuations
+  app.get('/api/network/companies', authenticateToken, async (req: any, res) => {
+    try {
+      const { search, sector, status } = req.query;
+      
+      // Get companies with their latest valuations for the network view
+      const companiesList = await storage.getCompanies(undefined, 'aprovada', search);
+      
+      // Get latest valuations for each company
+      const companiesWithValuations = await Promise.all(
+        companiesList.map(async (company: any) => {
+          const latestValuation = await storage.getLatestCompanyValuation(company.id);
+          return {
+            ...company,
+            latestValuation
+          };
+        })
+      );
+
+      res.json(companiesWithValuations);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar empresas da rede' });
+    }
+  });
+
   // =============================================================================
   // END VALUATION ROUTES
   // =============================================================================
