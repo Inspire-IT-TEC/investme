@@ -25,20 +25,16 @@ export default function AdminUsers() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const { data: adminUsers, isLoading } = useQuery({
-    queryKey: ["/api/admin/users"],
+    queryKey: ["/api/admin/admin-users"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/admin-users");
+      return response.json();
+    },
   });
 
   const createUserMutation = useMutation({
     mutationFn: async (userData: any) => {
-      const response = await fetch("/api/admin/users", {
-        method: "POST",
-        body: JSON.stringify(userData),
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
-      });
-      if (!response.ok) throw new Error(await response.text());
+      const response = await apiRequest("POST", "/api/admin/users", userData);
       return response.json();
     },
     onSuccess: () => {
@@ -60,15 +56,7 @@ export default function AdminUsers() {
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, userData }: { id: number; userData: any }) => {
-      const response = await fetch(`/api/admin/users/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(userData),
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
-      });
-      if (!response.ok) throw new Error(await response.text());
+      const response = await apiRequest("PATCH", `/api/admin/users/${id}`, userData);
       return response.json();
     },
     onSuccess: () => {
