@@ -27,7 +27,8 @@ import {
   AlertCircle,
   Plus,
   Edit,
-  CreditCard
+  CreditCard,
+  Calculator
 } from "lucide-react";
 import UnifiedNavbar from "@/components/layout/unified-navbar";
 import { useLocation, Link } from "wouter";
@@ -346,12 +347,20 @@ export default function Dashboard() {
                             <p><span className="font-medium">Setor:</span> {company.setor}</p>
                             <div className="flex items-center justify-between mt-3">
                               {getStatusBadge(company.status)}
-                              <Link href={`/empresa/${company.id}`}>
-                                <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  Ver
-                                </Button>
-                              </Link>
+                              <div className="flex space-x-2">
+                                <Link href={`/companies/${company.id}/valuation`}>
+                                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+                                    <Calculator className="w-3 h-3 mr-1" />
+                                    Valuation
+                                  </Button>
+                                </Link>
+                                <Link href={`/empresa/${company.id}`}>
+                                  <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                                    <Eye className="w-3 h-3 mr-1" />
+                                    Ver
+                                  </Button>
+                                </Link>
+                              </div>
                             </div>
                           </div>
                         </CardContent>

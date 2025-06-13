@@ -28,6 +28,8 @@ import BackofficeEntrepreneurs from "@/pages/backoffice/entrepreneurs";
 import BackofficeNetwork from "@/pages/backoffice/network";
 import BackofficeApprovals from "@/pages/backoffice/approvals";
 import CompanyEdit from "@/pages/company-edit";
+import CompanyDetail from "@/pages/company-detail";
+import ValuationPage from "@/pages/valuation";
 
 function Router() {
   return (
@@ -46,6 +48,9 @@ function Router() {
       <Route path="/company-registration" component={CompanyRegistration} />
       <Route path="/nova-empresa" component={CompanyRegistration} />
       <Route path="/company-edit/:id" component={CompanyEdit} />
+      <Route path="/empresa/:id" component={CompanyDetail} />
+      <Route path="/empresa/:id/editar" component={CompanyEdit} />
+      <Route path="/companies/:companyId/valuation/:valuationId?" component={ValuationPage} />
       <Route path="/investor-company-registration" component={InvestorCompanyRegistration} />
       <Route path="/credit-request/:companyId" component={CreditRequest} />
       <Route path="/nova-solicitacao" component={CreditRequest} />
