@@ -131,8 +131,8 @@ const CompanyDetailPage = () => {
             Voltar
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{company.razaoSocial}</h1>
-            {company.nomeFantasia && (
+            <h1 className="text-2xl font-bold">{company?.razaoSocial || 'Empresa'}</h1>
+            {company?.nomeFantasia && (
               <p className="text-muted-foreground">{company.nomeFantasia}</p>
             )}
           </div>
@@ -182,19 +182,19 @@ const CompanyDetailPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">CNPJ</p>
-                      <p>{company.cnpj}</p>
+                      <p>{company?.cnpj || 'Não informado'}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Status</p>
-                      {getStatusBadge(company.status)}
+                      {getStatusBadge(company?.status || 'pendente')}
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Data de Fundação</p>
-                      <p>{formatDate(company.dataFundacao)}</p>
+                      <p>{company?.dataFundacao ? formatDate(company.dataFundacao) : 'Não informado'}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Funcionários</p>
-                      <p>{company.numeroFuncionarios}</p>
+                      <p>{company?.numeroFuncionarios || 'Não informado'}</p>
                     </div>
                   </div>
                   
@@ -202,7 +202,7 @@ const CompanyDetailPage = () => {
                   
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-2">Descrição do Negócio</p>
-                    <p className="text-sm">{company.descricaoNegocio}</p>
+                    <p className="text-sm">{company?.descricaoNegocio || 'Descrição não disponível'}</p>
                   </div>
                   
                   <Separator />
@@ -212,28 +212,28 @@ const CompanyDetailPage = () => {
                     <div className="flex items-center space-x-2 text-sm">
                       <MapPin className="w-4 h-4 text-muted-foreground" />
                       <span>
-                        {company.rua}, {company.numero}
-                        {company.complemento && `, ${company.complemento}`}
+                        {company?.rua || 'Não informado'}, {company?.numero || 'S/N'}
+                        {company?.complemento && `, ${company.complemento}`}
                       </span>
                     </div>
                     <p className="text-sm ml-6">
-                      {company.bairro}, {company.cidade} - {company.estado}
+                      {company?.bairro || 'Não informado'}, {company?.cidade || 'Não informado'} - {company?.estado || 'N/A'}
                     </p>
-                    <p className="text-sm ml-6">CEP: {company.cep}</p>
+                    <p className="text-sm ml-6">CEP: {company?.cep || 'Não informado'}</p>
                   </div>
                   
-                  {(company.telefone || company.emailContato) && (
+                  {(company?.telefone || company?.emailContato) && (
                     <>
                       <Separator />
                       <div className="space-y-2">
                         <p className="text-sm font-medium text-muted-foreground">Contato</p>
-                        {company.telefone && (
+                        {company?.telefone && (
                           <div className="flex items-center space-x-2 text-sm">
                             <Phone className="w-4 h-4 text-muted-foreground" />
                             <span>{company.telefone}</span>
                           </div>
                         )}
-                        {company.emailContato && (
+                        {company?.emailContato && (
                           <div className="flex items-center space-x-2 text-sm">
                             <Mail className="w-4 h-4 text-muted-foreground" />
                             <span>{company.emailContato}</span>
@@ -260,10 +260,10 @@ const CompanyDetailPage = () => {
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
                       <p className="text-sm font-medium text-muted-foreground">Faturamento</p>
                       <p className="text-xl font-bold text-blue-600">
-                        {formatCurrency(company.faturamento)}
+                        {company?.faturamento ? formatCurrency(company.faturamento) : 'Não informado'}
                       </p>
                     </div>
-                    {company.ebitda && (
+                    {company?.ebitda && (
                       <div className="text-center p-4 bg-green-50 rounded-lg">
                         <p className="text-sm font-medium text-muted-foreground">EBITDA</p>
                         <p className="text-xl font-bold text-green-600">
@@ -271,7 +271,7 @@ const CompanyDetailPage = () => {
                         </p>
                       </div>
                     )}
-                    {company.dividaLiquida && (
+                    {company?.dividaLiquida && (
                       <div className="text-center p-4 bg-red-50 rounded-lg">
                         <p className="text-sm font-medium text-muted-foreground">Dívida Líquida</p>
                         <p className="text-xl font-bold text-red-600">
