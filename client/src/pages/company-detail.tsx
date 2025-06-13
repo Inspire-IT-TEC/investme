@@ -37,7 +37,7 @@ const CompanyDetailPage = () => {
 
   // Fetch company data
   const { data: company, isLoading } = useQuery({
-    queryKey: ["/api/companies", companyId],
+    queryKey: [`/api/companies/${companyId}`],
     enabled: !!companyId,
   });
 
