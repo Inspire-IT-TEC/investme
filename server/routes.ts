@@ -732,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       if (approved) {
-        updateData.aprovadoPor = req.admin.id;
+        updateData.aprovadoPor = req.admin?.id || 1;
         updateData.aprovadoEm = new Date();
       }
 
