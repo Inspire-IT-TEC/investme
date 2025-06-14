@@ -322,35 +322,28 @@ export default function BackofficeEntrepreneurs() {
               </Card>
             </div>
 
-            {/* Filters */}
-            <Card className="mb-6">
-              <CardContent className="p-6">
-                <div className="flex space-x-4">
-                  <div className="flex-1">
-                    <Label htmlFor="status-filter">Filtrar por Status</Label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="pendente">Pendentes</SelectItem>
-                        <SelectItem value="ativo">Ativos</SelectItem>
-                        <SelectItem value="inativo">Inativos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Entrepreneurs Table */}
+            {/* Main Content */}
             <Card>
               <CardHeader>
-                <CardTitle>Lista de Empreendedores</CardTitle>
-                <CardDescription>
-                  Analise e gerencie todos os empreendedores cadastrados na plataforma
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Lista de Empreendedores</CardTitle>
+                    <CardDescription>
+                      Analise e gerencie todos os empreendedores cadastrados na plataforma
+                    </CardDescription>
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="pendente">Pendentes</SelectItem>
+                      <SelectItem value="ativo">Ativos</SelectItem>
+                      <SelectItem value="inativo">Inativos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -378,20 +371,29 @@ export default function BackofficeEntrepreneurs() {
                           <TableCell className="font-medium">{entrepreneur.nomeCompleto}</TableCell>
                           <TableCell>{entrepreneur.email}</TableCell>
                           <TableCell>{entrepreneur.cpf}</TableCell>
-                          <TableCell>{getStatusBadge(entrepreneur.status)}</TableCell>
+                          <TableCell>{getStatusBadge(entrepreneur)}</TableCell>
                           <TableCell>{formatDate(entrepreneur.createdAt)}</TableCell>
                           <TableCell>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setSelectedEntrepreneur(entrepreneur)}
-                                >
-                                  <Eye className="w-4 h-4 mr-1" />
-                                  Analisar
-                                </Button>
-                              </DialogTrigger>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedEntrepreneur(entrepreneur)}
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                Ver
+                              </Button>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedEntrepreneur(entrepreneur)}
+                                  >
+                                    <UserCheck className="w-4 h-4 mr-1" />
+                                    Analisar
+                                  </Button>
+                                </DialogTrigger>
                               <DialogContent className="max-w-2xl">
                                 <DialogHeader>
                                   <DialogTitle>Análise do Empreendedor</DialogTitle>
@@ -460,6 +462,7 @@ export default function BackofficeEntrepreneurs() {
                                 )}
                               </DialogContent>
                             </Dialog>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -470,6 +473,121 @@ export default function BackofficeEntrepreneurs() {
             </Card>
           </div>
         </main>
+      </div>
+
+      {/* Entrepreneur Detail Modal */}
+      {selectedEntrepreneur && (
+        <Dialog open={!!selectedEntrepreneur} onOpenChange={() => setSelectedEntrepreneur(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Empreendedor</DialogTitle>
+              <DialogDescription>
+                Informações completas do empreendedor e suas empresas
+              </DialogDescription>
+            </DialogHeader>
+            <EntrepreneurDetailView entrepreneur={selectedEntrepreneur} />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+// Component for displaying entrepreneur details with companies
+function EntrepreneurDetailView({ entrepreneur }: { entrepreneur: any }) {
+  const { data: entrepreneurCompanies } = useQuery({
+    queryKey: ["/api/companies", entrepreneur.id],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/companies?userId=${entrepreneur.id}`);
+      return response.json();
+    }
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Basic Information */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label className="font-semibold">Nome Completo</Label>
+          <p className="text-sm text-gray-700">{entrepreneur.nomeCompleto}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Email</Label>
+          <p className="text-sm text-gray-700">{entrepreneur.email}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">CPF</Label>
+          <p className="text-sm text-gray-700">{entrepreneur.cpf}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">RG</Label>
+          <p className="text-sm text-gray-700">{entrepreneur.rg}</p>
+        </div>
+      </div>
+
+      {/* Address Information */}
+      <div className="border-t pt-4">
+        <Label className="font-semibold mb-2 block">Endereço</Label>
+        <div className="text-sm text-gray-700">
+          <p>{entrepreneur.rua}, {entrepreneur.numero}</p>
+          {entrepreneur.complemento && <p>{entrepreneur.complemento}</p>}
+          <p>{entrepreneur.bairro}, {entrepreneur.cidade} - {entrepreneur.estado}</p>
+          <p>CEP: {entrepreneur.cep}</p>
+        </div>
+      </div>
+
+      {/* Approval Status */}
+      <div className="border-t pt-4">
+        <Label className="font-semibold mb-2 block">Status de Aprovação</Label>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${entrepreneur.cadastroAprovado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="text-sm">Cadastro Aprovado</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${entrepreneur.emailConfirmado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="text-sm">Email Confirmado</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${entrepreneur.documentosVerificados ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="text-sm">Documentos Verificados</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Companies */}
+      <div className="border-t pt-4">
+        <Label className="font-semibold mb-2 block">Empresas Cadastradas</Label>
+        {entrepreneurCompanies && entrepreneurCompanies.length > 0 ? (
+          <div className="space-y-3">
+            {entrepreneurCompanies.map((company: any) => (
+              <div key={company.id} className="border rounded-lg p-4 bg-gray-50">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="font-semibold text-xs">Razão Social</Label>
+                    <p className="text-sm">{company.razaoSocial}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold text-xs">Nome Fantasia</Label>
+                    <p className="text-sm">{company.nomeFantasia}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold text-xs">CNPJ</Label>
+                    <p className="text-sm">{company.cnpj}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold text-xs">Status</Label>
+                    <Badge variant="outline" className="text-xs">
+                      {company.status || 'ativa'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">Nenhuma empresa cadastrada</p>
+        )}
       </div>
     </div>
   );
