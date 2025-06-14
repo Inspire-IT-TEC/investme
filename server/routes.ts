@@ -635,6 +635,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Approve investor (from users table)
+  app.post('/api/admin/investors/:id/approve', authenticateAdminToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if investor is in users table first
+      const user = await storage.getUser(parseInt(id));
+      if (user && user.tipo === 'investor') {
+        // Approve investor user
+        const approvedUser = await storage.approveUser(parseInt(id));
+        if (!approvedUser) {
+          return res.status(404).json({ message: 'Investidor não encontrado' });
+        }
+        res.json({ message: 'Investidor aprovado com sucesso', investor: approvedUser });
+      } else {
+        // Try investors table
+        const investor = await storage.approveInvestor(parseInt(id));
+        if (!investor) {
+          return res.status(404).json({ message: 'Investidor não encontrado' });
+        }
+        res.json({ message: 'Investidor aprovado com sucesso', investor });
+      }
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao aprovar investidor' });
+    }
+  });
+
+  // Reject investor (from users table)  
+  app.post('/api/admin/investors/:id/reject', authenticateAdminToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      
+      // Check if investor is in users table first
+      const user = await storage.getUser(parseInt(id));
+      if (user && user.tipo === 'investor') {
+        // Reject investor user
+        const rejectedUser = await storage.rejectUser(parseInt(id), reason);
+        if (!rejectedUser) {
+          return res.status(404).json({ message: 'Investidor não encontrado' });
+        }
+        res.json({ message: 'Investidor rejeitado', investor: rejectedUser });
+      } else {
+        // Try investors table
+        const investor = await storage.rejectInvestor(parseInt(id), reason);
+        if (!investor) {
+          return res.status(404).json({ message: 'Investidor não encontrado' });
+        }
+        res.json({ message: 'Investidor rejeitado', investor });
+      }
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao rejeitar investidor' });
+    }
+  });
+
   app.post('/api/admin/users/:id/reject', authenticateAdminToken, async (req, res) => {
     try {
       const { id } = req.params;

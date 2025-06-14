@@ -868,17 +868,57 @@ export class DatabaseStorage implements IStorage {
 
   // Admin investor management methods
   async getInvestors(status?: string): Promise<any[]> {
-    const result = await db
-      .select()
+    // Get investors from the users table (newly registered)
+    let userInvestors = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        nomeCompleto: users.nomeCompleto,
+        cpf: users.cpf,
+        rg: users.rg,
+        cadastroAprovado: users.cadastroAprovado,
+        emailConfirmado: users.emailConfirmado,
+        documentosVerificados: users.documentosVerificados,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        source: sql<string>`'users'`.as('source'),
+        status: sql<string>`CASE 
+          WHEN ${users.cadastroAprovado} = true THEN 'ativo'
+          ELSE 'pendente'
+        END`.as('status')
+      })
+      .from(users)
+      .where(eq(users.tipo, 'investor'))
+      .orderBy(desc(users.createdAt));
+
+    // Get investors from the investors table (approved and active)
+    const investorTableResults = await db
+      .select({
+        id: investors.id,
+        email: investors.email,
+        nomeCompleto: investors.nomeCompleto,
+        cpf: investors.cpf,
+        rg: investors.rg,
+        cadastroAprovado: sql<boolean>`true`.as('cadastroAprovado'),
+        emailConfirmado: sql<boolean>`true`.as('emailConfirmado'),
+        documentosVerificados: sql<boolean>`true`.as('documentosVerificados'),
+        createdAt: investors.createdAt,
+        updatedAt: investors.updatedAt,
+        source: sql<string>`'investors'`.as('source'),
+        status: investors.status
+      })
       .from(investors)
       .orderBy(desc(investors.createdAt));
 
+    // Combine results
+    const allInvestors = [...userInvestors, ...investorTableResults];
+
     // Filter by status if provided
     if (status && status !== 'all') {
-      return result.filter(investor => investor.status === status);
+      return allInvestors.filter(investor => investor.status === status);
     }
 
-    return result;
+    return allInvestors;
   }
 
   async approveInvestor(investorId: number): Promise<Investor | undefined> {
