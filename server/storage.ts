@@ -1045,8 +1045,6 @@ export class DatabaseStorage implements IStorage {
 
   // Admin user management methods
   async getUsersByTypeAndStatus(tipo?: string, status?: string): Promise<any[]> {
-    let query = db.select().from(users);
-    
     const conditions = [];
     if (tipo) {
       conditions.push(eq(users.tipo, tipo));
@@ -1056,10 +1054,10 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await db.select().from(users).where(and(...conditions)).orderBy(desc(users.createdAt));
     }
 
-    return await query.orderBy(desc(users.createdAt));
+    return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
   async approveUser(userId: number): Promise<User | undefined> {

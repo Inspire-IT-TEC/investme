@@ -219,6 +219,14 @@ export default function BackofficeApprovals() {
                                 <TableCell>
                                   <div className="flex space-x-2">
                                     <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setSelectedUser(investor)}
+                                    >
+                                      <Eye className="w-4 h-4 mr-1" />
+                                      Ver
+                                    </Button>
+                                    <Button
                                       size="sm"
                                       onClick={() => approveInvestorMutation.mutate(investor.id)}
                                       disabled={approveInvestorMutation.isPending}
@@ -319,6 +327,14 @@ export default function BackofficeApprovals() {
                                 <TableCell>
                                   <div className="flex space-x-2">
                                     <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setSelectedUser(entrepreneur)}
+                                    >
+                                      <Eye className="w-4 h-4 mr-1" />
+                                      Ver
+                                    </Button>
+                                    <Button
                                       size="sm"
                                       onClick={() => approveEntrepreneurMutation.mutate(entrepreneur.id)}
                                       disabled={approveEntrepreneurMutation.isPending}
@@ -385,6 +401,133 @@ export default function BackofficeApprovals() {
             </div>
           </div>
         </main>
+      </div>
+
+      {/* User Detail Modal */}
+      {selectedUser && (
+        <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Detalhes do {selectedUser.tipo === 'investor' ? 'Investidor' : 'Empreendedor'}</DialogTitle>
+              <DialogDescription>
+                Informações completas para análise de aprovação
+              </DialogDescription>
+            </DialogHeader>
+            <UserDetailView user={selectedUser} />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+// Component for displaying user details in approvals
+function UserDetailView({ user }: { user: any }) {
+  const { data: userCompanies } = useQuery({
+    queryKey: ["/api/companies", user.id],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/companies?userId=${user.id}`);
+      return response.json();
+    }
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Basic Information */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label className="font-semibold">Nome Completo</Label>
+          <p className="text-sm text-gray-700">{user.nomeCompleto}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Email</Label>
+          <p className="text-sm text-gray-700">{user.email}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">CPF</Label>
+          <p className="text-sm text-gray-700">{user.cpf}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">RG</Label>
+          <p className="text-sm text-gray-700">{user.rg}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Tipo</Label>
+          <Badge variant="outline" className="text-xs">
+            {user.tipo === 'investor' ? 'Investidor' : 'Empreendedor'}
+          </Badge>
+        </div>
+        <div>
+          <Label className="font-semibold">Data de Cadastro</Label>
+          <p className="text-sm text-gray-700">{formatDate(user.createdAt)}</p>
+        </div>
+      </div>
+
+      {/* Address Information (for entrepreneurs) */}
+      {user.tipo === 'entrepreneur' && (
+        <div className="border-t pt-4">
+          <Label className="font-semibold mb-2 block">Endereço</Label>
+          <div className="text-sm text-gray-700">
+            <p>{user.rua}, {user.numero}</p>
+            {user.complemento && <p>{user.complemento}</p>}
+            <p>{user.bairro}, {user.cidade} - {user.estado}</p>
+            <p>CEP: {user.cep}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Approval Status */}
+      <div className="border-t pt-4">
+        <Label className="font-semibold mb-2 block">Status de Aprovação</Label>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${user.cadastroAprovado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="text-sm">Cadastro Aprovado</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${user.emailConfirmado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="text-sm">Email Confirmado</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${user.documentosVerificados ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="text-sm">Documentos Verificados</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Companies */}
+      <div className="border-t pt-4">
+        <Label className="font-semibold mb-2 block">Empresas Cadastradas</Label>
+        {userCompanies && userCompanies.length > 0 ? (
+          <div className="space-y-3">
+            {userCompanies.map((company: any) => (
+              <div key={company.id} className="border rounded-lg p-4 bg-gray-50">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="font-semibold text-xs">Razão Social</Label>
+                    <p className="text-sm">{company.razaoSocial}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold text-xs">Nome Fantasia</Label>
+                    <p className="text-sm">{company.nomeFantasia}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold text-xs">CNPJ</Label>
+                    <p className="text-sm">{company.cnpj}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold text-xs">Status</Label>
+                    <Badge variant="outline" className="text-xs">
+                      {company.status || 'ativa'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">Nenhuma empresa cadastrada</p>
+        )}
       </div>
     </div>
   );
