@@ -704,35 +704,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/investors/:id/approve', authenticateAdminToken, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const investor = await storage.approveInvestor(parseInt(id));
-      if (!investor) {
-        return res.status(404).json({ message: 'Investidor não encontrado' });
-      }
-      res.json(investor);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Erro ao aprovar investidor' });
-    }
-  });
 
-  app.post('/api/admin/investors/:id/reject', authenticateAdminToken, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { reason } = req.body;
-      const investor = await storage.rejectInvestor(parseInt(id), reason);
-      if (!investor) {
-        return res.status(404).json({ message: 'Investidor não encontrado' });
-      }
-      res.json(investor);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Erro ao rejeitar investidor' });
-    }
-  });
+
+
 
   // Granular approval endpoint for entrepreneurs
-  app.patch('/api/admin/entrepreneurs/:id/approve-field', authenticateAdminToken, async (req, res) => {
+  app.patch('/api/admin/entrepreneurs/:id/approve-field', authenticateAdminToken, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { field, approved } = req.body;
@@ -743,11 +720,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Campo inválido' });
       }
 
-      const entrepreneur = await storage.updateEntrepreneurApproval(parseInt(id), field as any, approved, 1);
-      if (!entrepreneur) {
+      // For entrepreneurs, we update the users table since entrepreneurs are stored there
+      const user = await storage.getUser(parseInt(id));
+      if (!user || user.tipo !== 'entrepreneur') {
         return res.status(404).json({ message: 'Empreendedor não encontrado' });
       }
-      res.json(entrepreneur);
+
+      const updateData: any = {
+        [field]: approved,
+        updatedAt: new Date()
+      };
+      
+      if (approved) {
+        updateData.aprovadoPor = req.admin.id;
+        updateData.aprovadoEm = new Date();
+      }
+
+      const updatedUser = await storage.updateUser(parseInt(id), updateData);
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'Erro ao atualizar empreendedor' });
+      }
+
+      res.json({ message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, entrepreneur: updatedUser });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
     }
