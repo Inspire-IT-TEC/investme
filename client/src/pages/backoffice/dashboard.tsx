@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Clock, CheckCircle, DollarSign, Users } from "lucide-react";
+import { Building2, Clock, CheckCircle, DollarSign, Users, UserCheck } from "lucide-react";
 import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
 import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 
@@ -28,6 +28,14 @@ export default function BackofficeDashboard() {
     queryKey: ["/api/admin/investors"],
   });
 
+  const { data: pendingInvestors } = useQuery({
+    queryKey: ["/api/admin/investors", "pendente"],
+  });
+
+  const { data: pendingEntrepreneurs } = useQuery({
+    queryKey: ["/api/admin/users", "entrepreneur", "pendente"],
+  });
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -51,7 +59,7 @@ export default function BackofficeDashboard() {
             </div>
 
             {/* Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center">
@@ -110,6 +118,25 @@ export default function BackofficeDashboard() {
                       <p className="text-sm text-gray-600">Volume Mensal</p>
                       <p className="text-2xl font-bold text-gray-900">
                         {isLoading ? "-" : formatCurrency((stats as any)?.monthlyVolume || 0)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <UserCheck className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm text-gray-600">Aprovações Pendentes</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {((pendingInvestors as any[])?.length || 0) + ((pendingEntrepreneurs as any[])?.length || 0)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {(pendingInvestors as any[])?.length || 0} investidores, {(pendingEntrepreneurs as any[])?.length || 0} empreendedores
                       </p>
                     </div>
                   </div>
