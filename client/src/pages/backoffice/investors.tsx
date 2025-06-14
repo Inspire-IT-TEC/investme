@@ -221,105 +221,69 @@ export default function BackofficeInvestors() {
                             <TableCell>{formatDate(investor.createdAt)}</TableCell>
                             <TableCell>
                               <div className="flex space-x-2">
-                                <Dialog>
-                                  <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedInvestor(investor)}
+                                >
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  Ver
+                                </Button>
+                                {investor.status === 'pendente' && (
+                                  <>
                                     <Button
-                                      variant="outline"
                                       size="sm"
-                                      onClick={() => setSelectedInvestor(investor)}
+                                      onClick={() => approveInvestorMutation.mutate(investor.id)}
+                                      disabled={approveInvestorMutation.isPending}
+                                      className="bg-green-600 hover:bg-green-700"
                                     >
-                                      <Eye className="w-4 h-4 mr-1" />
-                                      Ver
+                                      <CheckCircle className="w-4 h-4 mr-1" />
+                                      Aprovar
                                     </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-2xl">
-                                    <DialogHeader>
-                                      <DialogTitle>Detalhes do Investidor</DialogTitle>
-                                      <DialogDescription>
-                                        Informações completas do investidor
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    {selectedInvestor && (
-                                      <div className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50">
+                                          <XCircle className="w-4 h-4 mr-1" />
+                                          Rejeitar
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>Rejeitar Investidor</DialogTitle>
+                                          <DialogDescription>
+                                            Informe o motivo da rejeição
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="space-y-4">
                                           <div>
-                                            <Label className="font-semibold">Nome Completo</Label>
-                                            <p>{selectedInvestor.nomeCompleto}</p>
+                                            <Label htmlFor="rejection-reason">Motivo da Rejeição</Label>
+                                            <Textarea
+                                              id="rejection-reason"
+                                              value={rejectionReason}
+                                              onChange={(e) => setRejectionReason(e.target.value)}
+                                              placeholder="Descreva o motivo da rejeição..."
+                                            />
                                           </div>
-                                          <div>
-                                            <Label className="font-semibold">Email</Label>
-                                            <p>{selectedInvestor.email}</p>
-                                          </div>
-                                          <div>
-                                            <Label className="font-semibold">CPF</Label>
-                                            <p>{selectedInvestor.cpf}</p>
-                                          </div>
-                                          <div>
-                                            <Label className="font-semibold">RG</Label>
-                                            <p>{selectedInvestor.rg}</p>
-                                          </div>
-                                          <div>
-                                            <Label className="font-semibold">Status</Label>
-                                            <div className="mt-1">{getStatusBadge(selectedInvestor.status)}</div>
+                                          <div className="flex space-x-2">
+                                            <Button
+                                              onClick={() => {
+                                                rejectInvestorMutation.mutate({
+                                                  investorId: investor.id,
+                                                  reason: rejectionReason
+                                                });
+                                                setRejectionReason("");
+                                              }}
+                                              disabled={rejectInvestorMutation.isPending || !rejectionReason.trim()}
+                                              variant="destructive"
+                                            >
+                                              Confirmar Rejeição
+                                            </Button>
                                           </div>
                                         </div>
-                                        
-                                        <div className="flex space-x-2 pt-4 border-t">
-                                          <Button
-                                            onClick={() => approveInvestorMutation.mutate(selectedInvestor.id)}
-                                            disabled={approveInvestorMutation.isPending}
-                                            className="bg-green-600 hover:bg-green-700"
-                                          >
-                                            <CheckCircle className="w-4 h-4 mr-2" />
-                                            Aprovar
-                                          </Button>
-                                          <Dialog>
-                                            <DialogTrigger asChild>
-                                              <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50">
-                                                <XCircle className="w-4 h-4 mr-2" />
-                                                Rejeitar
-                                              </Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                              <DialogHeader>
-                                                <DialogTitle>Rejeitar Investidor</DialogTitle>
-                                                <DialogDescription>
-                                                  Informe o motivo da rejeição
-                                                </DialogDescription>
-                                              </DialogHeader>
-                                              <div className="space-y-4">
-                                                <div>
-                                                  <Label htmlFor="rejection-reason">Motivo da Rejeição</Label>
-                                                  <Textarea
-                                                    id="rejection-reason"
-                                                    value={rejectionReason}
-                                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                                    placeholder="Descreva o motivo da rejeição..."
-                                                  />
-                                                </div>
-                                                <div className="flex space-x-2">
-                                                  <Button
-                                                    onClick={() => {
-                                                      rejectInvestorMutation.mutate({
-                                                        investorId: selectedInvestor.id,
-                                                        reason: rejectionReason
-                                                      });
-                                                      setRejectionReason("");
-                                                    }}
-                                                    disabled={rejectInvestorMutation.isPending || !rejectionReason.trim()}
-                                                    variant="destructive"
-                                                  >
-                                                    Confirmar Rejeição
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            </DialogContent>
-                                          </Dialog>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </DialogContent>
-                                </Dialog>
+                                      </DialogContent>
+                                    </Dialog>
+                                  </>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -333,6 +297,155 @@ export default function BackofficeInvestors() {
           </div>
         </main>
       </div>
+
+      {/* Investor Detail Modal */}
+      {selectedInvestor && (
+        <Dialog open={!!selectedInvestor} onOpenChange={() => setSelectedInvestor(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Investidor</DialogTitle>
+              <DialogDescription>
+                Informações completas do investidor e suas empresas
+              </DialogDescription>
+            </DialogHeader>
+            <InvestorDetailView investor={selectedInvestor} />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+// Component for displaying investor details with companies and valuations
+function InvestorDetailView({ investor }: { investor: any }) {
+  const { data: investorCompanies } = useQuery({
+    queryKey: ["/api/companies", investor.id],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/companies?userId=${investor.id}`);
+      return response.json();
+    }
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Basic Information */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label className="font-semibold">Nome Completo</Label>
+          <p className="text-sm text-gray-700">{investor.nomeCompleto}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Email</Label>
+          <p className="text-sm text-gray-700">{investor.email}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">CPF</Label>
+          <p className="text-sm text-gray-700">{investor.cpf}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">RG</Label>
+          <p className="text-sm text-gray-700">{investor.rg}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Telefone</Label>
+          <p className="text-sm text-gray-700">{investor.telefone || 'Não informado'}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Limite de Investimento</Label>
+          <p className="text-sm text-gray-700">{investor.limiteInvestimento || 'Não informado'}</p>
+        </div>
+      </div>
+
+      {/* Approval Status */}
+      <div className="border-t pt-4">
+        <Label className="font-semibold mb-2 block">Status de Aprovação</Label>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${investor.cadastroAprovado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="text-sm">Cadastro Aprovado</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${investor.emailConfirmado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="text-sm">Email Confirmado</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${investor.documentosVerificados ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+            <span className="text-sm">Documentos Verificados</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Companies and Valuations */}
+      <div className="border-t pt-4">
+        <Label className="font-semibold mb-2 block">Empresas Cadastradas</Label>
+        {investorCompanies && investorCompanies.length > 0 ? (
+          <div className="space-y-3">
+            {investorCompanies.map((company: any) => (
+              <CompanyCard key={company.id} company={company} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">Nenhuma empresa cadastrada</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Component for displaying company information with valuation
+function CompanyCard({ company }: { company: any }) {
+  const { data: valuations } = useQuery({
+    queryKey: ["/api/valuations", company.id],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/valuations?companyId=${company.id}`);
+      return response.json();
+    }
+  });
+
+  const latestValuation = valuations && valuations.length > 0 ? valuations[0] : null;
+
+  return (
+    <div className="border rounded-lg p-4 bg-gray-50">
+      <div className="grid grid-cols-2 gap-4 mb-3">
+        <div>
+          <Label className="font-semibold text-xs">Razão Social</Label>
+          <p className="text-sm">{company.razaoSocial}</p>
+        </div>
+        <div>
+          <Label className="font-semibold text-xs">Nome Fantasia</Label>
+          <p className="text-sm">{company.nomeFantasia}</p>
+        </div>
+        <div>
+          <Label className="font-semibold text-xs">CNPJ</Label>
+          <p className="text-sm">{company.cnpj}</p>
+        </div>
+        <div>
+          <Label className="font-semibold text-xs">Status</Label>
+          <Badge variant="outline" className="text-xs">
+            {company.status || 'ativa'}
+          </Badge>
+        </div>
+      </div>
+      
+      {latestValuation && (
+        <div className="border-t pt-3 mt-3">
+          <Label className="font-semibold text-xs mb-2 block">Último Valuation</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs text-gray-600">Valor da Empresa</Label>
+              <p className="text-sm font-medium">
+                {latestValuation.enterpriseValue ? formatCurrency(parseFloat(latestValuation.enterpriseValue)) : 'N/A'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-600">Valor do Patrimônio</Label>
+              <p className="text-sm font-medium">
+                {latestValuation.equityValue ? formatCurrency(parseFloat(latestValuation.equityValue)) : 'N/A'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

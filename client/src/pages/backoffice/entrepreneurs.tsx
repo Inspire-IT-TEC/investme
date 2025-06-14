@@ -108,16 +108,18 @@ export default function BackofficeEntrepreneurs() {
     },
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Ativo</Badge>;
-      case 'pendente':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
-      case 'inativo':
-        return <Badge variant="destructive">Inativo</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+  const getStatusBadge = (entrepreneur: any) => {
+    // Check if all approvals are complete
+    const isComplete = entrepreneur.cadastroAprovado && entrepreneur.emailConfirmado && entrepreneur.documentosVerificados;
+    
+    if (entrepreneur.status === 'ativo' && isComplete) {
+      return <Badge variant="default" className="bg-green-100 text-green-800">Ativo</Badge>;
+    } else if (entrepreneur.status === 'pendente' || !isComplete) {
+      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Incompleto</Badge>;
+    } else if (entrepreneur.status === 'inativo') {
+      return <Badge variant="destructive">Inativo</Badge>;
+    } else {
+      return <Badge variant="outline">{entrepreneur.status}</Badge>;
     }
   };
 
