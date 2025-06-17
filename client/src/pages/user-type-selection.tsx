@@ -61,63 +61,27 @@ export default function UserTypeSelection() {
         </div>
       )}
 
-      {/* Hero Section */}
+      {/* Header Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-green-600/5 to-blue-600/5"></div>
-        <div className="container mx-auto px-4 py-16 md:py-24">
-          <div className="text-center max-w-4xl mx-auto">
+        <div className="container mx-auto px-4 py-12 md:py-16">
+          <div className="text-center max-w-2xl mx-auto">
             <div className="flex justify-center mb-8">
-              <InvestmeLogo className="h-14 md:h-16" />
+              <InvestmeLogo className="h-12 md:h-14" />
             </div>
-            <Badge variant="secondary" className="mb-6 bg-slate-100 text-slate-700 hover:bg-slate-200">
-              <Zap className="h-3 w-3 mr-1" />
-              Plataforma de Crédito Inteligente
-            </Badge>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight">
-              Conectamos
-              <span className="block bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                Empreendedores & Investidores
-              </span>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 leading-tight">
+              Bem-vindo à Investme
             </h1>
-            <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-              A primeira plataforma brasileira que usa inteligência artificial para transformar 
-              análise de crédito e facilitar investimentos seguros e lucrativos
+            <p className="text-lg md:text-xl text-slate-600 mb-8 leading-relaxed">
+              Escolha como você quer participar da nossa plataforma de crédito inteligente
             </p>
-            
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-16">
-              <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">R$ 50M+</div>
-                <div className="text-sm md:text-base text-slate-600">Em crédito facilitado</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">500+</div>
-                <div className="text-sm md:text-base text-slate-600">Empresas conectadas</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">98%</div>
-                <div className="text-sm md:text-base text-slate-600">Taxa de aprovação</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">24h</div>
-                <div className="text-sm md:text-base text-slate-600">Análise média</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
       {/* User Type Selection Section */}
-      <section className="py-16 md:py-24 bg-white">
+      <section className="py-8 md:py-12 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Escolha seu perfil
-            </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Selecione como você deseja participar da nossa rede de crédito inteligente
-            </p>
-          </div>
 
           <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Empreendedor Card */}
@@ -204,87 +168,30 @@ export default function UserTypeSelection() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 md:py-24 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Por que escolher a Investme?
+          
+          {/* Login Section */}
+          <div className="text-center mt-16">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-8">
+              Já faz parte da nossa rede?
             </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Nossa plataforma combina tecnologia avançada com expertise financeira
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Zap className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">Análise Instantânea</h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Inteligência artificial analisa sua empresa em segundos, 
-                  não em semanas como bancos tradicionais
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Shield className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">100% Seguro</h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Plataforma criptografada com as melhores práticas de segurança 
-                  bancária para proteger seus dados
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">Rede Qualificada</h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Conectamos apenas investidores verificados com empresas 
-                  pré-qualificadas para garantir sucesso mútuo
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Login Section */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-8">
-            Já faz parte da nossa rede?
-          </h2>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center max-w-md mx-auto">
-            <Link href="/login/entrepreneur" className="flex-1">
-              <Button 
-                variant="outline" 
-                className="w-full py-4 text-lg font-semibold border-2 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all duration-300"
-              >
-                Login Empreendedor
-              </Button>
-            </Link>
-            <Link href="/login/investor" className="flex-1">
-              <Button 
-                variant="outline" 
-                className="w-full py-4 text-lg font-semibold border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
-              >
-                Login Investidor
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center max-w-md mx-auto">
+              <Link href="/login/entrepreneur" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  className="w-full py-4 text-lg font-semibold border-2 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all duration-300"
+                >
+                  Login Empreendedor
+                </Button>
+              </Link>
+              <Link href="/login/investor" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  className="w-full py-4 text-lg font-semibold border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
+                >
+                  Login Investidor
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
