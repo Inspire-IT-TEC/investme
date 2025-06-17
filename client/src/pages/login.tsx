@@ -76,11 +76,7 @@ export default function Login() {
   const isEntrepreneur = userType === 'entrepreneur';
 
   return (
-    <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${
-      isInvestor ? 'bg-gradient-to-br from-green-50 via-white to-emerald-50' :
-      isEntrepreneur ? 'bg-gradient-to-br from-indigo-50 via-white to-purple-50' :
-      'bg-gradient-to-br from-indigo-50 via-white to-blue-50'
-    }`}>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-white to-blue-100">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-6">
@@ -94,38 +90,26 @@ export default function Login() {
           <p className="text-gray-600">Plataforma de Crédito Inteligente</p>
         </div>
 
-        <Card className={`shadow-xl border-0 ${
-          isInvestor ? 'bg-gradient-to-br from-green-600 to-emerald-700' :
-          isEntrepreneur ? 'bg-gradient-to-br from-indigo-600 to-purple-700' :
-          'bg-white'
-        }`}>
+        <Card className="shadow-xl border-0 gradient-primary">
           <CardHeader className="text-center">
-            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 mx-auto ${
-              isInvestor ? 'bg-white/20' :
-              isEntrepreneur ? 'bg-white/20' :
-              'bg-indigo-100'
-            }`}>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 mx-auto bg-white/20">
               {isInvestor ? (
                 <TrendingUp className="w-8 h-8 text-white" />
-              ) : isEntrepreneur ? (
-                <Building2 className="w-8 h-8 text-white" />
               ) : (
-                <Building2 className="w-8 h-8 text-indigo-600" />
+                <Building2 className="w-8 h-8 text-white" />
               )}
             </div>
-            <CardTitle className={isInvestor || isEntrepreneur ? 'text-white' : 'text-gray-900'}>
-              {isInvestor ? 'Login do Investidor' : 
-               isEntrepreneur ? 'Login do Empreendedor' : 
-               'Entrar na sua conta'}
+            <CardTitle className="text-white text-2xl">
+              {isInvestor ? 'Portal do Investidor' : 'Portal do Empreendedor'}
             </CardTitle>
-            <CardDescription className={isInvestor || isEntrepreneur ? 'text-gray-100' : 'text-gray-600'}>
+            <CardDescription className="text-white/80">
               Digite seu email ou CPF e senha para acessar o dashboard
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="login" className={isInvestor || isEntrepreneur ? 'text-white' : 'text-gray-700'}>
+                <Label htmlFor="login" className="text-white font-medium">
                   Email ou CPF
                 </Label>
                 <Input
@@ -134,13 +118,13 @@ export default function Login() {
                   value={formData.login}
                   onChange={(e) => setFormData({ ...formData, login: e.target.value })}
                   placeholder="Digite seu email ou CPF"
-                  className="bg-white/90 border-white/20"
+                  className="bg-white/95 border-white/30 focus:border-white text-gray-900 placeholder:text-gray-500"
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="senha" className={isInvestor || isEntrepreneur ? 'text-white' : 'text-gray-700'}>
+                <Label htmlFor="senha" className="text-white font-medium">
                   Senha
                 </Label>
                 <Input
@@ -148,14 +132,14 @@ export default function Login() {
                   type="password"
                   value={formData.senha}
                   onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
-                  placeholder="Digite sua senha"
-                  className="bg-white/90 border-white/20"
+                  placeholder="••••••••"
+                  className="bg-white/95 border-white/30 focus:border-white text-gray-900"
                   required
                 />
               </div>
 
               {loginMutation.error && (
-                <Alert variant="destructive" className="bg-red-50 border-red-200">
+                <Alert variant="destructive" className="bg-red-100/90 border-red-300/50 text-red-800">
                   <AlertDescription>
                     {(loginMutation.error as any)?.message || "Erro no login. Verifique suas credenciais."}
                   </AlertDescription>
@@ -164,11 +148,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className={`w-full py-3 font-medium transition-colors ${
-                  isInvestor ? 'bg-white text-green-600 hover:bg-gray-50' :
-                  isEntrepreneur ? 'bg-white text-indigo-600 hover:bg-gray-50' :
-                  'bg-indigo-600 text-white hover:bg-indigo-700'
-                }`}
+                className="w-full py-3 font-semibold bg-white text-primary hover:bg-white/90 transition-all duration-200 shadow-lg"
                 disabled={loginMutation.isPending}
               >
                 {loginMutation.isPending ? "Entrando..." : "Entrar"}
