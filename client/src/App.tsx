@@ -10,7 +10,7 @@ import UserTypeSelection from "@/pages/user-type-selection";
 import RegisterEntrepreneur from "@/pages/register-entrepreneur";
 import RegisterInvestor from "@/pages/register-investor";
 import Dashboard from "@/pages/dashboard-modern";
-import InvestorDashboard from "@/pages/investor-dashboard";
+import InvestorDashboard from "@/pages/investor-dashboard-modern";
 import CompanyRegistration from "@/pages/company-registration";
 import CreditRequest from "@/pages/credit-request";
 import Profile from "@/pages/profile";
