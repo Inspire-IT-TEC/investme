@@ -3,66 +3,100 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 20 14.3% 4.1%;
-  --muted: 60 4.8% 95.9%;
-  --muted-foreground: 25 5.3% 44.7%;
+  /* Main Background & Layout */
+  --background: 218 100% 98%; /* #F8FAFF */
+  --foreground: 215 25% 27%; /* #334155 */
+  --muted: 214 32% 91%; /* #E2E8F0 */
+  --muted-foreground: 215 16% 47%; /* #64748B */
+  
+  /* Cards & Surfaces */
+  --card: 0 0% 100%; /* #FFFFFF */
+  --card-foreground: 215 25% 27%; /* #334155 */
   --popover: 0 0% 100%;
-  --popover-foreground: 20 14.3% 4.1%;
-  --card: 0 0% 100%;
-  --card-foreground: 20 14.3% 4.1%;
-  --border: 20 5.9% 90%;
-  --input: 20 5.9% 90%;
-  --primary: 207 90% 54%;
-  --primary-foreground: 211 100% 99%;
-  --secondary: 60 4.8% 95.9%;
-  --secondary-foreground: 24 9.8% 10%;
-  --accent: 60 4.8% 95.9%;
-  --accent-foreground: 24 9.8% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 20 14.3% 4.1%;
-  --radius: 0.5rem;
+  --popover-foreground: 215 25% 27%;
   
-  /* Custom Investme colors */
-  --investme-primary: 207 90% 54%; /* #1565C0 */
-  --investme-primary-dark: 219 91% 38%; /* #0D47A1 */
-  --investme-secondary: 194 91% 37%; /* #0277BD */
-  --investme-secondary-dark: 195 100% 29%; /* #01579B */
-  --investme-success: 122 39% 49%; /* #2E7D32 */
-  --investme-success-dark: 123 43% 27%; /* #1B5E20 */
-  --investme-warning: 36 100% 48%; /* #F57C00 */
-  --investme-warning-dark: 38 100% 45%; /* #E65100 */
+  /* Borders & Inputs */
+  --border: 214 32% 91%; /* #E2E8F0 */
+  --input: 214 32% 91%; /* #E2E8F0 */
+  --ring: 217 91% 60%; /* #3B82FE */
   
-  /* Entrepreneur Portal Colors */
-  --entrepreneur-primary: 252 54% 41%; /* #3c3494 */
-  --entrepreneur-primary-variant: 252 54% 40%; /* #3c348c */
-  --entrepreneur-secondary: 249 50% 40%; /* #403494 */
-  --entrepreneur-accent: 249 50% 40%; /* #403494 */
-  --entrepreneur-surface: 249 50% 40%; /* #403494 */
+  /* Primary Blue Palette */
+  --primary: 217 91% 60%; /* #3B82FE */
+  --primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --secondary: 214 95% 93%; /* #DBEAFE */
+  --secondary-foreground: 217 91% 60%; /* #3B82FE */
+  --accent: 214 95% 93%; /* #DBEAFE */
+  --accent-foreground: 217 91% 60%; /* #3B82FE */
+  
+  /* Status Colors */
+  --destructive: 0 84% 60%; /* #EF4444 */
+  --destructive-foreground: 0 0% 98%; /* #FAFAFA */
+  --success: 142 76% 36%; /* #10B981 */
+  --success-foreground: 0 0% 100%;
+  --warning: 45 93% 47%; /* #F59E0B */
+  --warning-foreground: 0 0% 100%;
+  
+  --radius: 0.75rem;
+  
+  /* Modern Blue System */
+  --blue-50: 214 100% 97%; /* #EFF6FF */
+  --blue-100: 214 95% 93%; /* #DBEAFE */
+  --blue-200: 213 97% 87%; /* #BFDBFE */
+  --blue-300: 212 96% 78%; /* #93C5FD */
+  --blue-400: 213 94% 68%; /* #60A5FA */
+  --blue-500: 217 91% 60%; /* #3B82FE */
+  --blue-600: 221 83% 53%; /* #2563EB */
+  --blue-700: 224 76% 48%; /* #1D4ED8 */
+  --blue-800: 226 71% 40%; /* #1E40AF */
+  --blue-900: 224 64% 33%; /* #1E3A8A */
+  --blue-950: 226 55% 21%; /* #172554 */
+  
+  /* Sidebar Colors */
+  --sidebar-background: 226 55% 21%; /* #172554 */
+  --sidebar-foreground: 214 100% 97%; /* #EFF6FF */
+  --sidebar-accent: 221 83% 53%; /* #2563EB */
+  --sidebar-accent-foreground: 0 0% 100%;
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --primary: 207 90% 54%;
-  --primary-foreground: 211 100% 99%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
+  /* Dark Theme Background & Layout */
+  --background: 226 55% 21%; /* #172554 */
+  --foreground: 214 100% 97%; /* #EFF6FF */
+  --muted: 224 71% 40%; /* #1E40AF */
+  --muted-foreground: 214 95% 93%; /* #DBEAFE */
+  
+  /* Dark Cards & Surfaces */
+  --card: 224 64% 33%; /* #1E3A8A */
+  --card-foreground: 214 100% 97%; /* #EFF6FF */
+  --popover: 224 64% 33%;
+  --popover-foreground: 214 100% 97%;
+  
+  /* Dark Borders & Inputs */
+  --border: 224 71% 40%; /* #1E40AF */
+  --input: 224 71% 40%; /* #1E40AF */
+  --ring: 213 94% 68%; /* #60A5FA */
+  
+  /* Dark Primary Blue Palette */
+  --primary: 213 94% 68%; /* #60A5FA */
+  --primary-foreground: 226 55% 21%; /* #172554 */
+  --secondary: 224 71% 40%; /* #1E40AF */
+  --secondary-foreground: 214 100% 97%; /* #EFF6FF */
+  --accent: 224 71% 40%; /* #1E40AF */
+  --accent-foreground: 214 100% 97%; /* #EFF6FF */
+  
+  /* Dark Status Colors */
+  --destructive: 0 84% 60%; /* #EF4444 */
   --destructive-foreground: 0 0% 98%;
-  --ring: 240 4.9% 83.9%;
-  --radius: 0.5rem;
+  --success: 142 76% 36%; /* #10B981 */
+  --success-foreground: 0 0% 100%;
+  --warning: 45 93% 47%; /* #F59E0B */
+  --warning-foreground: 0 0% 100%;
+  
+  /* Dark Sidebar Colors */
+  --sidebar-background: 224 64% 33%; /* #1E3A8A */
+  --sidebar-foreground: 214 100% 97%; /* #EFF6FF */
+  --sidebar-accent: 213 94% 68%; /* #60A5FA */
+  --sidebar-accent-foreground: 224 64% 33%;
 }
 
 @layer base {
@@ -75,12 +109,132 @@
     font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   }
 
-  .investme-gradient {
-    background: linear-gradient(135deg, hsl(var(--investme-primary)) 0%, hsl(var(--investme-secondary)) 100%);
+  /* Modern Blue Gradients */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--blue-500)) 0%, hsl(var(--blue-600)) 100%);
   }
 
-  .investme-gradient-dark {
-    background: linear-gradient(135deg, hsl(var(--investme-primary-dark)) 0%, hsl(var(--investme-secondary-dark)) 100%);
+  .gradient-secondary {
+    background: linear-gradient(135deg, hsl(var(--blue-100)) 0%, hsl(var(--blue-200)) 100%);
+  }
+
+  .gradient-dark {
+    background: linear-gradient(135deg, hsl(var(--blue-800)) 0%, hsl(var(--blue-900)) 100%);
+  }
+}
+
+@layer components {
+  /* Modern Sidebar Layout */
+  .sidebar-layout {
+    @apply flex h-screen bg-background;
+  }
+
+  .sidebar {
+    @apply flex flex-col w-64 bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))] transition-all duration-300 ease-in-out;
+  }
+
+  .sidebar-collapsed {
+    @apply w-20;
+  }
+
+  .sidebar-header {
+    @apply flex items-center justify-between p-6 border-b border-white/10;
+  }
+
+  .sidebar-nav {
+    @apply flex-1 px-4 py-6 space-y-2 overflow-y-auto;
+  }
+
+  .sidebar-nav-item {
+    @apply flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 hover:bg-white/10 hover:text-white;
+  }
+  
+  .sidebar-nav-item:hover .sidebar-nav-icon {
+    @apply scale-110;
+  }
+
+  .sidebar-nav-item.active {
+    @apply bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-accent-foreground))] shadow-lg;
+  }
+
+  .sidebar-nav-icon {
+    @apply w-5 h-5 mr-3 transition-transform duration-200 group-hover:scale-110;
+  }
+
+  .sidebar-footer {
+    @apply p-4 border-t border-white/10;
+  }
+
+  /* Main Content Area */
+  .main-content {
+    @apply flex-1 flex flex-col overflow-hidden;
+  }
+
+  .main-header {
+    @apply bg-card border-b border-border px-6 py-4 flex items-center justify-between;
+  }
+
+  .main-body {
+    @apply flex-1 overflow-y-auto p-6;
+  }
+
+  /* Modern Cards */
+  .modern-card {
+    @apply bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .modern-card-header {
+    @apply p-6 border-b border-border;
+  }
+
+  .modern-card-content {
+    @apply p-6;
+  }
+
+  .modern-card-footer {
+    @apply p-6 border-t border-border bg-muted/50;
+  }
+
+  /* Mobile Responsive */
+  .mobile-overlay {
+    @apply fixed inset-0 z-50 bg-black/50 lg:hidden;
+  }
+
+  .mobile-sidebar {
+    @apply fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:hidden;
+  }
+
+  .mobile-sidebar-open {
+    @apply translate-x-0;
+  }
+
+  .mobile-sidebar-closed {
+    @apply -translate-x-full;
+  }
+
+  /* Status Indicators */
+  .status-indicator {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .status-success {
+    @apply bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400;
+  }
+
+  .status-warning {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400;
+  }
+
+  .status-error {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400;
+  }
+
+  .status-info {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400;
+  }
+
+  .status-neutral {
+    @apply bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400;
   }
 }
 
