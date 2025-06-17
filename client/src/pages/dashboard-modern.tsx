@@ -135,8 +135,8 @@ export default function Dashboard() {
                   <p className="text-3xl font-bold text-foreground">{totalCompanies}</p>
                   <p className="text-xs text-success">{approvedCompanies} aprovadas</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </ModernCardContent>
@@ -148,10 +148,10 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Solicitações</p>
                   <p className="text-3xl font-bold text-foreground">{totalRequests}</p>
-                  <p className="text-xs text-primary">Total enviadas</p>
+                  <p className="text-xs text-green-600">Total enviadas</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <CreditCard className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <CreditCard className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </ModernCardContent>
@@ -163,10 +163,10 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Valor Total</p>
                   <p className="text-3xl font-bold text-foreground">{formatCurrency(totalRequestedValue)}</p>
-                  <p className="text-xs text-primary">Solicitado</p>
+                  <p className="text-xs text-green-600">Solicitado</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <DollarSign className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </ModernCardContent>
@@ -178,10 +178,10 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Mensagens</p>
                   <p className="text-3xl font-bold text-foreground">{unreadCount}</p>
-                  <p className="text-xs text-primary">Não lidas</p>
+                  <p className="text-xs text-green-600">Não lidas</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <MessageCircle className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <MessageCircle className="h-6 w-6 text-green-600" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full"></span>
                   )}
@@ -200,7 +200,7 @@ export default function Dashboard() {
                   <h3 className="text-lg font-semibold">Ações Rápidas</h3>
                   <p className="text-sm text-muted-foreground">Acesse as principais funcionalidades</p>
                 </div>
-                <Activity className="h-5 w-5 text-primary" />
+                <Activity className="h-5 w-5 text-green-600" />
               </div>
             </ModernCardHeader>
             <ModernCardContent>
