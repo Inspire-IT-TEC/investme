@@ -20,7 +20,7 @@ import {
   Clock,
   Edit
 } from "lucide-react";
-import UnifiedNavbar from "@/components/layout/unified-navbar";
+import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 
 const profileUpdateSchema = z.object({
   nomeCompleto: z.string().min(1, "Nome completo é obrigatório"),
@@ -243,35 +243,20 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <UnifiedNavbar 
-          userType={userType} 
-          userName={user?.nome || user?.nomeCompleto || "Usuário"}
-          isCompanyApproved={companyStatus?.hasApprovedCompany}
-        />
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="animate-pulse">
-            <div className="h-32 bg-gray-200 rounded mb-6"></div>
-            <div className="space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-            </div>
+      <ModernSidebarLayout title="Perfil" userType="user" theme="green">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Carregando perfil...</p>
           </div>
         </div>
-      </div>
+      </ModernSidebarLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <UnifiedNavbar 
-        userType={userType} 
-        userName={profile?.nomeCompleto || "Usuário"}
-        isCompanyApproved={companyStatus?.hasApprovedCompany}
-      />
-      
-      <div className="max-w-4xl mx-auto p-6">
+    <ModernSidebarLayout title="Perfil" userType="user" theme="green">
+      <div className="space-y-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
             <User className="h-8 w-8 mr-3" />

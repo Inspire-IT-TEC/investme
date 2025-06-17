@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import Navbar from "@/components/layout/navbar";
+import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { MessageCircle, Send, Building2, Clock, CheckCircle2, Plus } from "lucide-react";
 
 export default function Messages() {
@@ -191,13 +191,11 @@ export default function Messages() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <ModernSidebarLayout title="Mensagens" userType="user" theme="green">
+      <div className="space-y-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Mensagens</h1>
-          <p className="text-gray-600">Comunicação com a equipe de análise</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Mensagens</h1>
+          <p className="text-muted-foreground">Comunicação com a equipe de análise</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
@@ -483,6 +481,6 @@ export default function Messages() {
           </Card>
         </div>
       </div>
-    </div>
+    </ModernSidebarLayout>
   );
 }
