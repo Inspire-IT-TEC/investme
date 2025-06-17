@@ -156,13 +156,11 @@ export default function Login() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className={`text-sm ${isInvestor || isEntrepreneur ? 'text-gray-100' : 'text-gray-600'}`}>
+              <p className="text-sm text-white/80">
                 Não tem uma conta?{" "}
                 <Link 
                   href="/register" 
-                  className={`font-medium hover:underline ${
-                    isInvestor || isEntrepreneur ? 'text-white' : 'text-indigo-600 hover:text-indigo-500'
-                  }`}
+                  className="font-medium text-white hover:text-white/80 hover:underline transition-colors"
                 >
                   Cadastre-se aqui
                 </Link>
@@ -172,9 +170,7 @@ export default function Login() {
             <div className="mt-4 text-center">
               <Link 
                 href="/backoffice" 
-                className={`text-sm hover:underline ${
-                  isInvestor || isEntrepreneur ? 'text-gray-200 hover:text-white' : 'text-gray-500 hover:text-gray-700'
-                }`}
+                className="text-sm text-white/60 hover:text-white/80 hover:underline transition-colors"
               >
                 Acesso para equipe Investme
               </Link>
