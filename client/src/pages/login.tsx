@@ -76,7 +76,10 @@ export default function Login() {
   const isEntrepreneur = userType === 'entrepreneur';
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-white to-blue-100">
+    <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${
+      isEntrepreneur ? 'bg-gradient-to-br from-green-50 via-white to-green-100' : 
+      'bg-gradient-to-br from-blue-50 via-white to-blue-100'
+    }`}>
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-6">
@@ -90,7 +93,9 @@ export default function Login() {
           <p className="text-gray-600">Plataforma de Crédito Inteligente</p>
         </div>
 
-        <Card className="shadow-xl border-0 gradient-primary">
+        <Card className={`shadow-xl border-0 ${
+          isEntrepreneur ? 'gradient-primary-green' : 'gradient-primary'
+        }`}>
           <CardHeader className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 mx-auto bg-white/20">
               {isInvestor ? (
@@ -148,7 +153,9 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full py-3 font-semibold bg-white text-primary hover:bg-white/90 transition-all duration-200 shadow-lg"
+                className={`w-full py-3 font-semibold bg-white hover:bg-white/90 transition-all duration-200 shadow-lg ${
+                  isEntrepreneur ? 'text-green-600' : 'text-primary'
+                }`}
                 disabled={loginMutation.isPending}
               >
                 {loginMutation.isPending ? "Entrando..." : "Entrar"}
