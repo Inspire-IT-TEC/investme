@@ -82,10 +82,10 @@ export default function Dashboard() {
   };
 
   return (
-    <ModernSidebarLayout title="Dashboard" userType="user">
+    <ModernSidebarLayout title="Dashboard" userType="user" theme="green">
       <div className="space-y-6">
         {/* Welcome Card */}
-        <ModernCard variant="gradient" className="gradient-primary text-white shadow-xl">
+        <ModernCard variant="gradient" className="gradient-primary-green text-white shadow-xl">
           <ModernCardContent>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">

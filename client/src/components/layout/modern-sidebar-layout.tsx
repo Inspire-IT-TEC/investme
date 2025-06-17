@@ -39,13 +39,36 @@ interface ModernSidebarLayoutProps {
   children: React.ReactNode;
   title?: string;
   userType?: 'user' | 'investor' | 'admin';
+  theme?: 'blue' | 'green';
 }
 
-export function ModernSidebarLayout({ children, title, userType = 'user' }: ModernSidebarLayoutProps) {
+export function ModernSidebarLayout({ children, title, userType = 'user', theme = 'blue' }: ModernSidebarLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [location] = useLocation();
   const { user, logout } = useAuth();
+
+  // Theme-specific classes
+  const getThemeClasses = () => {
+    if (theme === 'green') {
+      return {
+        sidebarBg: 'bg-green-950',
+        iconBg: 'bg-green-800',
+        activeItem: 'bg-green-600 text-white',
+        cardAccent: 'bg-green-100',
+        primaryColor: 'text-green-600'
+      };
+    }
+    return {
+      sidebarBg: 'bg-[hsl(var(--sidebar-background))]',
+      iconBg: 'bg-white/20',
+      activeItem: 'bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-accent-foreground))]',
+      cardAccent: 'bg-blue-100',
+      primaryColor: 'text-primary'
+    };
+  };
+
+  const themeClasses = getThemeClasses();
 
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -116,7 +139,7 @@ export function ModernSidebarLayout({ children, title, userType = 'user' }: Mode
 
       {/* Sidebar */}
       <aside className={`
-        sidebar
+        flex flex-col w-64 ${themeClasses.sidebarBg} text-white transition-all duration-300 ease-in-out
         ${isMobile ? 'mobile-sidebar' : ''}
         ${isMobile && isSidebarOpen ? 'mobile-sidebar-open' : ''}
         ${isMobile && !isSidebarOpen ? 'mobile-sidebar-closed' : ''}
@@ -154,8 +177,10 @@ export function ModernSidebarLayout({ children, title, userType = 'user' }: Mode
             
             return (
               <Link key={item.href} href={item.href} onClick={closeSidebar}>
-                <div className={`sidebar-nav-item ${active ? 'active' : ''}`}>
-                  <Icon className="sidebar-nav-icon" />
+                <div className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 hover:bg-white/10 hover:text-white ${
+                  active ? themeClasses.activeItem : ''
+                }`}>
+                  <Icon className="w-5 h-5 mr-3 transition-transform duration-200" />
                   <span className="flex-1">{item.name}</span>
                   {item.badge && (
                     <Badge variant="secondary" className="ml-auto">
