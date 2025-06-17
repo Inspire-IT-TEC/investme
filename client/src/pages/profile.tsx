@@ -598,6 +598,6 @@ export default function Profile() {
           )}
         </Card>
       </div>
-    </div>
+    </ModernSidebarLayout>
   );
 }
