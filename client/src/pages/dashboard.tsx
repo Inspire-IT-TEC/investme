@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ModernCard, ModernCardContent, ModernCardHeader } from "@/components/ui/modern-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,9 +29,11 @@ import {
   Plus,
   Edit,
   CreditCard,
-  Calculator
+  Calculator,
+  ArrowUpRight,
+  Activity
 } from "lucide-react";
-import UnifiedNavbar from "@/components/layout/unified-navbar";
+import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { useLocation, Link } from "wouter";
 
 export default function Dashboard() {
@@ -107,32 +110,28 @@ export default function Dashboard() {
   const totalRequestedValue = creditRequests?.reduce((sum: number, req: any) => sum + parseFloat(req.valorSolicitado || 0), 0) || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <UnifiedNavbar 
-        userType="entrepreneur" 
-        userName={user?.nomeCompleto || user?.nome || "Empreendedor"}
-        isCompanyApproved={true}
-      />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Welcome Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl p-6 mb-6 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mr-4">
-                <Building2 className="w-6 h-6 text-white" />
+    <ModernSidebarLayout title="Dashboard" userType="user">
+      <div className="space-y-6">
+        {/* Welcome Card */}
+        <ModernCard variant="gradient" className="gradient-primary text-white shadow-xl">
+          <ModernCardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">Bem-vindo, {user?.nomeCompleto || 'Empreendedor'}</h1>
+                  <p className="text-white/80 text-lg">Gerencie suas empresas e solicitações de crédito</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold mb-1">Bem-vindo, {user?.nomeCompleto}</h1>
-                <p className="text-blue-100">Gerencie suas empresas e solicitações de crédito</p>
+              <div className="hidden md:block text-right">
+                <div className="text-white/80">Portal do Empreendedor</div>
+                <div className="text-2xl font-bold">InvestMe</div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-blue-100">Portal do Empreendedor</div>
-              <div className="text-lg font-semibold">InvestMe</div>
-            </div>
-          </div>
-        </div>
+          </ModernCardContent>
+        </ModernCard>
 
         {/* Profile Status Alert */}
         {entrepreneurProfile && (
