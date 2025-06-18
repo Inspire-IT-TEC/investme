@@ -22,7 +22,7 @@ export default function BackofficeNotifications() {
     titulo: '',
     conteudo: '',
     tipoUsuario: 'both',
-    usuarioEspecificoId: null,
+    usuarioEspecificoId: null as number | null,
     tipoUsuarioEspecifico: '',
     ativa: true
   });

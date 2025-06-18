@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
+import { cn } from "@/lib/utils";
 
 interface NavigationItem {
   name: string;
@@ -150,6 +151,7 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
         { name: 'Investidores', href: '/backoffice/investors', icon: UserCheck },
         { name: 'Rede', href: '/backoffice/network', icon: TrendingUp },
         { name: 'Mensagens', href: '/backoffice/messages', icon: MessageCircle },
+        { name: 'Notificações', href: '/backoffice/notifications', icon: Bell },
         { name: 'Usuários', href: '/backoffice/admin-users', icon: Users },
         { name: 'Auditoria', href: '/backoffice/audit', icon: FileSearch },
       ];
@@ -309,10 +311,77 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
             </Button>
 
             {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="h-4 w-4" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
-            </Button>
+            <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-4 w-4" />
+                  {unreadCount?.count > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs min-w-[20px]"
+                    >
+                      {unreadCount.count > 99 ? '99+' : unreadCount.count}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="p-4 border-b">
+                  <h4 className="font-semibold text-sm">Notificações</h4>
+                  {unreadCount?.count > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {unreadCount.count} não {unreadCount.count === 1 ? 'lida' : 'lidas'}
+                    </p>
+                  )}
+                </div>
+                <ScrollArea className="max-h-80">
+                  {!notifications || notifications.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      Nenhuma notificação
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {notifications.map((notification: any) => (
+                        <div
+                          key={notification.id}
+                          className={cn(
+                            "p-3 hover:bg-muted/50 cursor-pointer border-b border-border/50 last:border-b-0",
+                            !notification.lida && "bg-blue-50 dark:bg-blue-950/20"
+                          )}
+                          onClick={() => {
+                            if (!notification.lida) {
+                              markAsReadMutation.mutate(notification.id);
+                            }
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-medium text-sm truncate">
+                                {notification.titulo}
+                              </h5>
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {notification.conteudo}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {new Date(notification.createdAt).toLocaleDateString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                            {!notification.lida && (
+                              <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1"></div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
 
             {/* Theme Toggle */}
             <Button 

@@ -28,6 +28,7 @@ import BackofficeInvestors from "@/pages/backoffice/investors";
 import BackofficeEntrepreneurs from "@/pages/backoffice/entrepreneurs";
 import BackofficeNetwork from "@/pages/backoffice/network";
 import BackofficeApprovals from "@/pages/backoffice/approvals";
+import BackofficeNotifications from "@/pages/backoffice/notifications";
 import CompanyEdit from "@/pages/company-edit";
 import CompanyDetail from "@/pages/company-detail";
 import ValuationPage from "@/pages/valuation";
@@ -75,6 +76,7 @@ function Router() {
       <Route path="/backoffice/admin-users" component={AdminUsers} />
       <Route path="/backoffice/audit" component={AuditPage} />
       <Route path="/backoffice/messages" component={BackofficeMessages} />
+      <Route path="/backoffice/notifications" component={BackofficeNotifications} />
       <Route component={NotFound} />
     </Switch>
   );
