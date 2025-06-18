@@ -238,13 +238,13 @@ export default function BackofficeNotifications() {
   return (
     <ModernSidebarLayout title="Notificações" userType="admin" theme="blue">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <Bell className="h-8 w-8 text-blue-600" />
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+              <Bell className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
               Gerenciar Notificações
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-sm md:text-base text-muted-foreground mt-2">
               Crie e gerencie notificações para empreendedores e investidores
             </p>
           </div>
@@ -256,7 +256,7 @@ export default function BackofficeNotifications() {
                 Nova Notificação
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl mx-4 md:mx-auto">
               <DialogHeader>
                 <DialogTitle>Criar Nova Notificação</DialogTitle>
               </DialogHeader>
@@ -282,7 +282,7 @@ export default function BackofficeNotifications() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="tipoUsuario">Tipo de Usuário</Label>
                     <Select
@@ -405,22 +405,25 @@ export default function BackofficeNotifications() {
             {notifications.map((notification: any) => (
               <Card key={notification.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle className="text-lg">{notification.titulo}</CardTitle>
-                        {getStatusBadge(notification.ativa)}
-                        {getUserTypeBadge(notification.tipoUsuario)}
+                      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
+                        <CardTitle className="text-base md:text-lg">{notification.titulo}</CardTitle>
+                        <div className="flex gap-2">
+                          {getStatusBadge(notification.ativa)}
+                          {getUserTypeBadge(notification.tipoUsuario)}
+                        </div>
                       </div>
-                      <CardDescription className="text-sm">
+                      <CardDescription className="text-xs md:text-sm">
                         Criada por {notification.adminName} • {formatDate(notification.createdAt)}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => toggleNotificationStatus(notification)}
+                        className="text-xs md:text-sm"
                       >
                         {notification.ativa ? 'Desativar' : 'Ativar'}
                       </Button>
@@ -428,6 +431,7 @@ export default function BackofficeNotifications() {
                         variant="outline"
                         size="sm"
                         onClick={() => setEditingNotification(notification)}
+                        className="md:w-auto"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -435,6 +439,7 @@ export default function BackofficeNotifications() {
                         variant="outline"
                         size="sm"
                         onClick={() => deleteNotificationMutation.mutate(notification.id)}
+                        className="md:w-auto"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -469,7 +474,7 @@ export default function BackofficeNotifications() {
         {/* Edit Dialog */}
         {editingNotification && (
           <Dialog open={!!editingNotification} onOpenChange={() => setEditingNotification(null)}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl mx-4 md:mx-auto">
               <DialogHeader>
                 <DialogTitle>Editar Notificação</DialogTitle>
               </DialogHeader>

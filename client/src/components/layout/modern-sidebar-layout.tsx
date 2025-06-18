@@ -295,16 +295,16 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
               </Button>
             )}
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="text-lg md:text-2xl font-bold text-foreground truncate">
                 {title || 'Dashboard'}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
                 Bem-vindo ao sistema Investme
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             {/* Search Button */}
             <Button variant="ghost" size="sm" className="hidden md:flex">
               <Search className="h-4 w-4" />
@@ -313,19 +313,19 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
             {/* Notifications */}
             <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="relative">
+                <Button variant="ghost" size="sm" className="relative p-2">
                   <Bell className="h-4 w-4" />
                   {unreadCount?.count > 0 && (
                     <Badge 
                       variant="destructive" 
-                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs min-w-[20px]"
+                      className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 flex items-center justify-center p-0 text-[10px] md:text-xs min-w-[16px] md:min-w-[20px]"
                     >
                       {unreadCount.count > 99 ? '99+' : unreadCount.count}
                     </Badge>
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="end">
+              <PopoverContent className="w-72 md:w-80 p-0" align="end">
                 <div className="p-4 border-b">
                   <h4 className="font-semibold text-sm">Notificações</h4>
                   {unreadCount?.count > 0 && (
@@ -388,7 +388,7 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
               variant="ghost" 
               size="sm"
               onClick={() => setTheme(currentTheme === "light" ? "dark" : "light")}
-              className="relative"
+              className="relative p-2"
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
