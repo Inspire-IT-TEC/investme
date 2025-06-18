@@ -113,11 +113,11 @@ export default function Dashboard() {
           !(entrepreneurProfile as any)?.emailConfirmado || 
           !(entrepreneurProfile as any)?.documentosVerificados
         ) && (
-          <ModernCard className="border-warning bg-warning/5">
+          <ModernCard className="border-amber-200 bg-amber-50">
             <ModernCardContent>
               <div className="flex items-center space-x-3">
-                <AlertCircle className="h-5 w-5 text-warning" />
-                <p className="text-warning-foreground">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
+                <p className="text-amber-800">
                   Seu perfil está em processo de validação. Algumas funcionalidades podem estar limitadas até a aprovação completa.
                 </p>
               </div>
