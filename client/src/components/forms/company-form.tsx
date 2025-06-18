@@ -134,6 +134,8 @@ export default function CompanyForm({ onSuccess, onCancel }: CompanyFormProps) {
       faturamento: formData.faturamento.replace(/[^\d,]/g, '').replace(',', '.'),
       ebitda: formData.ebitda.replace(/[^\d,]/g, '').replace(',', '.'),
       dividaLiquida: formData.dividaLiquida.replace(/[^\d,]/g, '').replace(',', '.'),
+      numeroFuncionarios: formData.numeroFuncionarios,
+      descricaoNegocio: formData.descricaoNegocio,
       shareholders: shareholders.filter(s => s.nomeCompleto && s.cpf),
       guarantees: guarantees.filter(g => g.tipo && g.valorEstimado).map(g => ({
         ...g,
