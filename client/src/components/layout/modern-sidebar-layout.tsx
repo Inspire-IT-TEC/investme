@@ -151,7 +151,7 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
         { name: 'Investidores', href: '/backoffice/investors', icon: UserCheck },
         { name: 'Rede', href: '/backoffice/network', icon: TrendingUp },
         { name: 'Mensagens', href: '/backoffice/messages', icon: MessageCircle },
-        { name: 'Notificações', href: '/backoffice/notifications', icon: Bell },
+        { name: 'Notificações', href: '/backoffice/notifications', icon: Bell }, // Notifications management
         { name: 'Usuários', href: '/backoffice/admin-users', icon: Users },
         { name: 'Auditoria', href: '/backoffice/audit', icon: FileSearch },
       ];
