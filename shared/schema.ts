@@ -355,11 +355,11 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   dataAnalise: true,
   observacoesInternas: true,
 }).extend({
-  dataFundacao: z.string().transform((str) => new Date(str)),
-  faturamento: z.string().transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
-  ebitda: z.string().transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
-  dividaLiquida: z.string().transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
-  numeroFuncionarios: z.string().transform((val) => parseInt(val)),
+  dataFundacao: z.string().min(1, "Data de fundação é obrigatória").transform((str) => new Date(str)),
+  faturamento: z.string().min(1, "Faturamento é obrigatório").transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
+  ebitda: z.string().min(1, "EBITDA é obrigatório").transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
+  dividaLiquida: z.string().min(1, "Dívida líquida é obrigatória").transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
+  numeroFuncionarios: z.string().min(1, "Número de funcionários é obrigatório").transform((val) => parseInt(val)),
   cnaeSecundarios: z.array(z.string()).optional().default([]),
 });
 
