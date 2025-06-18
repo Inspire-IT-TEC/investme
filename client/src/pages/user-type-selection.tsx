@@ -42,7 +42,7 @@ export default function UserTypeSelection() {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-200 to-blue-300 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-200 to-blue-300 overflow-x-hidden">
       {/* Install Button */}
       {showInstallButton && (
         <div className="fixed top-4 right-4 z-50">
@@ -58,13 +58,13 @@ export default function UserTypeSelection() {
         </div>
       )}
 
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col min-h-screen">
         {/* Header */}
-        <div className="text-center py-8">
+        <div className="text-center py-6 px-4">
           <div className="flex justify-center mb-4">
-            <InvestmeLogo className="h-10" />
+            <InvestmeLogo className="h-8 sm:h-10" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mb-2">
             Bem-vindo à Investme
           </h1>
           <p className="text-sm md:text-base text-slate-600">
@@ -73,24 +73,24 @@ export default function UserTypeSelection() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex items-center justify-center px-6">
+        <div className="flex-1 flex items-start sm:items-center justify-center px-4 sm:px-6 pb-6">
           <div className="w-full max-w-5xl">
             {/* Cards */}
             <div className="grid lg:grid-cols-2 gap-6 mb-8">
               {/* Empreendedor Card */}
               <Card className="group relative overflow-hidden bg-gradient-to-br from-green-600 to-emerald-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl">
-                <CardContent className="p-8">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-3xl mb-4">
-                      <Building2 className="w-10 h-10 text-white" />
+                <CardContent className="p-4 sm:p-6 lg:p-8">
+                  <div className="text-center mb-4 sm:mb-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-3xl mb-3 sm:mb-4">
+                      <Building2 className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-3">Sou Empreendedor</h3>
-                    <p className="text-green-100">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">Sou Empreendedor</h3>
+                    <p className="text-sm sm:text-base text-green-100">
                       Solicite crédito inteligente para sua empresa
                     </p>
                   </div>
                   
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                     {[
                       { icon: Building2, text: "Cadastrar empresas" },
                       { icon: DollarSign, text: "Solicitar crédito" },
@@ -98,16 +98,16 @@ export default function UserTypeSelection() {
                       { icon: Users, text: "Conectar com investidores" }
                     ].map((item, index) => (
                       <div key={index} className="flex items-center text-green-100">
-                        <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center mr-4">
-                          <item.icon className="w-4 h-4" />
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-xl flex items-center justify-center mr-3 sm:mr-4">
+                          <item.icon className="w-3 h-3 sm:w-4 sm:h-4" />
                         </div>
-                        <span className="font-medium">{item.text}</span>
+                        <span className="text-sm sm:text-base font-medium">{item.text}</span>
                       </div>
                     ))}
                   </div>
                   
                   <Link href="/register/entrepreneur" className="block">
-                    <Button className="w-full bg-white text-green-600 hover:bg-green-50 py-3 text-lg font-semibold rounded-xl transition-all">
+                    <Button className="w-full bg-white text-green-600 hover:bg-green-50 py-2 sm:py-3 text-base sm:text-lg font-semibold rounded-xl transition-all">
                       Cadastrar como Empreendedor
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
@@ -117,18 +117,18 @@ export default function UserTypeSelection() {
 
               {/* Investidor Card */}
               <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl">
-                <CardContent className="p-8">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-3xl mb-4">
-                      <TrendingUp className="w-10 h-10 text-white" />
+                <CardContent className="p-4 sm:p-6 lg:p-8">
+                  <div className="text-center mb-4 sm:mb-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-3xl mb-3 sm:mb-4">
+                      <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-3">Sou Investidor</h3>
-                    <p className="text-blue-100">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">Sou Investidor</h3>
+                    <p className="text-sm sm:text-base text-blue-100">
                       Analise e invista em empresas promissoras
                     </p>
                   </div>
                   
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                     {[
                       { icon: BarChart3, text: "Ver análises de crédito" },
                       { icon: Shield, text: "Investimentos seguros" },
@@ -136,16 +136,16 @@ export default function UserTypeSelection() {
                       { icon: Users, text: "Rede de oportunidades" }
                     ].map((item, index) => (
                       <div key={index} className="flex items-center text-blue-100">
-                        <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center mr-4">
-                          <item.icon className="w-4 h-4" />
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-xl flex items-center justify-center mr-3 sm:mr-4">
+                          <item.icon className="w-3 h-3 sm:w-4 sm:h-4" />
                         </div>
-                        <span className="font-medium">{item.text}</span>
+                        <span className="text-sm sm:text-base font-medium">{item.text}</span>
                       </div>
                     ))}
                   </div>
                   
                   <Link href="/register/investor" className="block">
-                    <Button className="w-full bg-white text-blue-600 hover:bg-blue-50 py-3 text-lg font-semibold rounded-xl transition-all">
+                    <Button className="w-full bg-white text-blue-600 hover:bg-blue-50 py-2 sm:py-3 text-base sm:text-lg font-semibold rounded-xl transition-all">
                       Cadastrar como Investidor
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
