@@ -504,3 +504,43 @@ export type Valuation = typeof valuations.$inferSelect;
 
 export type DCFData = z.infer<typeof dcfDataSchema>;
 export type MultiplesData = z.infer<typeof multiplesDataSchema>;
+
+// Platform Notifications table
+export const platformNotifications = pgTable("platform_notifications", {
+  id: serial("id").primaryKey(),
+  titulo: text("titulo").notNull(),
+  conteudo: text("conteudo").notNull(),
+  tipoUsuario: text("tipo_usuario").notNull(), // 'entrepreneur', 'investor', 'both'
+  usuarioEspecificoId: integer("usuario_especifico_id"), // null = para todos
+  tipoUsuarioEspecifico: text("tipo_usuario_especifico"), // 'entrepreneur' ou 'investor' quando usuarioEspecificoId não é null
+  criadoPor: integer("criado_por").notNull().references(() => adminUsers.id),
+  ativa: boolean("ativa").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User notification reads tracking
+export const notificationReads = pgTable("notification_reads", {
+  id: serial("id").primaryKey(),
+  notificationId: integer("notification_id").notNull().references(() => platformNotifications.id),
+  userId: integer("user_id").notNull(),
+  userType: text("user_type").notNull(), // 'entrepreneur' ou 'investor'
+  readAt: timestamp("read_at").defaultNow(),
+});
+
+export const insertPlatformNotificationSchema = createInsertSchema(platformNotifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNotificationReadSchema = createInsertSchema(notificationReads).omit({
+  id: true,
+  readAt: true,
+});
+
+export type InsertPlatformNotification = z.infer<typeof insertPlatformNotificationSchema>;
+export type PlatformNotification = typeof platformNotifications.$inferSelect;
+
+export type InsertNotificationRead = z.infer<typeof insertNotificationReadSchema>;
+export type NotificationRead = typeof notificationReads.$inferSelect;

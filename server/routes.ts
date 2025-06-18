@@ -18,7 +18,8 @@ import {
   insertCreditRequestSchema,
   insertValuationSchema,
   dcfDataSchema,
-  multiplesDataSchema
+  multiplesDataSchema,
+  insertPlatformNotificationSchema
 } from "@shared/schema";
 
 const JWT_SECRET = process.env.JWT_SECRET || "investme-secret-key";

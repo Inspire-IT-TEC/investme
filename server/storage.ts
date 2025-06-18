@@ -9,6 +9,8 @@ import {
   creditRequests,
   auditLog,
   messages,
+  platformNotifications,
+  notificationReads,
   type User, 
   type InsertUser,
   type Entrepreneur,
@@ -29,6 +31,10 @@ import {
   type InsertAuditLog,
   type Message,
   type InsertMessage,
+  type PlatformNotification,
+  type InsertPlatformNotification,
+  type NotificationRead,
+  type InsertNotificationRead,
   valuations,
   type Valuation,
   type InsertValuation
@@ -128,6 +134,15 @@ export interface IStorage {
   updateValuation(id: number, valuation: Partial<InsertValuation>): Promise<Valuation | undefined>;
   deleteValuation(id: number): Promise<void>;
   getUserValuations(userId: number): Promise<any[]>;
+
+  // Platform notification methods
+  createPlatformNotification(notification: InsertPlatformNotification): Promise<PlatformNotification>;
+  getPlatformNotifications(filters?: { tipoUsuario?: string; ativa?: boolean }): Promise<any[]>;
+  updatePlatformNotification(id: number, notification: Partial<InsertPlatformNotification>): Promise<PlatformNotification | undefined>;
+  deletePlatformNotification(id: number): Promise<void>;
+  getUserNotifications(userId: number, userType: string): Promise<any[]>;
+  markNotificationAsRead(notificationId: number, userId: number, userType: string): Promise<void>;
+  getUnreadNotificationsCount(userId: number, userType: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1163,6 +1178,130 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(companies, eq(valuations.companyId, companies.id))
       .where(eq(valuations.userId, userId))
       .orderBy(desc(valuations.createdAt));
+  }
+
+  // Platform notification methods
+  async createPlatformNotification(notificationData: InsertPlatformNotification): Promise<PlatformNotification> {
+    const [notification] = await db.insert(platformNotifications).values(notificationData).returning();
+    return notification;
+  }
+
+  async getPlatformNotifications(filters?: { tipoUsuario?: string; ativa?: boolean }): Promise<any[]> {
+    let query = db
+      .select({
+        id: platformNotifications.id,
+        titulo: platformNotifications.titulo,
+        conteudo: platformNotifications.conteudo,
+        tipoUsuario: platformNotifications.tipoUsuario,
+        usuarioEspecificoId: platformNotifications.usuarioEspecificoId,
+        tipoUsuarioEspecifico: platformNotifications.tipoUsuarioEspecifico,
+        criadoPor: platformNotifications.criadoPor,
+        ativa: platformNotifications.ativa,
+        createdAt: platformNotifications.createdAt,
+        updatedAt: platformNotifications.updatedAt,
+        adminName: adminUsers.nomeCompleto,
+      })
+      .from(platformNotifications)
+      .leftJoin(adminUsers, eq(platformNotifications.criadoPor, adminUsers.id));
+
+    if (filters?.tipoUsuario) {
+      query = query.where(eq(platformNotifications.tipoUsuario, filters.tipoUsuario));
+    }
+    
+    if (filters?.ativa !== undefined) {
+      query = query.where(eq(platformNotifications.ativa, filters.ativa));
+    }
+
+    return await query.orderBy(desc(platformNotifications.createdAt));
+  }
+
+  async updatePlatformNotification(id: number, updateData: Partial<InsertPlatformNotification>): Promise<PlatformNotification | undefined> {
+    const [notification] = await db
+      .update(platformNotifications)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(platformNotifications.id, id))
+      .returning();
+    
+    return notification || undefined;
+  }
+
+  async deletePlatformNotification(id: number): Promise<void> {
+    await db.delete(platformNotifications).where(eq(platformNotifications.id, id));
+  }
+
+  async getUserNotifications(userId: number, userType: string): Promise<any[]> {
+    // Get notifications that apply to this user
+    const notifications = await db
+      .select({
+        id: platformNotifications.id,
+        titulo: platformNotifications.titulo,
+        conteudo: platformNotifications.conteudo,
+        tipoUsuario: platformNotifications.tipoUsuario,
+        usuarioEspecificoId: platformNotifications.usuarioEspecificoId,
+        tipoUsuarioEspecifico: platformNotifications.tipoUsuarioEspecifico,
+        ativa: platformNotifications.ativa,
+        createdAt: platformNotifications.createdAt,
+        readAt: notificationReads.readAt,
+      })
+      .from(platformNotifications)
+      .leftJoin(
+        notificationReads,
+        and(
+          eq(notificationReads.notificationId, platformNotifications.id),
+          eq(notificationReads.userId, userId),
+          eq(notificationReads.userType, userType)
+        )
+      )
+      .where(
+        and(
+          eq(platformNotifications.ativa, true),
+          or(
+            // General notifications for user type
+            and(
+              or(
+                eq(platformNotifications.tipoUsuario, userType),
+                eq(platformNotifications.tipoUsuario, 'both')
+              ),
+              sql`${platformNotifications.usuarioEspecificoId} IS NULL`
+            ),
+            // Specific notifications for this user
+            and(
+              eq(platformNotifications.usuarioEspecificoId, userId),
+              eq(platformNotifications.tipoUsuarioEspecifico, userType)
+            )
+          )
+        )
+      )
+      .orderBy(desc(platformNotifications.createdAt));
+
+    return notifications;
+  }
+
+  async markNotificationAsRead(notificationId: number, userId: number, userType: string): Promise<void> {
+    // Check if already read
+    const [existing] = await db
+      .select()
+      .from(notificationReads)
+      .where(
+        and(
+          eq(notificationReads.notificationId, notificationId),
+          eq(notificationReads.userId, userId),
+          eq(notificationReads.userType, userType)
+        )
+      );
+
+    if (!existing) {
+      await db.insert(notificationReads).values({
+        notificationId,
+        userId,
+        userType,
+      });
+    }
+  }
+
+  async getUnreadNotificationsCount(userId: number, userType: string): Promise<number> {
+    const notifications = await this.getUserNotifications(userId, userType);
+    return notifications.filter(n => !n.readAt).length;
   }
 }
 
