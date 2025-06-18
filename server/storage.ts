@@ -68,6 +68,7 @@ export interface IStorage {
   getInvestorByEmail(email: string): Promise<Investor | undefined>;
   getInvestorByCpf(cpf: string): Promise<Investor | undefined>;
   createInvestor(investor: InsertInvestor): Promise<Investor>;
+  updateInvestor(id: number, updateData: Partial<Investor>): Promise<Investor | undefined>;
   updateInvestorApproval(id: number, field: 'cadastroAprovado' | 'emailConfirmado' | 'documentosVerificados', approved: boolean, adminId: number): Promise<Investor | undefined>;
 
   // Admin user methods
@@ -294,6 +295,19 @@ export class DatabaseStorage implements IStorage {
     const [investor] = await db
       .update(investors)
       .set(updateData)
+      .where(eq(investors.id, id))
+      .returning();
+    
+    return investor || undefined;
+  }
+
+  async updateInvestor(id: number, updateData: Partial<Investor>): Promise<Investor | undefined> {
+    const [investor] = await db
+      .update(investors)
+      .set({
+        ...updateData,
+        updatedAt: new Date()
+      })
       .where(eq(investors.id, id))
       .returning();
     

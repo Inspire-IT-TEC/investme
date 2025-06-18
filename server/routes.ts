@@ -1648,22 +1648,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { field, approved } = req.body;
       
-      if (!['cadastroAprovado', 'emailConfirmado', 'documentosVerificados'].includes(field)) {
+      const validFields = [
+        'cadastroAprovado', 
+        'emailConfirmado', 
+        'documentosVerificados', 
+        'rendaComprovada', 
+        'perfilInvestidor'
+      ];
+      
+      if (!validFields.includes(field)) {
         return res.status(400).json({ message: 'Campo inválido' });
       }
 
-      const investor = await storage.updateInvestorApproval(
-        parseInt(id), 
-        field, 
-        approved, 
-        req.admin.id
-      );
+      // Update the investor field directly
+      const updateData = { [field]: approved };
+      const investor = await storage.updateInvestor(parseInt(id), updateData);
 
       if (!investor) {
         return res.status(404).json({ message: 'Investidor não encontrado' });
       }
 
-      res.json({ message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, investor });
+      res.json({ 
+        message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, 
+        investor 
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
     }

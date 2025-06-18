@@ -152,66 +152,134 @@ export default function BackofficeInvestors() {
   };
 
   const renderInvestorApprovalItems = (investor: any) => {
-    const approvalItems = [
-      {
-        field: 'emailConfirmado',
-        label: 'Email Confirmado',
-        status: investor.emailConfirmado,
-        description: 'Email foi verificado pelo investidor'
-      },
-      {
-        field: 'documentosVerificados',
-        label: 'Documentos Verificados',
-        status: investor.documentosVerificados,
-        description: 'CPF, RG e outros documentos foram validados'
-      },
-      {
-        field: 'rendaComprovada',
-        label: 'Renda Comprovada',
-        status: investor.rendaComprovada,
-        description: 'Comprovantes de renda foram analisados'
-      },
-      {
-        field: 'perfilInvestidor',
-        label: 'Perfil de Investidor',
-        status: investor.perfilInvestidor,
-        description: 'Questionário de perfil foi preenchido adequadamente'
-      },
-      {
-        field: 'cadastroAprovado',
-        label: 'Cadastro Aprovado',
-        status: investor.cadastroAprovado,
-        description: 'Aprovação final do cadastro'
-      }
-    ];
-
     return (
       <div className="space-y-4">
-        <h4 className="font-semibold text-gray-900">Itens de Aprovação</h4>
+        <h4 className="font-semibold text-gray-900">Aprovação de Itens do Perfil</h4>
         <div className="space-y-3">
-          {approvalItems.map((item) => (
-            <div key={item.field} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <Label className="font-medium">{item.label}</Label>
-                  {item.status ? (
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-red-600" />
-                  )}
-                </div>
-                <p className="text-xs text-gray-600 mt-1">{item.description}</p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleFieldApproval(investor.id, item.field, !item.status)}
-                className={item.status ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50"}
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${investor.cadastroAprovado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span className="font-medium">Cadastro Completo</span>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant={investor.cadastroAprovado ? "default" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'cadastroAprovado', true)}
               >
-                {item.status ? "Desaprovar" : "Aprovar"}
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Aprovar
+              </Button>
+              <Button 
+                size="sm" 
+                variant={!investor.cadastroAprovado ? "destructive" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'cadastroAprovado', false)}
+              >
+                <XCircle className="w-4 h-4 mr-1" />
+                Rejeitar
               </Button>
             </div>
-          ))}
+          </div>
+
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${investor.emailConfirmado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span className="font-medium">Email Confirmado</span>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant={investor.emailConfirmado ? "default" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'emailConfirmado', true)}
+              >
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Aprovar
+              </Button>
+              <Button 
+                size="sm" 
+                variant={!investor.emailConfirmado ? "destructive" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'emailConfirmado', false)}
+              >
+                <XCircle className="w-4 h-4 mr-1" />
+                Rejeitar
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${investor.documentosVerificados ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span className="font-medium">Documentos Verificados</span>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant={investor.documentosVerificados ? "default" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'documentosVerificados', true)}
+              >
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Aprovar
+              </Button>
+              <Button 
+                size="sm" 
+                variant={!investor.documentosVerificados ? "destructive" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'documentosVerificados', false)}
+              >
+                <XCircle className="w-4 h-4 mr-1" />
+                Rejeitar
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${investor.rendaComprovada ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span className="font-medium">Renda Comprovada</span>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant={investor.rendaComprovada ? "default" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'rendaComprovada', true)}
+              >
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Aprovar
+              </Button>
+              <Button 
+                size="sm" 
+                variant={!investor.rendaComprovada ? "destructive" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'rendaComprovada', false)}
+              >
+                <XCircle className="w-4 h-4 mr-1" />
+                Rejeitar
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${investor.perfilInvestidor ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span className="font-medium">Perfil de Investidor</span>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant={investor.perfilInvestidor ? "default" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'perfilInvestidor', true)}
+              >
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Aprovar
+              </Button>
+              <Button 
+                size="sm" 
+                variant={!investor.perfilInvestidor ? "destructive" : "outline"}
+                onClick={() => handleFieldApproval(investor.id, 'perfilInvestidor', false)}
+              >
+                <XCircle className="w-4 h-4 mr-1" />
+                Rejeitar
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -390,7 +458,10 @@ export default function BackofficeInvestors() {
                                     {selectedInvestor && (
                                       <div className="space-y-6">
                                         {renderInvestorDetails(selectedInvestor)}
-                                        {renderInvestorApprovalItems(selectedInvestor)}
+                                        
+                                        <div className="border-t pt-4">
+                                          {renderInvestorApprovalItems(selectedInvestor)}
+                                        </div>
                                         
                                         <div className="flex space-x-2 pt-4 border-t">
                                           <Button
