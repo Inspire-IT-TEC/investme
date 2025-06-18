@@ -46,7 +46,7 @@ import {
   type InsertValuation
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, like, ilike, sql, or, lt, ne } from "drizzle-orm";
+import { eq, and, desc, like, ilike, sql, or, lt, ne, count, asc, isNull, isNotNull, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -1379,7 +1379,7 @@ export class DatabaseStorage implements IStorage {
       ORDER BY razao_social
     `;
 
-    const result = await db.execute(sql.raw(query, params));
+    const result = await db.execute(sql.raw(query));
     return result.rows;
   }
 
