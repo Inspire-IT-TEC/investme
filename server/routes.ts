@@ -2006,6 +2006,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // END VALUATION ROUTES
   // =============================================================================
 
+  // =============================================================================
+  // PLATFORM NOTIFICATIONS ROUTES
+  // =============================================================================
+
+  // Admin: Create platform notification
+  app.post('/api/admin/notifications', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const notificationData = insertPlatformNotificationSchema.parse({
+        ...req.body,
+        criadoPor: req.user.id,
+      });
+
+      const notification = await storage.createPlatformNotification(notificationData);
+      res.status(201).json(notification);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao criar notificação' });
+    }
+  });
+
+  // Admin: Get all platform notifications
+  app.get('/api/admin/notifications', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { tipoUsuario, ativa } = req.query;
+      const filters: any = {};
+      
+      if (tipoUsuario) filters.tipoUsuario = tipoUsuario as string;
+      if (ativa !== undefined) filters.ativa = ativa === 'true';
+
+      const notifications = await storage.getPlatformNotifications(filters);
+      res.json(notifications);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar notificações' });
+    }
+  });
+
+  // Admin: Update platform notification
+  app.put('/api/admin/notifications/:id', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = insertPlatformNotificationSchema.partial().parse(req.body);
+
+      const notification = await storage.updatePlatformNotification(parseInt(id), updateData);
+      
+      if (!notification) {
+        return res.status(404).json({ message: 'Notificação não encontrada' });
+      }
+
+      res.json(notification);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao atualizar notificação' });
+    }
+  });
+
+  // Admin: Delete platform notification
+  app.delete('/api/admin/notifications/:id', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deletePlatformNotification(parseInt(id));
+      res.json({ message: 'Notificação excluída com sucesso' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao excluir notificação' });
+    }
+  });
+
+  // User: Get notifications for current user
+  app.get('/api/notifications', authenticateToken, async (req: any, res) => {
+    try {
+      const userType = req.user.type === 'admin' ? 'entrepreneur' : req.user.type;
+      const notifications = await storage.getUserNotifications(req.user.id, userType);
+      res.json(notifications);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar notificações' });
+    }
+  });
+
+  // User: Mark notification as read
+  app.post('/api/notifications/:id/read', authenticateToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userType = req.user.type === 'admin' ? 'entrepreneur' : req.user.type;
+      
+      await storage.markNotificationAsRead(parseInt(id), req.user.id, userType);
+      res.json({ message: 'Notificação marcada como lida' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao marcar notificação como lida' });
+    }
+  });
+
+  // User: Get unread notifications count
+  app.get('/api/notifications/unread/count', authenticateToken, async (req: any, res) => {
+    try {
+      const userType = req.user.type === 'admin' ? 'entrepreneur' : req.user.type;
+      const count = await storage.getUnreadNotificationsCount(req.user.id, userType);
+      res.json({ count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar contagem de notificações' });
+    }
+  });
+
+  // Get users for notification targeting (Admin only)
+  app.get('/api/admin/users/for-notifications', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { userType } = req.query;
+      
+      if (userType === 'entrepreneur') {
+        const entrepreneurs = await storage.getUsersByTypeAndStatus('entrepreneur', 'ativo');
+        res.json(entrepreneurs.map(user => ({
+          id: user.id,
+          nome: user.nomeCompleto || user.nome,
+          email: user.email,
+          tipo: 'entrepreneur'
+        })));
+      } else if (userType === 'investor') {
+        const investors = await storage.getInvestors('ativo');
+        res.json(investors.map(user => ({
+          id: user.id,
+          nome: user.nomeCompleto || user.nome,
+          email: user.email,
+          tipo: 'investor'
+        })));
+      } else {
+        res.json([]);
+      }
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar usuários' });
+    }
+  });
+
+  // =============================================================================
+  // END PLATFORM NOTIFICATIONS ROUTES
+  // =============================================================================
+
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 

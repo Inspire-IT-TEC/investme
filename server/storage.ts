@@ -1187,6 +1187,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPlatformNotifications(filters?: { tipoUsuario?: string; ativa?: boolean }): Promise<any[]> {
+    const conditions = [];
+    
+    if (filters?.tipoUsuario) {
+      conditions.push(eq(platformNotifications.tipoUsuario, filters.tipoUsuario));
+    }
+    
+    if (filters?.ativa !== undefined) {
+      conditions.push(eq(platformNotifications.ativa, filters.ativa));
+    }
+
     let query = db
       .select({
         id: platformNotifications.id,
@@ -1199,17 +1209,13 @@ export class DatabaseStorage implements IStorage {
         ativa: platformNotifications.ativa,
         createdAt: platformNotifications.createdAt,
         updatedAt: platformNotifications.updatedAt,
-        adminName: adminUsers.nomeCompleto,
+        adminName: adminUsers.nome,
       })
       .from(platformNotifications)
       .leftJoin(adminUsers, eq(platformNotifications.criadoPor, adminUsers.id));
 
-    if (filters?.tipoUsuario) {
-      query = query.where(eq(platformNotifications.tipoUsuario, filters.tipoUsuario));
-    }
-    
-    if (filters?.ativa !== undefined) {
-      query = query.where(eq(platformNotifications.ativa, filters.ativa));
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
     }
 
     return await query.orderBy(desc(platformNotifications.createdAt));

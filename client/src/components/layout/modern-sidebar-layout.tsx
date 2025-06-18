@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { 
   Building2, 
   Users, 
@@ -46,9 +50,58 @@ interface ModernSidebarLayoutProps {
 export function ModernSidebarLayout({ children, title, userType = 'user', theme = 'blue' }: ModernSidebarLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { theme: currentTheme, setTheme } = useTheme();
+
+  // Get user notifications
+  const { data: notifications } = useQuery({
+    queryKey: ['/api/notifications'],
+    queryFn: () => {
+      return fetch('/api/notifications', {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }).then(res => res.json());
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  // Get unread count
+  const { data: unreadCount } = useQuery({
+    queryKey: ['/api/notifications/unread/count'],
+    queryFn: () => {
+      return fetch('/api/notifications/unread/count', {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }).then(res => res.json());
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  // Mark notification as read
+  const markAsReadMutation = useMutation({
+    mutationFn: async (notificationId: number) => {
+      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao marcar notificação como lida');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread/count'] });
+    },
+  });
 
   // Theme-specific classes
   const getThemeClasses = () => {
