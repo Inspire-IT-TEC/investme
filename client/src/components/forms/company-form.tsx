@@ -39,7 +39,7 @@ export default function CompanyForm({ onSuccess, onCancel }: CompanyFormProps) {
     faturamento: "",
     ebitda: "",
     dividaLiquida: "",
-    numeroFuncionarios: "",
+    numeroFuncionarios: "1",
     descricaoNegocio: "",
   });
 
