@@ -11,6 +11,12 @@ import {
   messages,
   platformNotifications,
   notificationReads,
+  states,
+  cities,
+  companyImages,
+  networkPosts,
+  networkComments,
+  networkLikes,
   type User, 
   type InsertUser,
   type Entrepreneur,
@@ -143,6 +149,26 @@ export interface IStorage {
   getUserNotifications(userId: number, userType: string): Promise<any[]>;
   markNotificationAsRead(notificationId: number, userId: number, userType: string): Promise<void>;
   getUnreadNotificationsCount(userId: number, userType: string): Promise<number>;
+
+  // Network/Location methods
+  getStates(): Promise<any[]>;
+  getCitiesByState(stateId: number): Promise<any[]>;
+  getNetworkCompanies(filters?: { stateId?: number; cityId?: number; search?: string; excludeUserId?: number }): Promise<any[]>;
+  
+  // Network posts methods
+  createNetworkPost(post: any): Promise<any>;
+  getNetworkPosts(companyId: number): Promise<any[]>;
+  likeNetworkPost(postId: number, userId: number, userType: string): Promise<void>;
+  unlikeNetworkPost(postId: number, userId: number, userType: string): Promise<void>;
+  
+  // Network comments methods
+  createNetworkComment(comment: any): Promise<any>;
+  getNetworkComments(postId: number): Promise<any[]>;
+  flagNetworkComment(commentId: number, reason: string, moderatedBy: number): Promise<void>;
+  
+  // Company images methods
+  createCompanyImage(image: any): Promise<any>;
+  getCompanyImages(companyId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1308,6 +1334,197 @@ export class DatabaseStorage implements IStorage {
   async getUnreadNotificationsCount(userId: number, userType: string): Promise<number> {
     const notifications = await this.getUserNotifications(userId, userType);
     return notifications.filter(n => !n.readAt).length;
+  }
+
+  // Network/Location methods
+  async getStates(): Promise<any[]> {
+    return await db.select().from(states).orderBy(states.name);
+  }
+
+  async getCitiesByState(stateId: number): Promise<any[]> {
+    return await db.select().from(cities)
+      .where(eq(cities.stateId, stateId))
+      .orderBy(cities.name);
+  }
+
+  async getNetworkCompanies(filters?: { stateId?: number; cityId?: number; search?: string; excludeUserId?: number }): Promise<any[]> {
+    let query = db
+      .select({
+        id: companies.id,
+        razaoSocial: companies.razaoSocial,
+        nomeFantasia: companies.nomeFantasia,
+        cnpj: companies.cnpj,
+        cidade: companies.cidade,
+        estado: companies.estado,
+        cnaePrincipal: companies.cnaePrincipal,
+        faturamento: companies.faturamento,
+        dataFundacao: companies.dataFundacao,
+        userId: companies.userId,
+        entrepreneurId: companies.entrepreneurId,
+        investorId: companies.investorId,
+      })
+      .from(companies)
+      .where(eq(companies.status, 'aprovada')); // Only show approved companies
+
+    const conditions = [];
+
+    if (filters?.stateId) {
+      conditions.push(eq(companies.stateId, filters.stateId));
+    }
+
+    if (filters?.cityId) {
+      conditions.push(eq(companies.cityId, filters.cityId));
+    }
+
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(companies.razaoSocial, `%${filters.search}%`),
+          ilike(companies.nomeFantasia, `%${filters.search}%`)
+        )
+      );
+    }
+
+    if (filters?.excludeUserId) {
+      conditions.push(ne(companies.userId, filters.excludeUserId));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(companies.razaoSocial);
+  }
+
+  // Network posts methods
+  async createNetworkPost(postData: any): Promise<any> {
+    const [post] = await db
+      .insert(networkPosts)
+      .values(postData)
+      .returning();
+    return post;
+  }
+
+  async getNetworkPosts(companyId: number): Promise<any[]> {
+    const posts = await db
+      .select({
+        id: networkPosts.id,
+        content: networkPosts.content,
+        imageUrl: networkPosts.imageUrl,
+        userId: networkPosts.userId,
+        userType: networkPosts.userType,
+        createdAt: networkPosts.createdAt,
+        companyId: networkPosts.companyId,
+      })
+      .from(networkPosts)
+      .where(eq(networkPosts.companyId, companyId))
+      .orderBy(desc(networkPosts.createdAt));
+
+    // Get likes and comments count for each post
+    for (const post of posts) {
+      const [likesResult] = await db
+        .select({ count: count() })
+        .from(networkLikes)
+        .where(eq(networkLikes.postId, post.id));
+
+      const [commentsResult] = await db
+        .select({ count: count() })
+        .from(networkComments)
+        .where(eq(networkComments.postId, post.id));
+
+      const comments = await db
+        .select({
+          id: networkComments.id,
+          content: networkComments.content,
+          userId: networkComments.userId,
+          userType: networkComments.userType,
+          createdAt: networkComments.createdAt,
+        })
+        .from(networkComments)
+        .where(eq(networkComments.postId, post.id))
+        .orderBy(networkComments.createdAt);
+
+      (post as any).likesCount = likesResult.count || 0;
+      (post as any).commentsCount = commentsResult.count || 0;
+      (post as any).comments = comments;
+    }
+
+    return posts;
+  }
+
+  async likeNetworkPost(postId: number, userId: number, userType: string): Promise<void> {
+    // Check if already liked
+    const existingLike = await db
+      .select()
+      .from(networkLikes)
+      .where(and(
+        eq(networkLikes.postId, postId),
+        eq(networkLikes.userId, userId),
+        eq(networkLikes.userType, userType)
+      ));
+
+    if (existingLike.length === 0) {
+      await db.insert(networkLikes).values({
+        postId,
+        userId,
+        userType,
+      });
+    }
+  }
+
+  async unlikeNetworkPost(postId: number, userId: number, userType: string): Promise<void> {
+    await db
+      .delete(networkLikes)
+      .where(and(
+        eq(networkLikes.postId, postId),
+        eq(networkLikes.userId, userId),
+        eq(networkLikes.userType, userType)
+      ));
+  }
+
+  // Network comments methods
+  async createNetworkComment(commentData: any): Promise<any> {
+    const [comment] = await db
+      .insert(networkComments)
+      .values(commentData)
+      .returning();
+    return comment;
+  }
+
+  async getNetworkComments(postId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(networkComments)
+      .where(eq(networkComments.postId, postId))
+      .orderBy(networkComments.createdAt);
+  }
+
+  async flagNetworkComment(commentId: number, reason: string, moderatedBy: number): Promise<void> {
+    await db
+      .update(networkComments)
+      .set({
+        flagged: true,
+        flaggedReason: reason,
+        moderatedBy,
+      })
+      .where(eq(networkComments.id, commentId));
+  }
+
+  // Company images methods
+  async createCompanyImage(imageData: any): Promise<any> {
+    const [image] = await db
+      .insert(companyImages)
+      .values(imageData)
+      .returning();
+    return image;
+  }
+
+  async getCompanyImages(companyId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(companyImages)
+      .where(eq(companyImages.companyId, companyId))
+      .orderBy(desc(companyImages.createdAt));
   }
 }
 

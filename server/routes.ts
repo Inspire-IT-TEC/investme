@@ -19,7 +19,9 @@ import {
   insertValuationSchema,
   dcfDataSchema,
   multiplesDataSchema,
-  insertPlatformNotificationSchema
+  insertPlatformNotificationSchema,
+  insertNetworkPostSchema,
+  insertNetworkCommentSchema
 } from "@shared/schema";
 
 const JWT_SECRET = process.env.JWT_SECRET || "investme-secret-key";
@@ -2136,6 +2138,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // =============================================================================
   // END PLATFORM NOTIFICATIONS ROUTES
+  // =============================================================================
+
+  // =============================================================================
+  // NETWORK ROUTES
+  // =============================================================================
+
+  // Get states
+  app.get('/api/states', authenticateToken, async (req: any, res) => {
+    try {
+      const states = await storage.getStates();
+      res.json(states);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar estados' });
+    }
+  });
+
+  // Get cities by state
+  app.get('/api/cities', authenticateToken, async (req: any, res) => {
+    try {
+      const { stateId } = req.query;
+      if (!stateId) {
+        return res.status(400).json({ message: 'State ID é obrigatório' });
+      }
+      const cities = await storage.getCitiesByState(parseInt(stateId as string));
+      res.json(cities);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar cidades' });
+    }
+  });
+
+  // Get network companies
+  app.get('/api/network/companies', authenticateToken, async (req: any, res) => {
+    try {
+      const { stateId, cityId, search } = req.query;
+      const filters: any = {
+        excludeUserId: req.user.id, // Don't show user's own companies
+      };
+      
+      if (stateId) filters.stateId = parseInt(stateId as string);
+      if (cityId) filters.cityId = parseInt(cityId as string);
+      if (search) filters.search = search as string;
+
+      const companies = await storage.getNetworkCompanies(filters);
+      res.json(companies);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar empresas da rede' });
+    }
+  });
+
+  // Get network posts for a company
+  app.get('/api/network/posts', authenticateToken, async (req: any, res) => {
+    try {
+      const { companyId } = req.query;
+      if (!companyId) {
+        return res.status(400).json({ message: 'Company ID é obrigatório' });
+      }
+      const posts = await storage.getNetworkPosts(parseInt(companyId as string));
+      res.json(posts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar posts' });
+    }
+  });
+
+  // Create network post
+  app.post('/api/network/posts', authenticateToken, async (req: any, res) => {
+    try {
+      const postData = insertNetworkPostSchema.parse({
+        ...req.body,
+        userId: req.user.id,
+        userType: req.user.type || 'entrepreneur',
+      });
+
+      const post = await storage.createNetworkPost(postData);
+      res.status(201).json(post);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao criar post' });
+    }
+  });
+
+  // Like/Unlike network post
+  app.post('/api/network/posts/:id/like', authenticateToken, async (req: any, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const userType = req.user.type || 'entrepreneur';
+      
+      await storage.likeNetworkPost(postId, req.user.id, userType);
+      res.json({ message: 'Post curtido' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao curtir post' });
+    }
+  });
+
+  // Comment on network post
+  app.post('/api/network/posts/:id/comments', authenticateToken, async (req: any, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const commentData = insertNetworkCommentSchema.parse({
+        postId,
+        userId: req.user.id,
+        userType: req.user.type || 'entrepreneur',
+        content: req.body.content,
+      });
+
+      const comment = await storage.createNetworkComment(commentData);
+      res.status(201).json(comment);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || 'Erro ao comentar' });
+    }
+  });
+
+  // Admin: Flag comment
+  app.post('/api/admin/network/comments/:id/flag', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const { reason } = req.body;
+      
+      await storage.flagNetworkComment(commentId, reason, req.user.id);
+      res.json({ message: 'Comentário sinalizado' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao sinalizar comentário' });
+    }
+  });
+
+  // =============================================================================
+  // END NETWORK ROUTES
   // =============================================================================
 
   // Serve uploaded files
