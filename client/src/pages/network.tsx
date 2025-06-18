@@ -29,8 +29,8 @@ import {
 export default function Network() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedState, setSelectedState] = useState("all");
+  const [selectedCity, setSelectedCity] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [newPostContent, setNewPostContent] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
@@ -57,7 +57,7 @@ export default function Network() {
   const { data: cities } = useQuery({
     queryKey: ['/api/cities', selectedState],
     queryFn: () => {
-      if (!selectedState) return [];
+      if (!selectedState || selectedState === "all") return [];
       return fetch(`/api/cities?stateId=${selectedState}`, {
         credentials: 'include',
         headers: {
@@ -65,7 +65,7 @@ export default function Network() {
         }
       }).then(res => res.json());
     },
-    enabled: !!selectedState,
+    enabled: !!(selectedState && selectedState !== "all"),
   });
 
   // Fetch network companies with filters
@@ -73,8 +73,8 @@ export default function Network() {
     queryKey: ['/api/network/companies', selectedState, selectedCity, searchTerm],
     queryFn: () => {
       const params = new URLSearchParams();
-      if (selectedState) params.append('stateId', selectedState);
-      if (selectedCity) params.append('cityId', selectedCity);
+      if (selectedState && selectedState !== "all") params.append('stateId', selectedState);
+      if (selectedCity && selectedCity !== "all") params.append('cityId', selectedCity);
       if (searchTerm) params.append('search', searchTerm);
       
       return fetch(`/api/network/companies?${params.toString()}`, {
@@ -261,8 +261,8 @@ export default function Network() {
                     <SelectValue placeholder="Selecione o estado" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os estados</SelectItem>
-                    {states?.map((state: any) => (
+                    <SelectItem value="all">Todos os estados</SelectItem>
+                    {(states || []).map((state: any) => (
                       <SelectItem key={state.id} value={state.id.toString()}>
                         {state.name} ({state.code})
                       </SelectItem>
@@ -278,8 +278,8 @@ export default function Network() {
                     <SelectValue placeholder="Selecione a cidade" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as cidades</SelectItem>
-                    {cities?.map((city: any) => (
+                    <SelectItem value="all">Todas as cidades</SelectItem>
+                    {(cities || []).map((city: any) => (
                       <SelectItem key={city.id} value={city.id.toString()}>
                         {city.name}
                       </SelectItem>
