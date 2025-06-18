@@ -37,7 +37,7 @@ export default function Network() {
   const [commentText, setCommentText] = useState("");
 
   // Determinar o tipo de usuário baseado na URL ou contexto
-  const userType = user?.tipo || 'entrepreneur';
+  const userType = (user as any)?.tipo || 'entrepreneur';
   const theme = userType === 'investor' ? 'blue' : 'green';
 
   // Fetch states

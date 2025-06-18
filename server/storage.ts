@@ -1336,64 +1336,51 @@ export class DatabaseStorage implements IStorage {
     return notifications.filter(n => !n.readAt).length;
   }
 
-  // Network/Location methods
+  // Network/Location methods  
   async getStates(): Promise<any[]> {
-    return await db.select().from(states).orderBy(states.name);
+    const result = await db.execute(sql`SELECT * FROM states ORDER BY name`);
+    return result.rows;
   }
 
   async getCitiesByState(stateId: number): Promise<any[]> {
-    return await db.select().from(cities)
-      .where(eq(cities.stateId, stateId))
-      .orderBy(cities.name);
+    const result = await db.execute(sql`SELECT * FROM cities WHERE state_id = ${stateId} ORDER BY name`);
+    return result.rows;
   }
 
   async getNetworkCompanies(filters?: { stateId?: number; cityId?: number; search?: string; excludeUserId?: number }): Promise<any[]> {
-    let query = db
-      .select({
-        id: companies.id,
-        razaoSocial: companies.razaoSocial,
-        nomeFantasia: companies.nomeFantasia,
-        cnpj: companies.cnpj,
-        cidade: companies.cidade,
-        estado: companies.estado,
-        cnaePrincipal: companies.cnaePrincipal,
-        faturamento: companies.faturamento,
-        dataFundacao: companies.dataFundacao,
-        userId: companies.userId,
-        entrepreneurId: companies.entrepreneurId,
-        investorId: companies.investorId,
-      })
-      .from(companies)
-      .where(eq(companies.status, 'aprovada')); // Only show approved companies
-
-    const conditions = [];
+    let whereClause = "WHERE status = 'aprovada'";
+    const params: any[] = [];
 
     if (filters?.stateId) {
-      conditions.push(eq(companies.stateId, filters.stateId));
+      whereClause += ` AND state_id = $${params.length + 1}`;
+      params.push(filters.stateId);
     }
 
     if (filters?.cityId) {
-      conditions.push(eq(companies.cityId, filters.cityId));
+      whereClause += ` AND city_id = $${params.length + 1}`;
+      params.push(filters.cityId);
     }
 
     if (filters?.search) {
-      conditions.push(
-        or(
-          ilike(companies.razaoSocial, `%${filters.search}%`),
-          ilike(companies.nomeFantasia, `%${filters.search}%`)
-        )
-      );
+      whereClause += ` AND (razao_social ILIKE $${params.length + 1} OR nome_fantasia ILIKE $${params.length + 1})`;
+      params.push(`%${filters.search}%`);
     }
 
     if (filters?.excludeUserId) {
-      conditions.push(ne(companies.userId, filters.excludeUserId));
+      whereClause += ` AND user_id != $${params.length + 1}`;
+      params.push(filters.excludeUserId);
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = `
+      SELECT id, razao_social, nome_fantasia, cnpj, cidade, estado, cnae_principal, 
+             faturamento, data_fundacao, user_id, entrepreneur_id, investor_id
+      FROM companies 
+      ${whereClause}
+      ORDER BY razao_social
+    `;
 
-    return await query.orderBy(companies.razaoSocial);
+    const result = await db.execute(sql.raw(query, params));
+    return result.rows;
   }
 
   // Network posts methods

@@ -158,7 +158,7 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
     } else if (userType === 'investor') {
       return [
         { name: 'Dashboard', href: '/investor/dashboard', icon: Home },
-        { name: 'Rede', href: '/investor/network', icon: TrendingUp },
+        { name: 'Rede', href: '/network', icon: TrendingUp },
         { name: 'Mensagens', href: '/messages', icon: MessageCircle },
         { name: 'Perfil', href: '/profile', icon: UserCog },
       ];
@@ -167,6 +167,7 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
         { name: 'Dashboard', href: '/dashboard', icon: Home },
         { name: 'Empresas', href: '/companies', icon: Building2 },
         { name: 'Solicitações', href: '/credit-requests', icon: CreditCard },
+        { name: 'Rede', href: '/network', icon: TrendingUp },
         { name: 'Mensagens', href: '/messages', icon: MessageCircle },
         { name: 'Perfil', href: '/profile', icon: UserCog },
       ];

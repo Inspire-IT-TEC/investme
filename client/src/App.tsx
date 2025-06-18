@@ -35,6 +35,7 @@ import ValuationPage from "@/pages/valuation";
 import InvestorNetworkPage from "@/pages/investor-network";
 import Companies from "@/pages/companies";
 import CreditRequests from "@/pages/credit-requests";
+import Network from "@/pages/network";
 
 function Router() {
   return (
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/nova-solicitacao" component={CreditRequest} />
       <Route path="/companies" component={Companies} />
       <Route path="/credit-requests" component={CreditRequests} />
+      <Route path="/network" component={Network} />
       <Route path="/messages" component={Messages} />
       <Route path="/profile" component={Profile} />
       <Route path="/backoffice" component={BackofficeDashboard} />
