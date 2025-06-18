@@ -39,6 +39,8 @@ export default function CompanyForm({ onSuccess, onCancel }: CompanyFormProps) {
     faturamento: "",
     ebitda: "",
     dividaLiquida: "",
+    numeroFuncionarios: "",
+    descricaoNegocio: "",
   });
 
   const [shareholders, setShareholders] = useState([
@@ -397,6 +399,32 @@ export default function CompanyForm({ onSuccess, onCancel }: CompanyFormProps) {
               onChange={(e) => setFormData({ ...formData, dividaLiquida: formatCurrency(e.target.value) })}
               placeholder="R$ 0,00"
               required
+            />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <Label htmlFor="numeroFuncionarios">Número de Funcionários *</Label>
+            <Input
+              id="numeroFuncionarios"
+              type="number"
+              value={formData.numeroFuncionarios}
+              onChange={(e) => setFormData({ ...formData, numeroFuncionarios: e.target.value })}
+              placeholder="Ex: 10"
+              required
+              min="1"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="descricaoNegocio">Descrição do Negócio</Label>
+            <Textarea
+              id="descricaoNegocio"
+              value={formData.descricaoNegocio}
+              onChange={(e) => setFormData({ ...formData, descricaoNegocio: e.target.value })}
+              placeholder="Descreva brevemente o negócio da empresa..."
+              className="min-h-[100px]"
             />
           </div>
         </div>

@@ -122,6 +122,8 @@ export const companies = pgTable("companies", {
   faturamento: decimal("faturamento", { precision: 15, scale: 2 }).notNull(),
   ebitda: decimal("ebitda", { precision: 15, scale: 2 }).notNull(),
   dividaLiquida: decimal("divida_liquida", { precision: 15, scale: 2 }).notNull(),
+  numeroFuncionarios: integer("numero_funcionarios").notNull(),
+  descricaoNegocio: text("descricao_negocio"),
   status: text("status").notNull().default("pendente_analise"), // pendente_analise, em_analise, aprovada, reprovada, incompleto
   observacoesInternas: text("observacoes_internas"),
   analisadoPor: integer("analisado_por").references(() => adminUsers.id),
@@ -351,12 +353,14 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   updatedAt: true,
   analisadoPor: true,
   dataAnalise: true,
+  observacoesInternas: true,
 }).extend({
   dataFundacao: z.string().transform((str) => new Date(str)),
-  faturamento: z.union([z.string(), z.number()]).transform((val) => String(typeof val === 'string' ? parseFloat(val) : val)),
-  ebitda: z.union([z.string(), z.number()]).transform((val) => String(typeof val === 'string' ? parseFloat(val) : val)),
-  dividaLiquida: z.union([z.string(), z.number()]).transform((val) => String(typeof val === 'string' ? parseFloat(val) : val)),
-  numeroFuncionarios: z.union([z.string(), z.number()]).transform((val) => typeof val === 'string' ? parseInt(val) : val),
+  faturamento: z.string().transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
+  ebitda: z.string().transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
+  dividaLiquida: z.string().transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
+  numeroFuncionarios: z.string().transform((val) => parseInt(val)),
+  cnaeSecundarios: z.array(z.string()).optional().default([]),
 });
 
 export const editCompanySchema = z.object({
