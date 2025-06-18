@@ -26,6 +26,7 @@ export default function BackofficeInvestors() {
   if (!isAuthorized) {
     return null;
   }
+  
   const [selectedInvestor, setSelectedInvestor] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [rejectionReason, setRejectionReason] = useState("");
@@ -94,6 +95,145 @@ export default function BackofficeInvestors() {
         return <Badge className="bg-gray-100 text-gray-800">Inativo</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const renderInvestorDetails = (investor: any) => {
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label className="font-semibold">Nome Completo</Label>
+          <p className="text-sm text-gray-700">{investor.nomeCompleto}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Email</Label>
+          <p className="text-sm text-gray-700">{investor.email}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">CPF</Label>
+          <p className="text-sm text-gray-700">{investor.cpf}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">RG</Label>
+          <p className="text-sm text-gray-700">{investor.rg}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Telefone</Label>
+          <p className="text-sm text-gray-700">{investor.telefone || 'Não informado'}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Data de Nascimento</Label>
+          <p className="text-sm text-gray-700">{investor.dataNascimento ? formatDate(investor.dataNascimento) : 'Não informado'}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Profissão</Label>
+          <p className="text-sm text-gray-700">{investor.profissao || 'Não informado'}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Renda Mensal</Label>
+          <p className="text-sm text-gray-700">{investor.rendaMensal ? formatCurrency(investor.rendaMensal) : 'Não informado'}</p>
+        </div>
+        <div className="col-span-2">
+          <Label className="font-semibold">Endereço</Label>
+          <p className="text-sm text-gray-700">
+            {[investor.endereco, investor.cidade, investor.estado, investor.cep].filter(Boolean).join(', ') || 'Não informado'}
+          </p>
+        </div>
+        <div className="col-span-2">
+          <Label className="font-semibold">Experiência em Investimentos</Label>
+          <p className="text-sm text-gray-700">{investor.experienciaInvestimentos || 'Não informado'}</p>
+        </div>
+        <div className="col-span-2">
+          <Label className="font-semibold">Objetivos de Investimento</Label>
+          <p className="text-sm text-gray-700">{investor.objetivosInvestimento || 'Não informado'}</p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderInvestorApprovalItems = (investor: any) => {
+    const approvalItems = [
+      {
+        field: 'emailConfirmado',
+        label: 'Email Confirmado',
+        status: investor.emailConfirmado,
+        description: 'Email foi verificado pelo investidor'
+      },
+      {
+        field: 'documentosVerificados',
+        label: 'Documentos Verificados',
+        status: investor.documentosVerificados,
+        description: 'CPF, RG e outros documentos foram validados'
+      },
+      {
+        field: 'rendaComprovada',
+        label: 'Renda Comprovada',
+        status: investor.rendaComprovada,
+        description: 'Comprovantes de renda foram analisados'
+      },
+      {
+        field: 'perfilInvestidor',
+        label: 'Perfil de Investidor',
+        status: investor.perfilInvestidor,
+        description: 'Questionário de perfil foi preenchido adequadamente'
+      },
+      {
+        field: 'cadastroAprovado',
+        label: 'Cadastro Aprovado',
+        status: investor.cadastroAprovado,
+        description: 'Aprovação final do cadastro'
+      }
+    ];
+
+    return (
+      <div className="space-y-4">
+        <h4 className="font-semibold text-gray-900">Itens de Aprovação</h4>
+        <div className="space-y-3">
+          {approvalItems.map((item) => (
+            <div key={item.field} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Label className="font-medium">{item.label}</Label>
+                  {item.status ? (
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-red-600" />
+                  )}
+                </div>
+                <p className="text-xs text-gray-600 mt-1">{item.description}</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleFieldApproval(investor.id, item.field, !item.status)}
+                className={item.status ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50"}
+              >
+                {item.status ? "Desaprovar" : "Aprovar"}
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const handleFieldApproval = async (investorId: number, field: string, approved: boolean) => {
+    try {
+      await apiRequest("PATCH", `/api/admin/investors/${investorId}/approve-field`, {
+        field,
+        approved
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/investors"] });
+      toast({
+        title: approved ? "Campo aprovado" : "Campo desaprovado",
+        description: `O campo foi ${approved ? "aprovado" : "desaprovado"} com sucesso.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar campo.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -229,61 +369,85 @@ export default function BackofficeInvestors() {
                                   <Eye className="w-4 h-4 mr-1" />
                                   Ver
                                 </Button>
-                                {investor.status === 'pendente' && (
-                                  <>
+                                <Dialog>
+                                  <DialogTrigger asChild>
                                     <Button
+                                      variant="outline"
                                       size="sm"
-                                      onClick={() => approveInvestorMutation.mutate(investor.id)}
-                                      disabled={approveInvestorMutation.isPending}
-                                      className="bg-green-600 hover:bg-green-700"
+                                      onClick={() => setSelectedInvestor(investor)}
                                     >
-                                      <CheckCircle className="w-4 h-4 mr-1" />
-                                      Aprovar
+                                      <UserCheck className="w-4 h-4 mr-1" />
+                                      Analisar
                                     </Button>
-                                    <Dialog>
-                                      <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50">
-                                          <XCircle className="w-4 h-4 mr-1" />
-                                          Rejeitar
-                                        </Button>
-                                      </DialogTrigger>
-                                      <DialogContent>
-                                        <DialogHeader>
-                                          <DialogTitle>Rejeitar Investidor</DialogTitle>
-                                          <DialogDescription>
-                                            Informe o motivo da rejeição
-                                          </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="space-y-4">
-                                          <div>
-                                            <Label htmlFor="rejection-reason">Motivo da Rejeição</Label>
-                                            <Textarea
-                                              id="rejection-reason"
-                                              value={rejectionReason}
-                                              onChange={(e) => setRejectionReason(e.target.value)}
-                                              placeholder="Descreva o motivo da rejeição..."
-                                            />
-                                          </div>
-                                          <div className="flex space-x-2">
-                                            <Button
-                                              onClick={() => {
-                                                rejectInvestorMutation.mutate({
-                                                  investorId: investor.id,
-                                                  reason: rejectionReason
-                                                });
-                                                setRejectionReason("");
-                                              }}
-                                              disabled={rejectInvestorMutation.isPending || !rejectionReason.trim()}
-                                              variant="destructive"
-                                            >
-                                              Confirmar Rejeição
-                                            </Button>
-                                          </div>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-2xl">
+                                    <DialogHeader>
+                                      <DialogTitle>Análise do Investidor</DialogTitle>
+                                      <DialogDescription>
+                                        Informações completas para aprovação
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    {selectedInvestor && (
+                                      <div className="space-y-6">
+                                        {renderInvestorDetails(selectedInvestor)}
+                                        {renderInvestorApprovalItems(selectedInvestor)}
+                                        
+                                        <div className="flex space-x-2 pt-4 border-t">
+                                          <Button
+                                            onClick={() => approveInvestorMutation.mutate(selectedInvestor.id)}
+                                            disabled={approveInvestorMutation.isPending}
+                                            className="bg-green-600 hover:bg-green-700"
+                                          >
+                                            <CheckCircle className="w-4 h-4 mr-2" />
+                                            Aprovar
+                                          </Button>
+                                          <Dialog>
+                                            <DialogTrigger asChild>
+                                              <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50">
+                                                <XCircle className="w-4 h-4 mr-2" />
+                                                Rejeitar
+                                              </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                              <DialogHeader>
+                                                <DialogTitle>Rejeitar Investidor</DialogTitle>
+                                                <DialogDescription>
+                                                  Informe o motivo da rejeição
+                                                </DialogDescription>
+                                              </DialogHeader>
+                                              <div className="space-y-4">
+                                                <div>
+                                                  <Label htmlFor="rejection-reason">Motivo da Rejeição</Label>
+                                                  <Textarea
+                                                    id="rejection-reason"
+                                                    value={rejectionReason}
+                                                    onChange={(e) => setRejectionReason(e.target.value)}
+                                                    placeholder="Descreva o motivo da rejeição..."
+                                                  />
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                  <Button
+                                                    onClick={() => {
+                                                      rejectInvestorMutation.mutate({
+                                                        investorId: selectedInvestor.id,
+                                                        reason: rejectionReason
+                                                      });
+                                                      setRejectionReason("");
+                                                    }}
+                                                    disabled={rejectInvestorMutation.isPending || !rejectionReason.trim()}
+                                                    variant="destructive"
+                                                  >
+                                                    Confirmar Rejeição
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            </DialogContent>
+                                          </Dialog>
                                         </div>
-                                      </DialogContent>
-                                    </Dialog>
-                                  </>
-                                )}
+                                      </div>
+                                    )}
+                                  </DialogContent>
+                                </Dialog>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -305,7 +469,7 @@ export default function BackofficeInvestors() {
             <DialogHeader>
               <DialogTitle>Detalhes do Investidor</DialogTitle>
               <DialogDescription>
-                Informações completas do investidor e suas empresas
+                Informações completas do investidor
               </DialogDescription>
             </DialogHeader>
             <InvestorDetailView investor={selectedInvestor} />
@@ -316,16 +480,8 @@ export default function BackofficeInvestors() {
   );
 }
 
-// Component for displaying investor details with companies and valuations
+// Component for displaying investor details
 function InvestorDetailView({ investor }: { investor: any }) {
-  const { data: investorCompanies } = useQuery({
-    queryKey: ["/api/companies", investor.id],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/companies?userId=${investor.id}`);
-      return response.json();
-    }
-  });
-
   return (
     <div className="space-y-6">
       {/* Basic Information */}
@@ -351,101 +507,92 @@ function InvestorDetailView({ investor }: { investor: any }) {
           <p className="text-sm text-gray-700">{investor.telefone || 'Não informado'}</p>
         </div>
         <div>
-          <Label className="font-semibold">Limite de Investimento</Label>
-          <p className="text-sm text-gray-700">{investor.limiteInvestimento || 'Não informado'}</p>
+          <Label className="font-semibold">Data de Nascimento</Label>
+          <p className="text-sm text-gray-700">{investor.dataNascimento ? formatDate(investor.dataNascimento) : 'Não informado'}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Profissão</Label>
+          <p className="text-sm text-gray-700">{investor.profissao || 'Não informado'}</p>
+        </div>
+        <div>
+          <Label className="font-semibold">Renda Mensal</Label>
+          <p className="text-sm text-gray-700">{investor.rendaMensal ? formatCurrency(investor.rendaMensal) : 'Não informado'}</p>
         </div>
       </div>
 
-      {/* Approval Status */}
-      <div className="border-t pt-4">
-        <Label className="font-semibold mb-2 block">Status de Aprovação</Label>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${investor.cadastroAprovado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span className="text-sm">Cadastro Aprovado</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${investor.emailConfirmado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span className="text-sm">Email Confirmado</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${investor.documentosVerificados ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-            <span className="text-sm">Documentos Verificados</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Companies and Valuations */}
-      <div className="border-t pt-4">
-        <Label className="font-semibold mb-2 block">Empresas Cadastradas</Label>
-        {investorCompanies && investorCompanies.length > 0 ? (
-          <div className="space-y-3">
-            {investorCompanies.map((company: any) => (
-              <CompanyCard key={company.id} company={company} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-sm">Nenhuma empresa cadastrada</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Component for displaying company information with valuation
-function CompanyCard({ company }: { company: any }) {
-  const { data: valuations } = useQuery({
-    queryKey: ["/api/valuations", company.id],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/valuations?companyId=${company.id}`);
-      return response.json();
-    }
-  });
-
-  const latestValuation = valuations && valuations.length > 0 ? valuations[0] : null;
-
-  return (
-    <div className="border rounded-lg p-4 bg-gray-50">
-      <div className="grid grid-cols-2 gap-4 mb-3">
+      {/* Address Information */}
+      {(investor.endereco || investor.cidade || investor.estado || investor.cep) && (
         <div>
-          <Label className="font-semibold text-xs">Razão Social</Label>
-          <p className="text-sm">{company.razaoSocial}</p>
-        </div>
-        <div>
-          <Label className="font-semibold text-xs">Nome Fantasia</Label>
-          <p className="text-sm">{company.nomeFantasia}</p>
-        </div>
-        <div>
-          <Label className="font-semibold text-xs">CNPJ</Label>
-          <p className="text-sm">{company.cnpj}</p>
-        </div>
-        <div>
-          <Label className="font-semibold text-xs">Status</Label>
-          <Badge variant="outline" className="text-xs">
-            {company.status || 'ativa'}
-          </Badge>
-        </div>
-      </div>
-      
-      {latestValuation && (
-        <div className="border-t pt-3 mt-3">
-          <Label className="font-semibold text-xs mb-2 block">Último Valuation</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-xs text-gray-600">Valor da Empresa</Label>
-              <p className="text-sm font-medium">
-                {latestValuation.enterpriseValue ? formatCurrency(parseFloat(latestValuation.enterpriseValue)) : 'N/A'}
-              </p>
-            </div>
-            <div>
-              <Label className="text-xs text-gray-600">Valor do Patrimônio</Label>
-              <p className="text-sm font-medium">
-                {latestValuation.equityValue ? formatCurrency(parseFloat(latestValuation.equityValue)) : 'N/A'}
-              </p>
-            </div>
-          </div>
+          <Label className="font-semibold">Endereço</Label>
+          <p className="text-sm text-gray-700">
+            {[investor.endereco, investor.cidade, investor.estado, investor.cep].filter(Boolean).join(', ') || 'Não informado'}
+          </p>
         </div>
       )}
+
+      {/* Investment Information */}
+      <div className="space-y-4">
+        <h4 className="font-semibold text-gray-900">Informações de Investimento</h4>
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <Label className="font-semibold">Experiência em Investimentos</Label>
+            <p className="text-sm text-gray-700">{investor.experienciaInvestimentos || 'Não informado'}</p>
+          </div>
+          <div>
+            <Label className="font-semibold">Objetivos de Investimento</Label>
+            <p className="text-sm text-gray-700">{investor.objetivosInvestimento || 'Não informado'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Status Information */}
+      <div className="space-y-4">
+        <h4 className="font-semibold text-gray-900">Status do Cadastro</h4>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-2">
+            <Label className="font-medium">Email Confirmado:</Label>
+            {investor.emailConfirmado ? (
+              <CheckCircle className="w-4 h-4 text-green-600" />
+            ) : (
+              <XCircle className="w-4 h-4 text-red-600" />
+            )}
+            <span className="text-sm">{investor.emailConfirmado ? 'Sim' : 'Não'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="font-medium">Documentos Verificados:</Label>
+            {investor.documentosVerificados ? (
+              <CheckCircle className="w-4 h-4 text-green-600" />
+            ) : (
+              <XCircle className="w-4 h-4 text-red-600" />
+            )}
+            <span className="text-sm">{investor.documentosVerificados ? 'Sim' : 'Não'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="font-medium">Renda Comprovada:</Label>
+            {investor.rendaComprovada ? (
+              <CheckCircle className="w-4 h-4 text-green-600" />
+            ) : (
+              <XCircle className="w-4 h-4 text-red-600" />
+            )}
+            <span className="text-sm">{investor.rendaComprovada ? 'Sim' : 'Não'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="font-medium">Cadastro Aprovado:</Label>
+            {investor.cadastroAprovado ? (
+              <CheckCircle className="w-4 h-4 text-green-600" />
+            ) : (
+              <XCircle className="w-4 h-4 text-red-600" />
+            )}
+            <span className="text-sm">{investor.cadastroAprovado ? 'Sim' : 'Não'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Registration Date */}
+      <div>
+        <Label className="font-semibold">Data de Cadastro</Label>
+        <p className="text-sm text-gray-700">{formatDate(investor.createdAt)}</p>
+      </div>
     </div>
   );
 }
