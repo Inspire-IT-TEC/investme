@@ -846,11 +846,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/companies', authenticateToken, async (req: any, res) => {
     try {
+      console.log('Company registration data received:', JSON.stringify(req.body, null, 2));
+      
       const companyData = insertCompanySchema.parse({
         ...req.body,
         userId: req.user.id
       });
 
+      console.log('Parsed company data:', JSON.stringify(companyData, null, 2));
       const company = await storage.createCompany(companyData);
 
       // Create shareholders
@@ -876,6 +879,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fullCompany = await storage.getCompanyWithDetails(company.id);
       res.status(201).json(fullCompany);
     } catch (error: any) {
+      console.error('Company registration error:', error);
+      if (error.errors) {
+        console.error('Validation errors:', JSON.stringify(error.errors, null, 2));
+      }
       res.status(400).json({ message: error.message || 'Erro ao criar empresa' });
     }
   });
