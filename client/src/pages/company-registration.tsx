@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import Navbar from "@/components/layout/navbar";
 import { formatCnpj, formatCep, formatCurrency } from "@/lib/validations";
 import { Plus, Trash2, Upload } from "lucide-react";
@@ -56,6 +56,11 @@ export default function CompanyRegistration() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate related queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/credit-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/entrepreneur/profile"] });
+      
       toast({
         title: "Empresa cadastrada com sucesso!",
         description: "Sua empresa está sendo analisada pela equipe Investme.",

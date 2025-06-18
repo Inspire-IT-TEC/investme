@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { Link } from "wouter";
-import { Building2, Plus, Eye, Edit, Calendar, MapPin, FileText } from "lucide-react";
+import { Building2, Plus, Eye, Edit, Calendar, MapPin, FileText, Users, TrendingUp } from "lucide-react";
 
 export default function Companies() {
   const { data: companies, isLoading } = useQuery({
@@ -87,58 +87,89 @@ export default function Companies() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {companies.map((company: any) => {
               const status = getStatusBadge(company.status || 'pending');
               
               return (
-                <Card key={company.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
+                <Card key={company.id} className="hover:shadow-lg transition-all duration-200 border-0 shadow-sm">
+                  <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg line-clamp-2">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-xl font-semibold text-gray-900 mb-1 leading-tight">
                           {company.razaoSocial}
                         </CardTitle>
-                        <CardDescription className="mt-1">
+                        {company.nomeFantasia && (
+                          <p className="text-sm text-gray-600 mb-2">
+                            {company.nomeFantasia}
+                          </p>
+                        )}
+                        <CardDescription className="text-sm">
                           CNPJ: {company.cnpj}
                         </CardDescription>
                       </div>
-                      <Badge variant={status.variant}>
+                      <Badge variant={status.variant} className="ml-3 flex-shrink-0">
                         {status.label}
                       </Badge>
                     </div>
                   </CardHeader>
                   
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        <span>{company.cidade}, {company.estado}</span>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <MapPin className="h-4 w-4 text-gray-400" />
+                          <span>{company.cidade}, {company.estado}</span>
+                        </div>
+                        
+                        {company.setor && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <FileText className="h-4 w-4 text-gray-400" />
+                            <span>{company.setor}</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <span>Cadastrada em {formatDate(company.createdAt)}</span>
+                        </div>
                       </div>
                       
-                      {company.setor && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <FileText className="h-4 w-4" />
-                          <span>{company.setor}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>Cadastrada em {formatDate(company.createdAt)}</span>
+                      <div className="space-y-3">
+                        {company.numeroFuncionarios && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            <span>{company.numeroFuncionarios} funcionários</span>
+                          </div>
+                        )}
+                        
+                        {company.faturamento && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <TrendingUp className="h-4 w-4 text-gray-400" />
+                            <span>Faturamento: R$ {parseFloat(company.faturamento).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    <div className="flex gap-2 pt-2">
-                      <Link href={`/empresa/${company.id}`}>
-                        <Button variant="outline" size="sm" className="flex-1">
+                    {company.descricaoNegocio && (
+                      <div className="border-t pt-4">
+                        <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
+                          {company.descricaoNegocio}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                      <Link href={`/empresa/${company.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">
                           <Eye className="h-4 w-4 mr-2" />
                           Ver Detalhes
                         </Button>
                       </Link>
                       
-                      <Link href={`/empresa/${company.id}/editar`}>
-                        <Button variant="outline" size="sm" className="flex-1">
+                      <Link href={`/empresa/${company.id}/editar`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </Button>
