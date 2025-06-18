@@ -255,7 +255,7 @@ export default function Network() {
                 <label className="text-sm font-medium">Estado</label>
                 <Select value={selectedState} onValueChange={(value) => {
                   setSelectedState(value);
-                  setSelectedCity("");
+                  setSelectedCity("all");
                 }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o estado" />
@@ -292,8 +292,8 @@ export default function Network() {
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    setSelectedState("");
-                    setSelectedCity("");
+                    setSelectedState("all");
+                    setSelectedCity("all");
                     setSearchTerm("");
                   }}
                   className="w-full"
@@ -320,7 +320,7 @@ export default function Network() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {companies.map((company: any) => (
+            {(companies || []).map((company: any) => (
               <Card key={company.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedCompany(company)}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start gap-3">
@@ -476,7 +476,7 @@ export default function Network() {
                       <p>Nenhuma atividade ainda</p>
                     </div>
                   ) : (
-                    posts.map((post: any) => (
+                    (posts || []).map((post: any) => (
                       <Card key={post.id}>
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
@@ -534,7 +534,7 @@ export default function Network() {
                           
                           {/* Comments section */}
                           <div className="mt-4 space-y-3">
-                            {post.comments?.map((comment: any) => (
+                            {(post.comments || []).map((comment: any) => (
                               <div key={comment.id} className="flex gap-3 p-3 bg-muted/30 rounded-lg">
                                 <Avatar className="h-6 w-6">
                                   <AvatarFallback className="text-xs">
