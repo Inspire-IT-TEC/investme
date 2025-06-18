@@ -38,6 +38,8 @@ export default function CompanyRegistration() {
     faturamento: "",
     ebitda: "",
     dividaLiquida: "",
+    numeroFuncionarios: "1",
+    descricaoNegocio: "",
   });
 
   const [shareholders, setShareholders] = useState([
@@ -130,6 +132,8 @@ export default function CompanyRegistration() {
       faturamento: formData.faturamento.replace(/[^\d,]/g, '').replace(',', '.'),
       ebitda: formData.ebitda.replace(/[^\d,]/g, '').replace(',', '.'),
       dividaLiquida: formData.dividaLiquida.replace(/[^\d,]/g, '').replace(',', '.'),
+      numeroFuncionarios: formData.numeroFuncionarios,
+      descricaoNegocio: formData.descricaoNegocio,
       shareholders: shareholders.filter(s => s.nomeCompleto && s.cpf),
       guarantees: guarantees.filter(g => g.tipo && g.valorEstimado).map(g => ({
         ...g,
@@ -407,6 +411,30 @@ export default function CompanyRegistration() {
                       onChange={(e) => setFormData({ ...formData, dividaLiquida: formatCurrency(e.target.value) })}
                       placeholder="R$ 0,00"
                       required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="numeroFuncionarios">Número de Funcionários *</Label>
+                    <Input
+                      id="numeroFuncionarios"
+                      type="number"
+                      value={formData.numeroFuncionarios}
+                      onChange={(e) => setFormData({ ...formData, numeroFuncionarios: e.target.value })}
+                      placeholder="1"
+                      min="1"
+                      required
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Label htmlFor="descricaoNegocio">Descrição do Negócio</Label>
+                    <Textarea
+                      id="descricaoNegocio"
+                      value={formData.descricaoNegocio}
+                      onChange={(e) => setFormData({ ...formData, descricaoNegocio: e.target.value })}
+                      placeholder="Descreva brevemente o tipo de negócio e atividades principais"
+                      rows={3}
                     />
                   </div>
                 </div>
