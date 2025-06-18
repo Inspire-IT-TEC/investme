@@ -110,6 +110,8 @@ export const companies = pgTable("companies", {
   bairro: text("bairro").notNull(),
   cidade: text("cidade").notNull(),
   estado: text("estado").notNull(),
+  stateId: integer("state_id").references(() => states.id),
+  cityId: integer("city_id").references(() => cities.id),
   telefone: text("telefone"),
   emailContato: text("email_contato"),
   cnaePrincipal: text("cnae_principal").notNull(),
@@ -544,3 +546,160 @@ export type PlatformNotification = typeof platformNotifications.$inferSelect;
 
 export type InsertNotificationRead = z.infer<typeof insertNotificationReadSchema>;
 export type NotificationRead = typeof notificationReads.$inferSelect;
+
+// Estados e Cidades para filtros da rede
+export const states = pgTable("states", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  code: varchar("code", { length: 2 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const cities = pgTable("cities", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  stateId: integer("state_id").notNull().references(() => states.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Imagens das empresas para a rede
+export const companyImages = pgTable("company_images", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  imageUrl: varchar("image_url", { length: 500 }).notNull(),
+  caption: text("caption"),
+  isMain: boolean("is_main").default(false).notNull(),
+  uploadedBy: integer("uploaded_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Posts da rede (estilo Instagram)
+export const networkPosts = pgTable("network_posts", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  content: text("content"),
+  imageUrl: varchar("image_url", { length: 500 }),
+  userId: integer("user_id").notNull(),
+  userType: varchar("user_type", { length: 50 }).notNull(), // 'entrepreneur', 'investor'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Comentários na rede
+export const networkComments = pgTable("network_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull().references(() => networkPosts.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull(),
+  userType: varchar("user_type", { length: 50 }).notNull(), // 'entrepreneur', 'investor'
+  content: text("content").notNull(),
+  flagged: boolean("flagged").default(false).notNull(),
+  flaggedReason: text("flagged_reason"),
+  moderatedBy: integer("moderated_by").references(() => adminUsers.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Curtidas na rede
+export const networkLikes = pgTable("network_likes", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull().references(() => networkPosts.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull(),
+  userType: varchar("user_type", { length: 50 }).notNull(), // 'entrepreneur', 'investor'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Relations
+export const statesRelations = relations(states, ({ many }) => ({
+  cities: many(cities),
+}));
+
+export const citiesRelations = relations(cities, ({ one }) => ({
+  state: one(states, {
+    fields: [cities.stateId],
+    references: [states.id],
+  }),
+}));
+
+export const companyImagesRelations = relations(companyImages, ({ one }) => ({
+  company: one(companies, {
+    fields: [companyImages.companyId],
+    references: [companies.id],
+  }),
+}));
+
+export const networkPostsRelations = relations(networkPosts, ({ one, many }) => ({
+  company: one(companies, {
+    fields: [networkPosts.companyId],
+    references: [companies.id],
+  }),
+  comments: many(networkComments),
+  likes: many(networkLikes),
+}));
+
+export const networkCommentsRelations = relations(networkComments, ({ one }) => ({
+  post: one(networkPosts, {
+    fields: [networkComments.postId],
+    references: [networkPosts.id],
+  }),
+  moderator: one(adminUsers, {
+    fields: [networkComments.moderatedBy],
+    references: [adminUsers.id],
+  }),
+}));
+
+export const networkLikesRelations = relations(networkLikes, ({ one }) => ({
+  post: one(networkPosts, {
+    fields: [networkLikes.postId],
+    references: [networkPosts.id],
+  }),
+}));
+
+// Insert schemas
+export const insertStateSchema = createInsertSchema(states).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCitySchema = createInsertSchema(cities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCompanyImageSchema = createInsertSchema(companyImages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertNetworkPostSchema = createInsertSchema(networkPosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNetworkCommentSchema = createInsertSchema(networkComments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertNetworkLikeSchema = createInsertSchema(networkLikes).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types
+export type InsertState = z.infer<typeof insertStateSchema>;
+export type State = typeof states.$inferSelect;
+
+export type InsertCity = z.infer<typeof insertCitySchema>;
+export type City = typeof cities.$inferSelect;
+
+export type InsertCompanyImage = z.infer<typeof insertCompanyImageSchema>;
+export type CompanyImage = typeof companyImages.$inferSelect;
+
+export type InsertNetworkPost = z.infer<typeof insertNetworkPostSchema>;
+export type NetworkPost = typeof networkPosts.$inferSelect;
+
+export type InsertNetworkComment = z.infer<typeof insertNetworkCommentSchema>;
+export type NetworkComment = typeof networkComments.$inferSelect;
+
+export type InsertNetworkLike = z.infer<typeof insertNetworkLikeSchema>;
+export type NetworkLike = typeof networkLikes.$inferSelect;
