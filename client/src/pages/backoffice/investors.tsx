@@ -436,59 +436,6 @@ export default function BackofficeInvestors() {
                                         <div className="border-t pt-4">
                                           {renderInvestorApprovalItems(selectedInvestor)}
                                         </div>
-                                        
-                                        <div className="flex space-x-2 pt-4 border-t">
-                                          <Button
-                                            onClick={() => approveInvestorMutation.mutate(selectedInvestor.id)}
-                                            disabled={approveInvestorMutation.isPending}
-                                            className="bg-green-600 hover:bg-green-700"
-                                          >
-                                            <CheckCircle className="w-4 h-4 mr-2" />
-                                            Aprovar
-                                          </Button>
-                                          <Dialog>
-                                            <DialogTrigger asChild>
-                                              <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50">
-                                                <XCircle className="w-4 h-4 mr-2" />
-                                                Rejeitar
-                                              </Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                              <DialogHeader>
-                                                <DialogTitle>Rejeitar Investidor</DialogTitle>
-                                                <DialogDescription>
-                                                  Informe o motivo da rejeição
-                                                </DialogDescription>
-                                              </DialogHeader>
-                                              <div className="space-y-4">
-                                                <div>
-                                                  <Label htmlFor="rejection-reason">Motivo da Rejeição</Label>
-                                                  <Textarea
-                                                    id="rejection-reason"
-                                                    value={rejectionReason}
-                                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                                    placeholder="Descreva o motivo da rejeição..."
-                                                  />
-                                                </div>
-                                                <div className="flex space-x-2">
-                                                  <Button
-                                                    onClick={() => {
-                                                      rejectInvestorMutation.mutate({
-                                                        investorId: selectedInvestor.id,
-                                                        reason: rejectionReason
-                                                      });
-                                                      setRejectionReason("");
-                                                    }}
-                                                    disabled={rejectInvestorMutation.isPending || !rejectionReason.trim()}
-                                                    variant="destructive"
-                                                  >
-                                                    Confirmar Rejeição
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            </DialogContent>
-                                          </Dialog>
-                                        </div>
                                       </div>
                                     )}
                                   </DialogContent>
