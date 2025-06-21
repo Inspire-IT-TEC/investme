@@ -638,29 +638,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Approve investor (from users table)
+  // Approve investor (from investors table)
   app.post('/api/admin/investors/:id/approve', authenticateAdminToken, async (req, res) => {
     try {
       const { id } = req.params;
+      console.log('Approving investor with ID:', id);
       
-      // Check if investor is in users table first
-      const user = await storage.getUser(parseInt(id));
-      if (user && user.tipo === 'investor') {
-        // Approve investor user
-        const approvedUser = await storage.approveUser(parseInt(id));
-        if (!approvedUser) {
-          return res.status(404).json({ message: 'Investidor não encontrado' });
-        }
-        res.json({ message: 'Investidor aprovado com sucesso', investor: approvedUser });
-      } else {
-        // Try investors table
-        const investor = await storage.approveInvestor(parseInt(id));
-        if (!investor) {
-          return res.status(404).json({ message: 'Investidor não encontrado' });
-        }
-        res.json({ message: 'Investidor aprovado com sucesso', investor });
+      // First check if investor exists in investors table
+      const existingInvestor = await storage.getInvestor(parseInt(id));
+      if (!existingInvestor) {
+        console.log('Investor not found in investors table');
+        return res.status(404).json({ message: 'Investidor não encontrado' });
       }
+      
+      // Approve investor
+      const investor = await storage.approveInvestor(parseInt(id));
+      if (!investor) {
+        console.log('Failed to approve investor');
+        return res.status(500).json({ message: 'Erro ao aprovar investidor' });
+      }
+      
+      console.log('Investor approved successfully:', investor);
+      res.json({ message: 'Investidor aprovado com sucesso', investor });
     } catch (error: any) {
+      console.error('Error approving investor:', error);
       res.status(500).json({ message: error.message || 'Erro ao aprovar investidor' });
     }
   });
