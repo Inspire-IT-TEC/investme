@@ -15,13 +15,25 @@ import {
   User, 
   AlertCircle,
   CheckCircle,
-  Loader2
+  Loader2,
+  Key,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 export default function InvestorProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
 
   // Fetch investor profile
   const { data: profile, isLoading } = useQuery({
@@ -56,9 +68,54 @@ export default function InvestorProfile() {
     },
   });
 
+  // Change password mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (passwordData: any) => {
+      const response = await apiRequest("PUT", "/api/auth/change-password", passwordData);
+      return response.json();
+    },
+    onSuccess: () => {
+      setIsChangingPassword(false);
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      toast({
+        title: "Senha alterada",
+        description: "Sua senha foi alterada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao alterar senha",
+        description: error.message || "Ocorreu um erro ao alterar a senha.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSaveProfile = (formData: FormData) => {
     const profileData = Object.fromEntries(formData.entries());
     updateProfileMutation.mutate(profileData);
+  };
+
+  const handleChangePassword = () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A nova senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    changePasswordMutation.mutate(passwordData);
   };
 
   const getStatusBadge = (status: string) => {
@@ -117,8 +174,9 @@ export default function InvestorProfile() {
           </Card>
         ) : (
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="profile">Informações Pessoais</TabsTrigger>
+              <TabsTrigger value="security">Segurança</TabsTrigger>
               <TabsTrigger value="status">Status da Conta</TabsTrigger>
             </TabsList>
 
@@ -313,6 +371,124 @@ export default function InvestorProfile() {
                       </div>
                     )}
                   </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="security" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Key className="w-5 h-5" />
+                        Alterar Senha
+                      </CardTitle>
+                      <CardDescription>
+                        Mantenha sua conta segura alterando a senha regularmente
+                      </CardDescription>
+                    </div>
+                    <Button
+                      variant={isChangingPassword ? "outline" : "default"}
+                      onClick={() => setIsChangingPassword(!isChangingPassword)}
+                    >
+                      {isChangingPassword ? "Cancelar" : "Alterar Senha"}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isChangingPassword ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="currentPassword">Senha Atual</Label>
+                        <div className="relative">
+                          <Input
+                            id="currentPassword"
+                            type={showCurrentPassword ? "text" : "password"}
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                            placeholder="Digite sua senha atual"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2"
+                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          >
+                            {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">Nova Senha</Label>
+                        <div className="relative">
+                          <Input
+                            id="newPassword"
+                            type={showNewPassword ? "text" : "password"}
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                            placeholder="Digite sua nova senha"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                          >
+                            {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                        <div className="relative">
+                          <Input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                            placeholder="Confirme sua nova senha"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          >
+                            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <Button
+                          onClick={handleChangePassword}
+                          disabled={changePasswordMutation.isPending || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                        >
+                          {changePasswordMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Alterando...
+                            </>
+                          ) : (
+                            "Alterar Senha"
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Key className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">
+                        Clique no botão "Alterar Senha" para modificar sua senha de acesso
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

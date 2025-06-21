@@ -645,7 +645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Approving investor with ID:', id);
       
       // First check if investor exists in investors table
-      const existingInvestor = await storage.getInvestor(parseInt(id));
+      const existingInvestor = await storage.getInvestors().then(investors => investors.find(inv => inv.id === parseInt(id)));
       if (!existingInvestor) {
         console.log('Investor not found in investors table');
         return res.status(404).json({ message: 'Investidor não encontrado' });
@@ -812,6 +812,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ ...user, senha: undefined });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro interno do servidor' });
+    }
+  });
+
+  // Investor profile routes
+  app.get('/api/investor/profile', authenticateToken, async (req: any, res) => {
+    try {
+      const investorProfile = await storage.getInvestors().then(investors => 
+        investors.find(inv => inv.email === req.user.email)
+      );
+      
+      if (!investorProfile) {
+        return res.status(404).json({ message: 'Perfil de investidor não encontrado' });
+      }
+      
+      res.json(investorProfile);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar perfil' });
+    }
+  });
+
+  app.put('/api/investor/profile', authenticateToken, async (req: any, res) => {
+    try {
+      const investorProfile = await storage.getInvestors().then(investors => 
+        investors.find(inv => inv.email === req.user.email)
+      );
+      
+      if (!investorProfile) {
+        return res.status(404).json({ message: 'Perfil de investidor não encontrado' });
+      }
+      
+      const updatedProfile = await storage.updateInvestor(investorProfile.id, req.body);
+      res.json(updatedProfile);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao atualizar perfil' });
     }
   });
 
