@@ -93,32 +93,30 @@ export default function InvestorDashboard() {
     <ModernSidebarLayout title="Dashboard do Investidor" userType="investor">
       <div className="space-y-6">
         {/* Welcome Card */}
-        <ModernCard variant="gradient" className="bg-gradient-to-r from-blue-800 to-blue-900 text-white shadow-xl">
-          <ModernCardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <TrendingUp className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">
-                    Bem-vindo, {user?.nomeCompleto || user?.nome || 'Investidor'}
-                  </h1>
-                  <p className="text-white/80 text-lg">Analise e invista em oportunidades de crédito</p>
-                </div>
+        <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white shadow-xl p-6 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                <TrendingUp className="w-8 h-8 text-white" />
               </div>
-              <div className="hidden md:block text-right">
-                <div className="text-white/80">Portal do Investidor</div>
-                <div className="text-2xl font-bold">InvestMe</div>
+              <div>
+                <h1 className="text-3xl font-bold mb-2">
+                  Bem-vindo, {(user as any)?.nomeCompleto || (user as any)?.nome || 'Investidor'}
+                </h1>
+                <p className="text-white/80 text-lg">Analise e invista em oportunidades de crédito</p>
               </div>
             </div>
-          </ModernCardContent>
-        </ModernCard>
+            <div className="hidden md:block text-right">
+              <div className="text-white/80">Portal do Investidor</div>
+              <div className="text-2xl font-bold">InvestMe</div>
+            </div>
+          </div>
+        </div>
 
         {/* Company Status Alert */}
         {companyStatus && !(companyStatus as any)?.hasApprovedCompany && (
-          <ModernCard className="border-warning bg-warning/5">
-            <ModernCardContent>
+          <div className="border-warning bg-warning/5 p-4 rounded-lg border">
+            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <AlertCircle className="h-5 w-5 text-warning" />
                 <div>
@@ -129,14 +127,14 @@ export default function InvestorDashboard() {
                     Para analisar solicitações, você precisa ter uma empresa aprovada na plataforma.
                   </p>
                 </div>
-                <Link href="/investor-company-registration">
-                  <Button variant="outline" size="sm">
-                    Cadastrar Empresa
-                  </Button>
-                </Link>
               </div>
-            </ModernCardContent>
-          </ModernCard>
+              <Link href="/investor-company-registration">
+                <Button variant="outline" size="sm">
+                  Cadastrar Empresa
+                </Button>
+              </Link>
+            </div>
+          </div>
         )}
 
         {/* Stats Cards */}
