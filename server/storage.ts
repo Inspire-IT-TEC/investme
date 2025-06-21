@@ -277,7 +277,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInvestor(insertInvestor: InsertInvestor): Promise<Investor> {
-    const [investor] = await db.insert(investors).values(insertInvestor).returning();
+    const [investor] = await db.insert(investors).values([insertInvestor]).returning();
     return investor;
   }
 
@@ -1238,7 +1238,7 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(platformNotifications.ativa, filters.ativa));
     }
 
-    let query = db
+    const query = db
       .select({
         id: platformNotifications.id,
         titulo: platformNotifications.titulo,
@@ -1253,11 +1253,8 @@ export class DatabaseStorage implements IStorage {
         adminName: adminUsers.nome,
       })
       .from(platformNotifications)
-      .leftJoin(adminUsers, eq(platformNotifications.criadoPor, adminUsers.id));
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+      .leftJoin(adminUsers, eq(platformNotifications.criadoPor, adminUsers.id))
+      .where(conditions.length > 0 ? and(...conditions) : sql`1=1`);
 
     return await query.orderBy(desc(platformNotifications.createdAt));
   }

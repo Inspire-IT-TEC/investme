@@ -338,6 +338,12 @@ export const insertEntrepreneurSchema = createInsertSchema(entrepreneurs).omit({
 
 export const insertInvestorSchema = createInsertSchema(investors).omit({
   id: true,
+  status: true,
+  cadastroAprovado: true,
+  emailConfirmado: true,
+  documentosVerificados: true,
+  rendaComprovada: true,
+  perfilInvestidor: true,
   aprovadoPor: true,
   aprovadoEm: true,
   createdAt: true,
