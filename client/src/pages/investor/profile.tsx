@@ -290,12 +290,22 @@ export default function InvestorProfile() {
                         />
                       </div>
 
-                      <div className="md:col-span-2 space-y-2">
-                        <Label htmlFor="endereco">Endereço</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="rua">Rua</Label>
                         <Input
-                          id="endereco"
-                          name="endereco"
-                          defaultValue={profile.endereco}
+                          id="rua"
+                          name="rua"
+                          defaultValue={profile.rua}
+                          disabled={!isEditing}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="numero">Número</Label>
+                        <Input
+                          id="numero"
+                          name="numero"
+                          defaultValue={profile.numero}
                           disabled={!isEditing}
                         />
                       </div>

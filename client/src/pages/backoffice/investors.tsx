@@ -136,7 +136,7 @@ export default function BackofficeInvestors() {
         <div className="col-span-2">
           <Label className="font-semibold">Endereço</Label>
           <p className="text-sm text-gray-700">
-            {[investor.endereco, investor.cidade, investor.estado, investor.cep].filter(Boolean).join(', ') || 'Não informado'}
+            {[investor.rua, investor.numero, investor.cidade, investor.estado, investor.cep].filter(Boolean).join(', ') || 'Não informado'}
           </p>
         </div>
         <div className="col-span-2">
@@ -513,11 +513,11 @@ function InvestorDetailView({ investor }: { investor: any }) {
       </div>
 
       {/* Address Information */}
-      {(investor.endereco || investor.cidade || investor.estado || investor.cep) && (
+      {(investor.rua || investor.cidade || investor.estado || investor.cep) && (
         <div>
           <Label className="font-semibold">Endereço</Label>
           <p className="text-sm text-gray-700">
-            {[investor.endereco, investor.cidade, investor.estado, investor.cep].filter(Boolean).join(', ') || 'Não informado'}
+            {[investor.rua, investor.numero, investor.cidade, investor.estado, investor.cep].filter(Boolean).join(', ') || 'Não informado'}
           </p>
         </div>
       )}
