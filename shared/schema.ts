@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, json, jsonb, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, json, jsonb, varchar, date } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -37,6 +37,10 @@ export const investors = pgTable("investors", {
   nomeCompleto: text("nome_completo").notNull(),
   email: text("email").notNull().unique(),
   senha: text("senha").notNull(),
+  telefone: text("telefone"),
+  dataNascimento: text("data_nascimento"),
+  profissao: text("profissao"),
+  rendaMensal: decimal("renda_mensal", { precision: 15, scale: 2 }),
   cep: text("cep").notNull(),
   rua: text("rua").notNull(),
   numero: text("numero").notNull(),
@@ -44,12 +48,17 @@ export const investors = pgTable("investors", {
   bairro: text("bairro").notNull(),
   cidade: text("cidade").notNull(),
   estado: text("estado").notNull(),
+  endereco: text("endereco"),
   limiteInvestimento: text("limite_investimento"),
+  experienciaInvestimentos: text("experiencia_investimentos"),
+  objetivosInvestimento: text("objetivos_investimento"),
   status: text("status").notNull().default("pendente"), // pendente, ativo, inativo
   // Campos de aprovação granular
   cadastroAprovado: boolean("cadastro_aprovado").default(false),
   emailConfirmado: boolean("email_confirmado").default(false),
   documentosVerificados: boolean("documentos_verificados").default(false),
+  rendaComprovada: boolean("renda_comprovada").default(false),
+  perfilInvestidor: boolean("perfil_investidor").default(false),
   aprovadoPor: integer("aprovado_por").references(() => adminUsers.id),
   aprovadoEm: timestamp("aprovado_em"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
