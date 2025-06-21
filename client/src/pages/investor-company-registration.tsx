@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Building2, Save, AlertCircle } from "lucide-react";
-import UnifiedNavbar from "@/components/layout/unified-navbar";
+import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { useLocation } from "wouter";
 
 const companySchema = z.object({
@@ -120,27 +120,21 @@ export default function InvestorCompanyRegistration() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <UnifiedNavbar 
-        userType="investor" 
-        userName={user?.nomeCompleto || "Investidor"}
-        isCompanyApproved={false}
-      />
-      
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+    <ModernSidebarLayout title="Cadastro de Empresa" userType="investor" theme="blue">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground flex items-center">
             <Building2 className="h-8 w-8 mr-3" />
             Cadastro de Empresa
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-muted-foreground mt-2">
             Cadastre sua empresa para acessar a rede de investimentos
           </p>
         </div>
 
-        <Alert className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
+        <Alert className="bg-blue-50 border-blue-200">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
             Após o cadastro, sua empresa ficará pendente para aprovação pelo backoffice. 
             Apenas após a aprovação você poderá acessar a aba "Rede".
           </AlertDescription>
@@ -491,6 +485,6 @@ export default function InvestorCompanyRegistration() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </ModernSidebarLayout>
   );
 }

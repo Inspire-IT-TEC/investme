@@ -849,6 +849,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Change password route
+  app.put('/api/auth/change-password', authenticateToken, async (req: any, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.senha);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ message: 'Senha atual incorreta' });
+      }
+
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      await storage.updateUser(req.user.id, { senha: hashedNewPassword });
+      
+      res.json({ message: 'Senha alterada com sucesso' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao alterar senha' });
+    }
+  });
+
   // Company Routes
   app.get('/api/companies', authenticateToken, async (req: any, res) => {
     try {
