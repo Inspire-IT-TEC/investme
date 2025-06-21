@@ -159,8 +159,8 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
       return [
         { name: 'Dashboard', href: '/investor/dashboard', icon: Home },
         { name: 'Rede', href: '/network', icon: TrendingUp },
-        { name: 'Mensagens', href: '/messages', icon: MessageCircle },
-        { name: 'Perfil', href: '/profile', icon: UserCog },
+        { name: 'Mensagens', href: '/investor/messages', icon: MessageCircle },
+        { name: 'Perfil', href: '/investor/profile', icon: UserCog },
       ];
     } else {
       return [

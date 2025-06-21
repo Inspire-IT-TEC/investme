@@ -156,15 +156,15 @@ export default function BackofficeInvestors() {
       <div className="space-y-4">
         <h4 className="font-semibold text-gray-900">Aprovação de Itens do Perfil</h4>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 border rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-white border rounded-lg">
             <div className="flex items-center space-x-3">
               <div className={`w-3 h-3 rounded-full ${investor.cadastroAprovado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-              <span className="font-medium">Cadastro Completo</span>
+              <span className="font-medium text-gray-900">Cadastro Completo</span>
             </div>
             <div className="flex space-x-2">
               <Button 
                 size="sm" 
-                variant={investor.cadastroAprovado ? "default" : "outline"}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
                 onClick={() => handleFieldApproval(investor.id, 'cadastroAprovado', true)}
               >
                 <CheckCircle className="w-4 h-4 mr-1" />
@@ -172,7 +172,8 @@ export default function BackofficeInvestors() {
               </Button>
               <Button 
                 size="sm" 
-                variant={!investor.cadastroAprovado ? "destructive" : "outline"}
+                variant="outline"
+                className="border-gray-300 text-gray-600 hover:bg-gray-50"
                 onClick={() => handleFieldApproval(investor.id, 'cadastroAprovado', false)}
               >
                 <XCircle className="w-4 h-4 mr-1" />
@@ -181,15 +182,15 @@ export default function BackofficeInvestors() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-3 border rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-white border rounded-lg">
             <div className="flex items-center space-x-3">
               <div className={`w-3 h-3 rounded-full ${investor.emailConfirmado ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-              <span className="font-medium">Email Confirmado</span>
+              <span className="font-medium text-gray-900">Email Confirmado</span>
             </div>
             <div className="flex space-x-2">
               <Button 
                 size="sm" 
-                variant={investor.emailConfirmado ? "default" : "outline"}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
                 onClick={() => handleFieldApproval(investor.id, 'emailConfirmado', true)}
               >
                 <CheckCircle className="w-4 h-4 mr-1" />
@@ -197,7 +198,8 @@ export default function BackofficeInvestors() {
               </Button>
               <Button 
                 size="sm" 
-                variant={!investor.emailConfirmado ? "destructive" : "outline"}
+                variant="outline"
+                className="border-gray-300 text-gray-600 hover:bg-gray-50"
                 onClick={() => handleFieldApproval(investor.id, 'emailConfirmado', false)}
               >
                 <XCircle className="w-4 h-4 mr-1" />
@@ -206,15 +208,15 @@ export default function BackofficeInvestors() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-3 border rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-white border rounded-lg">
             <div className="flex items-center space-x-3">
               <div className={`w-3 h-3 rounded-full ${investor.documentosVerificados ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-              <span className="font-medium">Documentos Verificados</span>
+              <span className="font-medium text-gray-900">Documentos Verificados</span>
             </div>
             <div className="flex space-x-2">
               <Button 
                 size="sm" 
-                variant={investor.documentosVerificados ? "default" : "outline"}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
                 onClick={() => handleFieldApproval(investor.id, 'documentosVerificados', true)}
               >
                 <CheckCircle className="w-4 h-4 mr-1" />
@@ -222,7 +224,8 @@ export default function BackofficeInvestors() {
               </Button>
               <Button 
                 size="sm" 
-                variant={!investor.documentosVerificados ? "destructive" : "outline"}
+                variant="outline"
+                className="border-gray-300 text-gray-600 hover:bg-gray-50"
                 onClick={() => handleFieldApproval(investor.id, 'documentosVerificados', false)}
               >
                 <XCircle className="w-4 h-4 mr-1" />
@@ -230,56 +233,27 @@ export default function BackofficeInvestors() {
               </Button>
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className={`w-3 h-3 rounded-full ${investor.rendaComprovada ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-              <span className="font-medium">Renda Comprovada</span>
-            </div>
-            <div className="flex space-x-2">
-              <Button 
-                size="sm" 
-                variant={investor.rendaComprovada ? "default" : "outline"}
-                onClick={() => handleFieldApproval(investor.id, 'rendaComprovada', true)}
-              >
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Aprovar
-              </Button>
-              <Button 
-                size="sm" 
-                variant={!investor.rendaComprovada ? "destructive" : "outline"}
-                onClick={() => handleFieldApproval(investor.id, 'rendaComprovada', false)}
-              >
-                <XCircle className="w-4 h-4 mr-1" />
-                Rejeitar
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className={`w-3 h-3 rounded-full ${investor.perfilInvestidor ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-              <span className="font-medium">Perfil de Investidor</span>
-            </div>
-            <div className="flex space-x-2">
-              <Button 
-                size="sm" 
-                variant={investor.perfilInvestidor ? "default" : "outline"}
-                onClick={() => handleFieldApproval(investor.id, 'perfilInvestidor', true)}
-              >
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Aprovar
-              </Button>
-              <Button 
-                size="sm" 
-                variant={!investor.perfilInvestidor ? "destructive" : "outline"}
-                onClick={() => handleFieldApproval(investor.id, 'perfilInvestidor', false)}
-              >
-                <XCircle className="w-4 h-4 mr-1" />
-                Rejeitar
-              </Button>
-            </div>
-          </div>
+        <div className="flex space-x-2 pt-4">
+          <Button
+            onClick={() => approveInvestorMutation.mutate(investor.id)}
+            disabled={approveInvestorMutation.isPending}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Aprovar
+          </Button>
+          <Button 
+            variant="outline"
+            className="border-red-200 text-red-600 hover:bg-red-50"
+            onClick={() => {
+              // Abrir modal de rejeição se necessário
+            }}
+          >
+            <XCircle className="w-4 h-4 mr-2" />
+            Rejeitar
+          </Button>
         </div>
       </div>
     );
