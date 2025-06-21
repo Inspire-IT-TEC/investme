@@ -48,7 +48,6 @@ export const investors = pgTable("investors", {
   bairro: text("bairro").notNull(),
   cidade: text("cidade").notNull(),
   estado: text("estado").notNull(),
-  endereco: text("endereco"),
   limiteInvestimento: text("limite_investimento"),
   experienciaInvestimentos: text("experiencia_investimentos"),
   objetivosInvestimento: text("objetivos_investimento"),
