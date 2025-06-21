@@ -17,7 +17,7 @@ export function useAuth() {
 
   const logout = useCallback(() => {
     authManager.logout();
-    setLocation('/login');
+    setLocation('/');
   }, [setLocation]);
 
   const updateUser = useCallback((userData: Partial<User>) => {

@@ -1036,7 +1036,8 @@ export class DatabaseStorage implements IStorage {
         let investorEmail = null;
         
         if (request.investorId) {
-          const investor = await this.getInvestor(request.investorId);
+          const investors = await this.getInvestors();
+          const investor = investors.find(inv => inv.id === request.investorId);
           if (investor) {
             investorName = investor.nomeCompleto;
             investorEmail = investor.email;

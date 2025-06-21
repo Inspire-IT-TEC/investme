@@ -644,8 +644,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       console.log('Approving investor with ID:', id);
       
-      // First check if investor exists in investors table
-      const existingInvestor = await storage.getInvestors().then(investors => investors.find(inv => inv.id === parseInt(id)));
+      // Get investor from investors table
+      const investors = await storage.getInvestors();
+      const existingInvestor = investors.find(inv => inv.id === parseInt(id));
+      
       if (!existingInvestor) {
         console.log('Investor not found in investors table');
         return res.status(404).json({ message: 'Investidor não encontrado' });
@@ -1707,6 +1709,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { field, approved } = req.body;
       
+      console.log('Updating investor field:', { id, field, approved });
+      
       const validFields = [
         'cadastroAprovado', 
         'emailConfirmado', 
@@ -1719,19 +1723,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Campo inválido' });
       }
 
+      // Check if investor exists first
+      const investors = await storage.getInvestors();
+      const existingInvestor = investors.find(inv => inv.id === parseInt(id));
+      
+      if (!existingInvestor) {
+        console.log('Investor not found for field update');
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+
       // Update the investor field directly
       const updateData = { [field]: approved };
       const investor = await storage.updateInvestor(parseInt(id), updateData);
 
       if (!investor) {
-        return res.status(404).json({ message: 'Investidor não encontrado' });
+        return res.status(404).json({ message: 'Erro ao atualizar investidor' });
       }
 
+      console.log('Field updated successfully:', investor);
       res.json({ 
         message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, 
         investor 
       });
     } catch (error: any) {
+      console.error('Error updating investor field:', error);
       res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
     }
   });

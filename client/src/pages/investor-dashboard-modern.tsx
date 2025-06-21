@@ -93,7 +93,7 @@ export default function InvestorDashboard() {
     <ModernSidebarLayout title="Dashboard do Investidor" userType="investor">
       <div className="space-y-6">
         {/* Welcome Card */}
-        <ModernCard variant="gradient" className="gradient-primary text-white shadow-xl">
+        <ModernCard variant="gradient" className="bg-gradient-to-r from-blue-800 to-blue-900 text-white shadow-xl">
           <ModernCardContent>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
