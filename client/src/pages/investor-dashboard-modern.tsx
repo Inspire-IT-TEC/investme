@@ -101,7 +101,7 @@ export default function InvestorDashboard() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold mb-2">
-                  Bem-vindo, {(user as any)?.nomeCompleto || (user as any)?.nome || 'Investidor'}
+                  Bem-vindo, {user ? (user as any).nomeCompleto || (user as any).nome || 'Investidor' : 'Investidor'}
                 </h1>
                 <p className="text-white/80 text-lg">Analise e invista em oportunidades de crédito</p>
               </div>
@@ -139,22 +139,20 @@ export default function InvestorDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ModernCard className="hover:shadow-lg transition-all duration-200">
-            <ModernCardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Disponíveis</p>
-                  <p className="text-3xl font-bold text-foreground">
-                    {(stats as any)?.availableRequests || 0}
-                  </p>
-                  <p className="text-xs text-primary">Solicitações</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <CreditCard className="h-6 w-6 text-primary" />
-                </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Disponíveis</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {(stats as any)?.availableRequests || 0}
+                </p>
+                <p className="text-xs text-primary">Solicitações</p>
               </div>
-            </ModernCardContent>
-          </ModernCard>
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <CreditCard className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+          </div>
 
           <ModernCard className="hover:shadow-lg transition-all duration-200">
             <ModernCardContent>
