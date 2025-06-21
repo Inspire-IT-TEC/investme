@@ -344,6 +344,17 @@ export default function Network() {
                 
                 <CardContent className="pt-0">
                   <div className="space-y-3">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">CNPJ: </span>
+                      <span className="font-medium">{company.cnpj}</span>
+                    </div>
+                    
+                    {company.descricaoNegocio && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {company.descricaoNegocio}
+                      </p>
+                    )}
+                    
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Faturamento</span>
                       <span className="font-medium">
@@ -405,8 +416,21 @@ export default function Network() {
               </DialogHeader>
 
               <div className="space-y-6">
+                {/* Company Description */}
+                {selectedCompany.descricaoNegocio && (
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">Sobre a empresa</h4>
+                    <p className="text-sm text-muted-foreground">{selectedCompany.descricaoNegocio}</p>
+                  </div>
+                )}
+
                 {/* Company Info */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <Building2 className="h-6 w-6 mx-auto mb-2 text-primary" />
+                    <p className="text-sm text-muted-foreground">CNPJ</p>
+                    <p className="font-semibold text-xs">{selectedCompany.cnpj}</p>
+                  </div>
                   <div className="text-center p-4 bg-muted/50 rounded-lg">
                     <TrendingUp className="h-6 w-6 mx-auto mb-2 text-primary" />
                     <p className="text-sm text-muted-foreground">Faturamento</p>
@@ -418,11 +442,6 @@ export default function Network() {
                     <Calendar className="h-6 w-6 mx-auto mb-2 text-primary" />
                     <p className="text-sm text-muted-foreground">Fundação</p>
                     <p className="font-semibold">{new Date(selectedCompany.dataFundacao).getFullYear()}</p>
-                  </div>
-                  <div className="text-center p-4 bg-muted/50 rounded-lg">
-                    <Building2 className="h-6 w-6 mx-auto mb-2 text-primary" />
-                    <p className="text-sm text-muted-foreground">CNAE</p>
-                    <p className="font-semibold text-xs">{selectedCompany.cnaePrincipal}</p>
                   </div>
                   <div className="text-center p-4 bg-muted/50 rounded-lg">
                     <Users className="h-6 w-6 mx-auto mb-2 text-primary" />

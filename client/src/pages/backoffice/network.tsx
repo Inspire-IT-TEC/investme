@@ -71,10 +71,15 @@ export default function BackofficeNetwork() {
                     {company.razaoSocial}
                   </p>
                 )}
-                <CardDescription className="flex items-center gap-1 mt-1">
-                  <MapPin className="h-3 w-3" />
-                  {company.cidade}, {company.estado}
-                </CardDescription>
+                <div className="space-y-1">
+                  <CardDescription className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {company.cidade}, {company.estado}
+                  </CardDescription>
+                  <p className="text-xs text-gray-500">
+                    CNPJ: {company.cnpj}
+                  </p>
+                </div>
               </div>
             </div>
             {getStatusBadge(company.status)}
