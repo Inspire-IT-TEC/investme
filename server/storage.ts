@@ -1367,7 +1367,7 @@ export class DatabaseStorage implements IStorage {
         or(
           ilike(companies.razaoSocial, `%${filters.search}%`),
           ilike(companies.nomeFantasia, `%${filters.search}%`)
-        )
+        )!
       );
     }
 
@@ -1393,7 +1393,7 @@ export class DatabaseStorage implements IStorage {
         investorId: companies.investorId
       })
       .from(companies)
-      .where(and(...whereConditions))
+      .where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0])
       .orderBy(companies.razaoSocial);
 
     return result;
