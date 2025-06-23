@@ -569,6 +569,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get conversation for credit request analysis
+  app.get('/api/investor/conversations/credit-request-:requestId', authenticateToken, async (req: any, res) => {
+    try {
+      const { requestId } = req.params;
+      const investorId = req.user.id;
+      
+      // Verify the credit request is being analyzed by this investor
+      const creditRequest = await storage.getCreditRequest(parseInt(requestId));
+      if (!creditRequest || creditRequest.investorId !== investorId || creditRequest.status !== 'em_analise') {
+        return res.status(403).json({ message: 'Acesso não autorizado a esta conversa' });
+      }
+
+      const conversationId = `credit-request-${requestId}`;
+      const messages = await storage.getConversationMessages(conversationId);
+      
+      res.json({ messages });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar conversa' });
+    }
+  });
+
+  // Send message in credit request conversation
+  app.post('/api/investor/conversations/credit-request-:requestId/messages', authenticateToken, async (req: any, res) => {
+    try {
+      const { requestId } = req.params;
+      const { text } = req.body;
+      const investorId = req.user.id;
+      
+      // Verify the credit request is being analyzed by this investor
+      const creditRequest = await storage.getCreditRequest(parseInt(requestId));
+      if (!creditRequest || creditRequest.investorId !== investorId || creditRequest.status !== 'em_analise') {
+        return res.status(403).json({ message: 'Acesso não autorizado a esta conversa' });
+      }
+
+      const conversationId = `credit-request-${requestId}`;
+      
+      // Create message
+      await storage.createMessage({
+        conversationId,
+        remetenteId: investorId,
+        remetenteTipo: 'investor',
+        destinatarioId: creditRequest.companyId,
+        destinatarioTipo: 'company',
+        conteudo: text,
+        assunto: `Análise de Crédito - ${creditRequest.valorSolicitado}`,
+        lida: false
+      });
+
+      res.json({ message: 'Mensagem enviada com sucesso' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao enviar mensagem' });
+    }
+  });
+
   // Get detailed company information for investor analysis
   app.get('/api/investor/company-details/:creditRequestId', authenticateToken, async (req: any, res) => {
     try {
