@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
@@ -23,7 +24,9 @@ import {
   Send,
   Search,
   Users,
-  TrendingUp
+  TrendingUp,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 export default function Network() {
@@ -35,6 +38,7 @@ export default function Network() {
   const [newPostContent, setNewPostContent] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [commentText, setCommentText] = useState("");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Determinar o tipo de usuário baseado na URL ou contexto
   const userType = (user as any)?.tipo || 'entrepreneur';
@@ -230,79 +234,97 @@ export default function Network() {
 
         {/* Filters */}
         <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              <span className="font-semibold">Filtros</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Buscar empresa</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Nome da empresa..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+          <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-5 w-5" />
+                    <span className="font-semibold">Filtros</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {companies?.length || 0} empresas
+                    </Badge>
+                    {isFilterOpen ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Estado</label>
-                <Select value={selectedState} onValueChange={(value) => {
-                  setSelectedState(value);
-                  setSelectedCity("all");
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os estados</SelectItem>
-                    {(states || []).map((state: any) => (
-                      <SelectItem key={state.id} value={state.id.toString()}>
-                        {state.name} ({state.code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Buscar empresa</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Nome da empresa..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Estado</label>
+                    <Select value={selectedState} onValueChange={(value) => {
+                      setSelectedState(value);
+                      setSelectedCity("all");
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os estados</SelectItem>
+                        {(states || []).map((state: any) => (
+                          <SelectItem key={state.id} value={state.id.toString()}>
+                            {state.name} ({state.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Cidade</label>
-                <Select value={selectedCity} onValueChange={setSelectedCity} disabled={!selectedState}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a cidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as cidades</SelectItem>
-                    {(cities || []).map((city: any) => (
-                      <SelectItem key={city.id} value={city.id.toString()}>
-                        {city.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Cidade</label>
+                    <Select value={selectedCity} onValueChange={setSelectedCity} disabled={!selectedState}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a cidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as cidades</SelectItem>
+                        {(cities || []).map((city: any) => (
+                          <SelectItem key={city.id} value={city.id.toString()}>
+                            {city.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="flex items-end">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSelectedState("all");
-                    setSelectedCity("all");
-                    setSearchTerm("");
-                  }}
-                  className="w-full"
-                >
-                  Limpar filtros
-                </Button>
-              </div>
-            </div>
-          </CardContent>
+                  <div className="flex items-end">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setSelectedState("all");
+                        setSelectedCity("all");
+                        setSearchTerm("");
+                      }}
+                      className="w-full"
+                    >
+                      Limpar filtros
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
 
         {/* Companies Grid */}
