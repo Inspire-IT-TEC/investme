@@ -505,6 +505,6 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </ModernSidebarLayout>
   );
 }
