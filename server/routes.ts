@@ -609,12 +609,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createMessage({
         conversationId,
         remetenteId: investorId,
-        remetenteTipo: 'investor',
-        destinatarioId: creditRequest.companyId,
+        tipo: 'investor',
         destinatarioTipo: 'company',
         conteudo: text,
         assunto: `Análise de Crédito - ${creditRequest.valorSolicitado}`,
-        lida: false
+        lida: false,
+        companyId: creditRequest.companyId,
+        creditRequestId: parseInt(requestId)
       });
 
       res.json({ message: 'Mensagem enviada com sucesso' });
