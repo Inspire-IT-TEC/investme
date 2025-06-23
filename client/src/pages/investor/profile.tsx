@@ -57,13 +57,13 @@ export default function InvestorProfile() {
 
   // Fetch full company details if company exists
   const { data: companyData, isLoading: companyLoading } = useQuery({
-    queryKey: ['/api/companies', companyStatus?.companyId],
+    queryKey: ['/api/investor/company'],
     queryFn: async () => {
-      if (!companyStatus?.companyId) return null;
-      const response = await apiRequest("GET", `/api/companies/${companyStatus.companyId}`);
+      if (!companyStatus?.hasCompany) return null;
+      const response = await apiRequest("GET", "/api/investor/company");
       return response.json();
     },
-    enabled: !!companyStatus?.companyId,
+    enabled: !!companyStatus?.hasCompany,
     retry: false,
   });
 
@@ -97,7 +97,7 @@ export default function InvestorProfile() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/companies', companyStatus?.companyId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/investor/company'] });
       queryClient.invalidateQueries({ queryKey: ['/api/investor/company-status'] });
       setIsEditing(false);
       toast({

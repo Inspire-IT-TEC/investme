@@ -1360,56 +1360,43 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getNetworkCompanies(filters?: { stateId?: number; cityId?: number; search?: string; excludeUserId?: number }): Promise<any[]> {
-    let whereClause = "WHERE status = 'aprovada'";
-    const params: any[] = [];
-
-    if (filters?.stateId) {
-      whereClause += ` AND state_id = $${params.length + 1}`;
-      params.push(filters.stateId);
-    }
-
-    if (filters?.cityId) {
-      whereClause += ` AND city_id = $${params.length + 1}`;
-      params.push(filters.cityId);
-    }
+    let whereConditions = [eq(companies.status, 'aprovada')];
 
     if (filters?.search) {
-      whereClause += ` AND (razao_social ILIKE $${params.length + 1} OR nome_fantasia ILIKE $${params.length + 1})`;
-      params.push(`%${filters.search}%`);
+      whereConditions.push(
+        or(
+          ilike(companies.razaoSocial, `%${filters.search}%`),
+          ilike(companies.nomeFantasia, `%${filters.search}%`)
+        )
+      );
     }
 
     if (filters?.excludeUserId) {
-      whereClause += ` AND user_id != $${params.length + 1}`;
-      params.push(filters.excludeUserId);
+      whereConditions.push(ne(companies.userId, filters.excludeUserId));
     }
 
-    const query = `
-      SELECT id, razao_social, nome_fantasia, cnpj, cidade, estado, cnae_principal, 
-             faturamento, data_fundacao, descricao_negocio, images, user_id, entrepreneur_id, investor_id
-      FROM companies 
-      ${whereClause}
-      ORDER BY razao_social
-    `;
+    const result = await db
+      .select({
+        id: companies.id,
+        razaoSocial: companies.razaoSocial,
+        nomeFantasia: companies.nomeFantasia,
+        cnpj: companies.cnpj,
+        cidade: companies.cidade,
+        estado: companies.estado,
+        cnaePrincipal: companies.cnaePrincipal,
+        faturamento: companies.faturamento,
+        dataFundacao: companies.dataFundacao,
+        descricaoNegocio: companies.descricaoNegocio,
+        images: companies.images,
+        userId: companies.userId,
+        entrepreneurId: companies.entrepreneurId,
+        investorId: companies.investorId
+      })
+      .from(companies)
+      .where(and(...whereConditions))
+      .orderBy(companies.razaoSocial);
 
-    const result = await db.execute(sql.raw(query, params));
-    
-    // Map raw database field names to camelCase for frontend
-    return result.rows.map((row: any) => ({
-      id: row.id,
-      razaoSocial: row.razao_social,
-      nomeFantasia: row.nome_fantasia,
-      cnpj: row.cnpj,
-      cidade: row.cidade,
-      estado: row.estado,
-      cnaePrincipal: row.cnae_principal,
-      faturamento: row.faturamento,
-      dataFundacao: row.data_fundacao,
-      descricaoNegocio: row.descricao_negocio,
-      images: row.images || [],
-      userId: row.user_id,
-      entrepreneurId: row.entrepreneur_id,
-      investorId: row.investor_id
-    }));
+    return result;
   }
 
   // Network posts methods
