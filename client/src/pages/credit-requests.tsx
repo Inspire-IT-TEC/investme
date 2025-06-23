@@ -97,7 +97,7 @@ export default function CreditRequests() {
     );
   }
 
-  const hasApprovedCompany = companies && companies.some((company: any) => company.status === 'approved');
+  const hasApprovedCompany = companies && companies.some((company: any) => company.status === 'approved' || company.status === 'aprovada');
 
   return (
     <ModernSidebarLayout title="Solicitações" userType="user" theme="green">
