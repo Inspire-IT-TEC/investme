@@ -44,6 +44,19 @@ export default function InvestorCreditRequests() {
     },
   });
 
+  // Fetch my analysis (requests I'm currently analyzing)
+  const { data: myAnalysis, isLoading: loadingMyAnalysis } = useQuery({
+    queryKey: ['/api/investor/my-analysis'],
+    queryFn: () => {
+      return fetch('/api/investor/my-analysis', {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }).then(res => res.json());
+    },
+  });
+
   // Fetch approved analysis (requests I've approved)
   const { data: approvedRequests, isLoading: loadingApproved } = useQuery({
     queryKey: ['/api/investor/approved-analysis'],
@@ -73,6 +86,7 @@ export default function InvestorCreditRequests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/investor/credit-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/investor/my-analysis'] });
       queryClient.invalidateQueries({ queryKey: ['/api/investor/approved-analysis'] });
       toast({
         title: "Solicitação aceita",
@@ -334,25 +348,25 @@ export default function InvestorCreditRequests() {
           
           <TabsContent value="approved" className="mt-6">
             <div className="space-y-4">
-              {loadingApproved ? (
+              {loadingMyAnalysis ? (
                 <div className="flex items-center justify-center min-h-[200px]">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                     <p className="text-muted-foreground">Carregando análises...</p>
                   </div>
                 </div>
-              ) : filterRequests(approvedRequests || []).length === 0 ? (
+              ) : (myAnalysis || []).length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
                     <CheckCircle className="w-12 h-12 text-muted-foreground mb-4" />
                     <h3 className="text-lg font-semibold mb-2">Nenhuma análise encontrada</h3>
                     <p className="text-muted-foreground text-center">
-                      Você ainda não aprovou nenhuma solicitação de crédito.
+                      Você ainda não aceitou nenhuma solicitação de crédito.
                     </p>
                   </CardContent>
                 </Card>
               ) : (
-                filterRequests(approvedRequests || []).map((request: any) => (
+                (myAnalysis || []).map((request: any) => (
                   <RequestCard key={request.id} request={request} showAcceptButton={false} />
                 ))
               )}
