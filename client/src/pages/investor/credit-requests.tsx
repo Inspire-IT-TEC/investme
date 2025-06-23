@@ -7,7 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { 
@@ -22,8 +25,407 @@ import {
   Clock,
   XCircle,
   TrendingUp,
-  FileText
+  FileText,
+  MessageCircle,
+  Send,
+  ThumbsUp,
+  ThumbsDown,
+  Download,
+  MapPin,
+  Users,
+  Mail,
+  Phone,
+  Globe,
+  Shield
 } from "lucide-react";
+
+// Detailed Analysis Dialog Component
+function DetailedAnalysisDialog({ request, showAcceptButton, onAccept, acceptPending }: {
+  request: any;
+  showAcceptButton: boolean;
+  onAccept: () => void;
+  acceptPending: boolean;
+}) {
+  const [messageText, setMessageText] = useState("");
+  const [observacoes, setObservacoes] = useState("");
+  const { toast } = useToast();
+
+  // Fetch detailed company information
+  const { data: companyDetails, isLoading: loadingDetails } = useQuery({
+    queryKey: [`/api/investor/company-details/${request.id}`],
+    enabled: request.status === 'em_analise',
+    queryFn: () => {
+      return fetch(`/api/investor/company-details/${request.id}`, {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }).then(res => res.json());
+    },
+  });
+
+  // Fetch conversation for this request
+  const { data: conversation, isLoading: loadingConversation } = useQuery({
+    queryKey: [`/api/investor/conversations/credit-request-${request.id}`],
+    enabled: request.status === 'em_analise',
+    queryFn: () => {
+      return fetch(`/api/investor/conversations/credit-request-${request.id}`, {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }).then(res => res.json());
+    },
+  });
+
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: { text: string }) => {
+      const response = await fetch(`/api/investor/conversations/credit-request-${request.id}/messages`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(messageData)
+      });
+      if (!response.ok) throw new Error('Erro ao enviar mensagem');
+      return response.json();
+    },
+    onSuccess: () => {
+      setMessageText("");
+      queryClient.invalidateQueries({ queryKey: [`/api/investor/conversations/credit-request-${request.id}`] });
+      toast({
+        title: "Mensagem enviada",
+        description: "Sua mensagem foi enviada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao enviar",
+        description: error.message || "Erro ao enviar mensagem.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Approve request mutation
+  const approveRequestMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/investor/credit-requests/${request.id}/approve`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ observacoes })
+      });
+      if (!response.ok) throw new Error('Erro ao aprovar solicitação');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/investor/my-analysis'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/investor/approved-analysis'] });
+      toast({
+        title: "Solicitação aprovada",
+        description: "A solicitação foi aprovada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao aprovar",
+        description: error.message || "Erro ao aprovar solicitação.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Reject request mutation
+  const rejectRequestMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/investor/credit-requests/${request.id}/reject`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ observacoes })
+      });
+      if (!response.ok) throw new Error('Erro ao rejeitar solicitação');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/investor/my-analysis'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/investor/approved-analysis'] });
+      toast({
+        title: "Solicitação rejeitada",
+        description: "A solicitação foi rejeitada.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao rejeitar",
+        description: error.message || "Erro ao rejeitar solicitação.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Eye className="w-4 h-4 mr-1" />
+          Detalhes
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle>Análise Detalhada da Solicitação</DialogTitle>
+          <DialogDescription>
+            Informações completas da empresa e solicitação de crédito
+          </DialogDescription>
+        </DialogHeader>
+        
+        <ScrollArea className="max-h-[75vh]">
+          <div className="space-y-6 p-1">
+            {/* Basic Request Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="font-semibold text-sm text-muted-foreground">Empresa</p>
+                <p className="text-lg font-medium">{request.companyRazaoSocial || request.companyName || request.razaoSocial}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-muted-foreground">CNPJ</p>
+                <p className="text-lg font-medium">{request.companyCnpj || request.cnpj}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-muted-foreground">Valor Solicitado</p>
+                <p className="text-lg font-medium text-green-600">{formatCurrency(parseFloat(request.valorSolicitado || 0))}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-muted-foreground">Prazo</p>
+                <p className="text-lg font-medium">{request.prazoMeses} meses</p>
+              </div>
+            </div>
+
+            {request.finalidade && (
+              <div>
+                <p className="font-semibold text-sm text-muted-foreground mb-2">Finalidade</p>
+                <p className="text-sm bg-gray-50 p-3 rounded-lg">{request.finalidade}</p>
+              </div>
+            )}
+
+            <Separator />
+
+            {/* Company Details */}
+            {loadingDetails ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : companyDetails && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  Informações da Empresa
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {companyDetails.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      <span>{companyDetails.email}</span>
+                    </div>
+                  )}
+                  {companyDetails.telefone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
+                      <span>{companyDetails.telefone}</span>
+                    </div>
+                  )}
+                  {companyDetails.website && (
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-muted-foreground" />
+                      <span>{companyDetails.website}</span>
+                    </div>
+                  )}
+                  {companyDetails.cidade && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      <span>{companyDetails.cidade}, {companyDetails.estado}</span>
+                    </div>
+                  )}
+                </div>
+
+                {companyDetails.descricao && (
+                  <div>
+                    <p className="font-semibold text-sm text-muted-foreground mb-2">Descrição</p>
+                    <p className="text-sm bg-gray-50 p-3 rounded-lg">{companyDetails.descricao}</p>
+                  </div>
+                )}
+
+                {/* Valuation Information */}
+                {companyDetails.valuation && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground mb-2">Valuation</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Valor da Empresa:</span>
+                        <p className="font-medium text-green-600">{formatCurrency(companyDetails.valuation.valorEmpresa)}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Receita Anual:</span>
+                        <p className="font-medium">{formatCurrency(companyDetails.valuation.receitaAnual)}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Documents */}
+                {companyDetails.documentos && companyDetails.documentos.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground mb-2">Documentos</h4>
+                    <div className="space-y-2">
+                      {companyDetails.documentos.map((doc: string, index: number) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                          <FileText className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm flex-1">Documento {index + 1}</span>
+                          <Button variant="ghost" size="sm" asChild>
+                            <a href={doc} target="_blank" rel="noopener noreferrer">
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Messaging Section (only for analysis status) */}
+            {request.status === 'em_analise' && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5" />
+                    Comunicação
+                  </h3>
+                  
+                  {/* Messages */}
+                  <div className="max-h-60 overflow-y-auto space-y-2 bg-gray-50 p-3 rounded-lg">
+                    {loadingConversation ? (
+                      <div className="text-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                      </div>
+                    ) : conversation?.messages?.length > 0 ? (
+                      conversation.messages.map((message: any, index: number) => (
+                        <div key={index} className={`flex ${message.remetenteId === localStorage.getItem('userId') ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                            message.remetenteId === localStorage.getItem('userId') 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-white border'
+                          }`}>
+                            <p>{message.conteudo}</p>
+                            <span className="text-xs opacity-70">
+                              {new Date(message.createdAt).toLocaleTimeString('pt-BR')}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center text-muted-foreground py-4">Nenhuma mensagem ainda</p>
+                    )}
+                  </div>
+
+                  {/* Send Message */}
+                  <div className="flex gap-2">
+                    <Textarea
+                      placeholder="Digite sua mensagem..."
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      className="min-h-[60px]"
+                    />
+                    <Button 
+                      onClick={() => sendMessageMutation.mutate({ text: messageText })}
+                      disabled={!messageText.trim() || sendMessageMutation.isPending}
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Analysis Decision */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Decisão da Análise</h3>
+                  <Textarea
+                    placeholder="Observações sobre a análise..."
+                    value={observacoes}
+                    onChange={(e) => setObservacoes(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => approveRequestMutation.mutate()}
+                      disabled={approveRequestMutation.isPending}
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      <ThumbsUp className="w-4 h-4 mr-2" />
+                      Aprovar
+                    </Button>
+                    <Button 
+                      onClick={() => rejectRequestMutation.mutate()}
+                      disabled={rejectRequestMutation.isPending}
+                      variant="destructive"
+                      className="flex-1"
+                    >
+                      <ThumbsDown className="w-4 h-4 mr-2" />
+                      Rejeitar
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Accept Button for Available Requests */}
+            {showAcceptButton && request.status === 'na_rede' && (
+              <>
+                <Separator />
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={onAccept}
+                    disabled={acceptPending}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Aceitar para Análise
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function InvestorCreditRequests() {
   const { toast } = useToast();
@@ -176,10 +578,10 @@ export default function InvestorCreditRequests() {
             </div>
             <div>
               <CardTitle className="text-lg">
-                {request.companyName || request.razaoSocial || 'Empresa'}
+                {request.companyRazaoSocial || request.companyName || request.razaoSocial || 'Empresa'}
               </CardTitle>
               <CardDescription>
-                CNPJ: {request.cnpj || 'Não informado'}
+                CNPJ: {request.companyCnpj || request.cnpj || 'Não informado'}
               </CardDescription>
             </div>
           </div>
@@ -209,45 +611,12 @@ export default function InvestorCreditRequests() {
             Criado em {formatDate(request.createdAt)}
           </div>
           <div className="flex gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" onClick={() => setSelectedRequest(request)}>
-                  <Eye className="w-4 h-4 mr-1" />
-                  Detalhes
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Detalhes da Solicitação</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="font-semibold">Empresa</p>
-                      <p>{request.companyName || request.razaoSocial}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">CNPJ</p>
-                      <p>{request.cnpj}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Valor Solicitado</p>
-                      <p>{formatCurrency(parseFloat(request.valorSolicitado || 0))}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Prazo</p>
-                      <p>{request.prazoMeses} meses</p>
-                    </div>
-                  </div>
-                  {request.proposito && (
-                    <div>
-                      <p className="font-semibold">Propósito</p>
-                      <p>{request.proposito}</p>
-                    </div>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
+            <DetailedAnalysisDialog 
+              request={request} 
+              showAcceptButton={showAcceptButton}
+              onAccept={() => acceptRequestMutation.mutate(request.id)}
+              acceptPending={acceptRequestMutation.isPending}
+            />
             
             {showAcceptButton && request.status === 'na_rede' && (
               <Button 
