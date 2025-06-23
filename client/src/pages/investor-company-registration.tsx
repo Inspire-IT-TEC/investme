@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Save, AlertCircle } from "lucide-react";
+import { Building2, Save, AlertCircle, Upload, Trash2 } from "lucide-react";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { useLocation } from "wouter";
 
@@ -47,6 +47,8 @@ export default function InvestorCompanyRegistration() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const [images, setImages] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -84,6 +86,7 @@ export default function InvestorCompanyRegistration() {
         },
         body: JSON.stringify({
           ...data,
+          images,
           tipoProprietario: 'investidor',
           dataFundacao: new Date(data.dataFundacao).toISOString(),
           faturamento: parseFloat(data.faturamento.replace(/[^\d.,]/g, '').replace(',', '.')) || 0,
@@ -114,6 +117,68 @@ export default function InvestorCompanyRegistration() {
       });
     },
   });
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const currentImageCount = images.length;
+    const maxImages = 5;
+    const availableSlots = maxImages - currentImageCount;
+    const filesToUpload = Array.from(files).slice(0, availableSlots);
+
+    if (filesToUpload.length === 0) {
+      toast({
+        title: "Limite de imagens",
+        description: "Você pode adicionar no máximo 5 imagens por empresa.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImages(true);
+
+    try {
+      const uploadPromises = filesToUpload.map(async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch('/api/upload/company-image', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Falha no upload da imagem');
+        const result = await response.json();
+        return result.url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      setImages(prev => [...prev, ...uploadedUrls]);
+
+      toast({
+        title: "Imagens enviadas",
+        description: `${uploadedUrls.length} imagem(ns) adicionada(s) com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no upload",
+        description: "Falha ao enviar uma ou mais imagens.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImages(false);
+      event.target.value = '';
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
 
   const onSubmit = (data: CompanyFormData) => {
     createCompanyMutation.mutate(data);

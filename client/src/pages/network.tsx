@@ -321,7 +321,45 @@ export default function Network() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(companies || []).map((company: any) => (
-              <Card key={company.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedCompany(company)}>
+              <Card key={company.id} className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden" onClick={() => setSelectedCompany(company)}>
+                {/* Company Images - Instagram Style */}
+                {company.images && company.images.length > 0 && (
+                  <div className="relative group">
+                    <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide" 
+                         style={{ scrollBehavior: 'smooth' }}>
+                      {company.images.slice(0, 5).map((imageUrl: string, index: number) => (
+                        <div key={index} className="flex-none w-full snap-start relative">
+                          <img
+                            src={imageUrl}
+                            alt={`${company.nomeFantasia || company.razaoSocial} - Imagem ${index + 1}`}
+                            className="w-full h-48 object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Image indicators */}
+                    {company.images.length > 1 && (
+                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                        {company.images.slice(0, 5).map((_, index) => (
+                          <div
+                            key={index}
+                            className="w-1.5 h-1.5 rounded-full bg-white/60"
+                          />
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Image count badge */}
+                    {company.images.length > 1 && (
+                      <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                        <ImageIcon className="w-3 h-3" />
+                        {company.images.length}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <CardHeader className="pb-3">
                   <div className="flex items-start gap-3">
                     <Avatar className="h-12 w-12">
