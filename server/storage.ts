@@ -1391,8 +1391,25 @@ export class DatabaseStorage implements IStorage {
       ORDER BY razao_social
     `;
 
-    const result = await db.execute(sql.raw(query));
-    return result.rows;
+    const result = await db.execute(sql.raw(query, params));
+    
+    // Map raw database field names to camelCase for frontend
+    return result.rows.map((row: any) => ({
+      id: row.id,
+      razaoSocial: row.razao_social,
+      nomeFantasia: row.nome_fantasia,
+      cnpj: row.cnpj,
+      cidade: row.cidade,
+      estado: row.estado,
+      cnaePrincipal: row.cnae_principal,
+      faturamento: row.faturamento,
+      dataFundacao: row.data_fundacao,
+      descricaoNegocio: row.descricao_negocio,
+      images: row.images || [],
+      userId: row.user_id,
+      entrepreneurId: row.entrepreneur_id,
+      investorId: row.investor_id
+    }));
   }
 
   // Network posts methods
