@@ -14,8 +14,7 @@ import {
   X,
   Home,
   Briefcase,
-  UserCog,
-  History
+  UserCog
 } from "lucide-react";
 
 interface BackofficeSidebarProps {
@@ -68,12 +67,6 @@ export default function BackofficeSidebar({ onLogout }: BackofficeSidebarProps) 
       icon: Users,
       href: "/backoffice/network",
       active: location === "/backoffice/network"
-    },
-    {
-      label: "Atualizações",
-      icon: History,
-      href: "/backoffice/updates",
-      active: location === "/backoffice/updates"
     }
   ];
 
