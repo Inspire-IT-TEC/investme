@@ -1503,10 +1503,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         hasCompany: !!investorCompany,
-        hasApprovedCompany: investorCompany?.status === 'aprovada'
+        hasApprovedCompany: investorCompany?.status === 'aprovada',
+        companyId: investorCompany?.id
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao verificar status da empresa' });
+    }
+  });
+
+  // Get investor company data for editing
+  app.get('/api/investor/company', authenticateToken, async (req: any, res) => {
+    try {
+      // Try to find investor by the user email from the token
+      let investor = await storage.getInvestorByEmail(req.user.email);
+      
+      if (!investor) {
+        // Try alternative approach - find investor by CPF if available
+        const user = await storage.getUser(req.user.id);
+        if (user?.cpf) {
+          investor = await storage.getInvestorByCpf(user.cpf);
+        }
+      }
+
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+
+      // Get investor's company
+      const companies = await storage.getCompanies(undefined, undefined, undefined);
+      const investorCompany = companies.find(c => c.investorId === investor.id && c.tipoProprietario === 'investidor');
+
+      if (!investorCompany) {
+        return res.status(404).json({ message: 'Empresa não encontrada' });
+      }
+
+      res.json(investorCompany);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar dados da empresa' });
     }
   });
 

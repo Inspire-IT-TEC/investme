@@ -1385,7 +1385,7 @@ export class DatabaseStorage implements IStorage {
 
     const query = `
       SELECT id, razao_social, nome_fantasia, cnpj, cidade, estado, cnae_principal, 
-             faturamento, data_fundacao, user_id, entrepreneur_id, investor_id
+             faturamento, data_fundacao, descricao_negocio, images, user_id, entrepreneur_id, investor_id
       FROM companies 
       ${whereClause}
       ORDER BY razao_social
