@@ -35,6 +35,7 @@ import ValuationPage from "@/pages/valuation";
 import InvestorNetworkPage from "@/pages/investor-network";
 import InvestorProfile from "@/pages/investor/profile";
 import InvestorMessages from "@/pages/investor/messages";
+import InvestorCreditRequests from "@/pages/investor/credit-requests";
 import Companies from "@/pages/companies";
 import CreditRequests from "@/pages/credit-requests";
 import Network from "@/pages/network";
@@ -70,6 +71,7 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/investor/profile" component={InvestorProfile} />
       <Route path="/investor/messages" component={InvestorMessages} />
+      <Route path="/investor/credit-requests" component={InvestorCreditRequests} />
       <Route path="/backoffice" component={BackofficeDashboard} />
       <Route path="/backoffice/login" component={BackofficeLogin} />
       <Route path="/backoffice/dashboard" component={BackofficeDashboard} />

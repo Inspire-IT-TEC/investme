@@ -158,6 +158,7 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
     } else if (userType === 'investor') {
       return [
         { name: 'Dashboard', href: '/investor/dashboard', icon: Home },
+        { name: 'Solicitações', href: '/investor/credit-requests', icon: CreditCard },
         { name: 'Rede', href: '/network', icon: TrendingUp },
         { name: 'Mensagens', href: '/investor/messages', icon: MessageCircle },
         { name: 'Perfil', href: '/investor/profile', icon: UserCog },

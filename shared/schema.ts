@@ -132,6 +132,7 @@ export const companies = pgTable("companies", {
   dividaLiquida: decimal("divida_liquida", { precision: 15, scale: 2 }).notNull(),
   numeroFuncionarios: integer("numero_funcionarios").notNull(),
   descricaoNegocio: text("descricao_negocio"),
+  images: text("images").array(), // URLs to company images (up to 5)
   status: text("status").notNull().default("pendente_analise"), // pendente_analise, em_analise, aprovada, reprovada, incompleto
   observacoesInternas: text("observacoes_internas"),
   analisadoPor: integer("analisado_por").references(() => adminUsers.id),
