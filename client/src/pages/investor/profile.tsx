@@ -45,6 +45,28 @@ export default function InvestorProfile() {
     retry: false,
   });
 
+  // Fetch company data
+  const { data: companyStatus } = useQuery({
+    queryKey: ['/api/investor/company-status'],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/investor/company-status");
+      return response.json();
+    },
+    retry: false,
+  });
+
+  // Fetch full company details if company exists
+  const { data: companyData, isLoading: companyLoading } = useQuery({
+    queryKey: ['/api/companies', companyStatus?.companyId],
+    queryFn: async () => {
+      if (!companyStatus?.companyId) return null;
+      const response = await apiRequest("GET", `/api/companies/${companyStatus.companyId}`);
+      return response.json();
+    },
+    enabled: !!companyStatus?.companyId,
+    retry: false,
+  });
+
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: any) => {
@@ -63,6 +85,30 @@ export default function InvestorProfile() {
       toast({
         title: "Erro ao atualizar perfil",
         description: error.message || "Ocorreu um erro ao atualizar o perfil.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update company mutation
+  const updateCompanyMutation = useMutation({
+    mutationFn: async (companyData: any) => {
+      const response = await apiRequest("PUT", `/api/companies/${companyData.id}`, companyData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/companies', companyStatus?.companyId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/investor/company-status'] });
+      setIsEditing(false);
+      toast({
+        title: "Empresa atualizada",
+        description: "Os dados da empresa foram atualizados com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar empresa",
+        description: error.message || "Ocorreu um erro ao atualizar os dados da empresa.",
         variant: "destructive",
       });
     },
@@ -94,6 +140,11 @@ export default function InvestorProfile() {
   const handleSaveProfile = (formData: FormData) => {
     const profileData = Object.fromEntries(formData.entries());
     updateProfileMutation.mutate(profileData);
+  };
+
+  const handleSaveCompany = (formData: FormData) => {
+    const companyData = Object.fromEntries(formData.entries());
+    updateCompanyMutation.mutate({ ...companyData, id: companyData.id });
   };
 
   const handleChangePassword = () => {
@@ -174,8 +225,9 @@ export default function InvestorProfile() {
           </Card>
         ) : (
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="profile">Informações Pessoais</TabsTrigger>
+              <TabsTrigger value="company">Empresa</TabsTrigger>
               <TabsTrigger value="security">Segurança</TabsTrigger>
               <TabsTrigger value="status">Status da Conta</TabsTrigger>
             </TabsList>
@@ -383,6 +435,260 @@ export default function InvestorProfile() {
                   </form>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="company" className="space-y-6">
+              {!companyStatus?.hasCompany ? (
+                <Card>
+                  <CardContent className="py-16 text-center">
+                    <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Nenhuma empresa cadastrada</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Você ainda não possui uma empresa cadastrada na plataforma.
+                    </p>
+                    <Button 
+                      onClick={() => window.location.href = '/investor-company-registration'}
+                    >
+                      Cadastrar Empresa
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Dados da Empresa</CardTitle>
+                        <CardDescription>
+                          Mantenha as informações da sua empresa atualizadas
+                        </CardDescription>
+                      </div>
+                      <Button
+                        variant={isEditing ? "outline" : "default"}
+                        onClick={() => setIsEditing(!isEditing)}
+                      >
+                        {isEditing ? "Cancelar" : "Editar"}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {companyLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                      </div>
+                    ) : companyData ? (
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const formData = new FormData(e.currentTarget);
+                          handleSaveCompany(formData);
+                        }}
+                      >
+                        <input type="hidden" name="id" value={companyData.id} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="razaoSocial">Razão Social</Label>
+                            <Input
+                              id="razaoSocial"
+                              name="razaoSocial"
+                              defaultValue={companyData.razaoSocial}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="nomeFantasia">Nome Fantasia</Label>
+                            <Input
+                              id="nomeFantasia"
+                              name="nomeFantasia"
+                              defaultValue={companyData.nomeFantasia}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="cnpj">CNPJ</Label>
+                            <Input
+                              id="cnpj"
+                              name="cnpj"
+                              defaultValue={companyData.cnpj}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="inscricaoEstadual">Inscrição Estadual</Label>
+                            <Input
+                              id="inscricaoEstadual"
+                              name="inscricaoEstadual"
+                              defaultValue={companyData.inscricaoEstadual}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="telefone">Telefone</Label>
+                            <Input
+                              id="telefone"
+                              name="telefone"
+                              defaultValue={companyData.telefone}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="email">Email da Empresa</Label>
+                            <Input
+                              id="email"
+                              name="email"
+                              type="email"
+                              defaultValue={companyData.email}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="cep">CEP</Label>
+                            <Input
+                              id="cep"
+                              name="cep"
+                              defaultValue={companyData.cep}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="cidade">Cidade</Label>
+                            <Input
+                              id="cidade"
+                              name="cidade"
+                              defaultValue={companyData.cidade}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="estado">Estado</Label>
+                            <Input
+                              id="estado"
+                              name="estado"
+                              defaultValue={companyData.estado}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="rua">Rua</Label>
+                            <Input
+                              id="rua"
+                              name="rua"
+                              defaultValue={companyData.rua}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="numero">Número</Label>
+                            <Input
+                              id="numero"
+                              name="numero"
+                              defaultValue={companyData.numero}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="complemento">Complemento</Label>
+                            <Input
+                              id="complemento"
+                              name="complemento"
+                              defaultValue={companyData.complemento}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="md:col-span-2 space-y-2">
+                            <Label htmlFor="descricao">Descrição da Empresa</Label>
+                            <Textarea
+                              id="descricao"
+                              name="descricao"
+                              defaultValue={companyData.descricao}
+                              disabled={!isEditing}
+                              rows={3}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="setor">Setor</Label>
+                            <Input
+                              id="setor"
+                              name="setor"
+                              defaultValue={companyData.setor}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="anoFundacao">Ano de Fundação</Label>
+                            <Input
+                              id="anoFundacao"
+                              name="anoFundacao"
+                              type="number"
+                              defaultValue={companyData.anoFundacao}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="numeroFuncionarios">Número de Funcionários</Label>
+                            <Input
+                              id="numeroFuncionarios"
+                              name="numeroFuncionarios"
+                              type="number"
+                              defaultValue={companyData.numeroFuncionarios}
+                              disabled={!isEditing}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="faturamentoAnual">Faturamento Anual</Label>
+                            <Input
+                              id="faturamentoAnual"
+                              name="faturamentoAnual"
+                              type="number"
+                              step="0.01"
+                              defaultValue={companyData.faturamentoAnual}
+                              disabled={!isEditing}
+                            />
+                          </div>
+                        </div>
+
+                        {isEditing && (
+                          <div className="flex justify-end mt-6">
+                            <Button
+                              type="submit"
+                              disabled={updateCompanyMutation.isPending}
+                            >
+                              {updateCompanyMutation.isPending ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Salvando...
+                                </>
+                              ) : (
+                                "Salvar Alterações"
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </form>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">Erro ao carregar dados da empresa.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="security" className="space-y-6">
