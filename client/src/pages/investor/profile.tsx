@@ -205,10 +205,10 @@ export default function InvestorProfile() {
     <ModernSidebarLayout title="Perfil" userType="investor" theme="blue">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Meu Perfil</h1>
-            <p className="text-muted-foreground">Gerencie suas informações pessoais e de investimento</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Meu Perfil</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Gerencie suas informações pessoais e de investimento</p>
           </div>
           {profile && getStatusBadge(profile.status)}
         </div>
@@ -225,26 +225,37 @@ export default function InvestorProfile() {
           </Card>
         ) : (
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="profile">Informações Pessoais</TabsTrigger>
-              <TabsTrigger value="company">Empresa</TabsTrigger>
-              <TabsTrigger value="security">Segurança</TabsTrigger>
-              <TabsTrigger value="status">Status da Conta</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto">
+              <TabsTrigger value="profile" className="text-xs sm:text-sm px-2 py-2 sm:px-3">
+                <span className="hidden sm:inline">Informações Pessoais</span>
+                <span className="sm:hidden">Pessoais</span>
+              </TabsTrigger>
+              <TabsTrigger value="company" className="text-xs sm:text-sm px-2 py-2 sm:px-3">
+                Empresa
+              </TabsTrigger>
+              <TabsTrigger value="security" className="text-xs sm:text-sm px-2 py-2 sm:px-3">
+                Segurança
+              </TabsTrigger>
+              <TabsTrigger value="status" className="text-xs sm:text-sm px-2 py-2 sm:px-3">
+                <span className="hidden sm:inline">Status da Conta</span>
+                <span className="sm:hidden">Status</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <CardTitle>Dados Pessoais</CardTitle>
-                      <CardDescription>
+                      <CardTitle className="text-lg sm:text-xl">Dados Pessoais</CardTitle>
+                      <CardDescription className="text-sm">
                         Mantenha suas informações atualizadas
                       </CardDescription>
                     </div>
                     <Button
                       variant={isEditing ? "outline" : "default"}
                       onClick={() => setIsEditing(!isEditing)}
+                      className="w-full sm:w-auto"
                     >
                       {isEditing ? "Cancelar" : "Editar"}
                     </Button>
@@ -416,10 +427,11 @@ export default function InvestorProfile() {
                     </div>
 
                     {isEditing && (
-                      <div className="flex justify-end mt-6">
+                      <div className="flex justify-center sm:justify-end mt-6">
                         <Button
                           type="submit"
                           disabled={updateProfileMutation.isPending}
+                          className="w-full sm:w-auto"
                         >
                           {updateProfileMutation.isPending ? (
                             <>
@@ -456,16 +468,17 @@ export default function InvestorProfile() {
               ) : (
                 <Card>
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
-                        <CardTitle>Dados da Empresa</CardTitle>
-                        <CardDescription>
+                        <CardTitle className="text-lg sm:text-xl">Dados da Empresa</CardTitle>
+                        <CardDescription className="text-sm">
                           Mantenha as informações da sua empresa atualizadas
                         </CardDescription>
                       </div>
                       <Button
                         variant={isEditing ? "outline" : "default"}
                         onClick={() => setIsEditing(!isEditing)}
+                        className="w-full sm:w-auto"
                       >
                         {isEditing ? "Cancelar" : "Editar"}
                       </Button>
