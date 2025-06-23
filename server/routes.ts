@@ -1400,6 +1400,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Company image upload endpoint
+  app.post('/api/upload/company-image', authenticateToken, upload.single('image'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'Nenhuma imagem foi enviada' });
+      }
+
+      // Check file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(req.file.mimetype)) {
+        return res.status(400).json({ message: 'Tipo de arquivo não permitido. Use apenas JPG ou PNG.' });
+      }
+
+      // Return the file URL
+      const imageUrl = `/uploads/${req.file.filename}`;
+      res.json({ url: imageUrl });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao fazer upload da imagem' });
+    }
+  });
+
   // Routes for starting new conversations
   app.get('/api/credit-requests/user', authenticateToken, async (req: any, res) => {
     try {

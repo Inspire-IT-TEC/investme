@@ -40,6 +40,7 @@ export default function CompanyRegistration() {
     dividaLiquida: "",
     numeroFuncionarios: "1",
     descricaoNegocio: "",
+    images: [] as string[],
   });
 
   const [shareholders, setShareholders] = useState([
@@ -49,6 +50,8 @@ export default function CompanyRegistration() {
   const [guarantees, setGuarantees] = useState([
     { tipo: "", matricula: "", renavam: "", descricao: "", valorEstimado: "" }
   ]);
+
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const registerMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -126,6 +129,76 @@ export default function CompanyRegistration() {
     const updated = [...guarantees];
     updated[index] = { ...updated[index], [field]: value };
     setGuarantees(updated);
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const currentImageCount = formData.images.length;
+    const maxImages = 5;
+    const availableSlots = maxImages - currentImageCount;
+    const filesToUpload = Array.from(files).slice(0, availableSlots);
+
+    if (filesToUpload.length === 0) {
+      toast({
+        title: "Limite de imagens",
+        description: "Você pode adicionar no máximo 5 imagens por empresa.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImages(true);
+
+    try {
+      const uploadPromises = filesToUpload.map(async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch('/api/upload/company-image', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Falha no upload da imagem');
+        const result = await response.json();
+        return result.url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...uploadedUrls]
+      }));
+
+      toast({
+        title: "Imagens enviadas",
+        description: `${uploadedUrls.length} imagem(ns) adicionada(s) com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no upload",
+        description: "Falha ao enviar uma ou mais imagens.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImages(false);
+      // Reset the file input
+      event.target.value = '';
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -442,6 +515,63 @@ export default function CompanyRegistration() {
                       rows={3}
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Imagens da Empresa */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Imagens da Empresa</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Adicione até 5 imagens que representem sua empresa (produtos, instalações, equipe, etc.)
+                </p>
+                
+                <div className="space-y-4">
+                  {/* Upload Button */}
+                  <div className="flex items-center gap-4">
+                    <label
+                      htmlFor="image-upload"
+                      className={`flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+                        formData.images.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <Upload className="w-4 h-4" />
+                      {uploadingImages ? 'Enviando...' : 'Adicionar Imagens'}
+                    </label>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImages || formData.images.length >= 5}
+                      className="hidden"
+                    />
+                    <span className="text-sm text-gray-500">
+                      {formData.images.length}/5 imagens
+                    </span>
+                  </div>
+
+                  {/* Image Preview Grid */}
+                  {formData.images.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                      {formData.images.map((imageUrl, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={imageUrl}
+                            alt={`Imagem da empresa ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
