@@ -452,6 +452,63 @@ export default function CompanyEdit() {
                   />
                 </div>
 
+                {/* Imagens da Empresa */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Imagens da Empresa</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Adicione até 5 imagens que representem sua empresa (produtos, instalações, equipe, etc.)
+                  </p>
+                  
+                  <div className="space-y-4">
+                    {/* Upload Button */}
+                    <div className="flex items-center gap-4">
+                      <label
+                        htmlFor="image-upload"
+                        className={`flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+                          images.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        <Upload className="w-4 h-4" />
+                        {uploadingImages ? 'Enviando...' : 'Adicionar Imagens'}
+                      </label>
+                      <input
+                        id="image-upload"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploadingImages || images.length >= 5}
+                        className="hidden"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {images.length}/5 imagens
+                      </span>
+                    </div>
+
+                    {/* Image Preview Grid */}
+                    {images.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {images.map((imageUrl, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={imageUrl}
+                              alt={`Imagem da empresa ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Submit Button */}
                 <div className="flex justify-end pt-6">
                   <Button 
