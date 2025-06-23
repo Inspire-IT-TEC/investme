@@ -1047,7 +1047,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         faturamento: req.body.faturamento,
         numeroFuncionarios: req.body.numeroFuncionarios,
         descricaoNegocio: req.body.descricaoNegocio,
-        tipoProprietario: req.body.tipoProprietario
+        tipoProprietario: req.body.tipoProprietario,
+        images: req.body.images || company.images
       };
 
       const updatedCompany = await storage.updateCompany(companyId, updateData);
