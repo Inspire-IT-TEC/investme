@@ -1,0 +1,64 @@
+Padrões de Versionamento de Sistema
+Um padrão de versionamento de sistema é uma metodologia ou conjunto de regras que define como as versões de um software ou sistema são identificadas e gerenciadas ao longo do tempo. O objetivo principal é fornecer uma forma clara e consistente de rastrear alterações, comunicar o impacto dessas alterações e facilitar a colaboração entre desenvolvedores e usuários.
+Existem vários padrões de versionamento, e a escolha do mais adequado geralmente depende do tipo de projeto, do tamanho da equipe e da frequência das releases. Os mais comuns incluem:
+1. Versionamento Semântico (SemVer)
+O Versionamento Semântico, ou SemVer, é o padrão mais amplamente adotado, especialmente em projetos de software de código aberto e bibliotecas. Ele usa um formato de três números: MAJ.MEN.PAT (Maior.Menor.Revisão).
+ * MAJ (Maior): Incrementado quando há mudanças incompatíveis na API. Isso significa que o código existente que usa essa biblioteca provavelmente precisará ser modificado para funcionar com a nova versão.
+ * MEN (Menor): Incrementado quando novas funcionalidades são adicionadas de forma retrocompatível. O código existente que usa a API ainda deve funcionar.
+ * PAT (Patch/Revisão): Incrementado para correções de bugs retrocompatíveis. Não há novas funcionalidades ou quebras de compatibilidade.
+Exemplo:
+ * 1.0.0: Lançamento inicial.
+ * 1.0.1: Correção de um bug pequeno.
+ * 1.1.0: Adição de uma nova funcionalidade que não quebra a compatibilidade.
+ * 2.0.0: Refatoração importante que quebra a compatibilidade com a versão anterior.
+Vantagens:
+ * Clareza e previsibilidade sobre o impacto das atualizações.
+ * Facilita a gestão de dependências em projetos maiores.
+ * Amplamente compreendido pela comunidade de desenvolvedores.
+Desvantagens:
+ * Pode ser um desafio aplicar rigorosamente em projetos muito pequenos ou com releases extremamente rápidas.
+2. Versionamento Baseado em Datas
+Este padrão utiliza a data da release como parte do número da versão. É comum em sistemas operacionais, distribuições Linux e alguns softwares que têm lançamentos regulares.
+Formato comum: AAAA.MM.DD ou AAAA.MM
+Exemplo:
+ * 2023.06.15: Lançamento em 15 de junho de 2023.
+ * 2024.03: Lançamento de março de 2024.
+Vantagens:
+ * Simples e fácil de entender, pois a data indica a idade da versão.
+ * Útil para projetos com ciclos de release bem definidos.
+Desvantagens:
+ * Não comunica diretamente o impacto das mudanças (se são quebras de compatibilidade, novas funcionalidades, etc.).
+ * Pode levar a números de versão muito longos.
+3. Versionamento Contínuo (Continuous Delivery/Deployment)
+Em ambientes de Entrega Contínua (CD) ou Deploy Contínuo (CD), onde as atualizações são lançadas frequentemente (às vezes várias vezes ao dia), o versionamento pode ser mais automatizado e menos focado em números sequenciais significativos.
+Abordagens comuns:
+ * Timestamps de Build/Commit: Usar o timestamp do build ou o hash do commit do sistema de controle de versão (Git) como identificador da versão.
+ * Contador Sequencial Global: Um número que simplesmente incrementa a cada deploy, independentemente do tipo de mudança.
+Exemplo:
+ * 202306231545 (Timestamp)
+ * abc123def456 (Hash de commit)
+ * Build-12345
+Vantagens:
+ * Ideal para automação e pipelines de CI/CD.
+ * Garante que cada deploy tenha uma identificação única.
+Desvantagens:
+ * Não fornece informações semânticas sobre o conteúdo da versão para usuários finais.
+ * Pode ser difícil de rastrear o histórico de funcionalidades ou correções sem ferramentas adicionais.
+4. Versionamento de Fases (Major.Minor.Maintenance/Build)
+Similar ao SemVer, mas com uma ênfase um pouco diferente na nomenclatura, muitas vezes incorporando fases de desenvolvimento.
+Formato comum: Maior.Menor.Manutenção ou Maior.Menor.Build
+ * Maior: Grandes mudanças, novas arquiteturas, etc.
+ * Menor: Novas funcionalidades significativas, melhorias.
+ * Manutenção/Build: Correções de bugs, pequenas melhorias, builds internos.
+Vantagens:
+ * Claro e conciso para equipes que trabalham com fases distintas de desenvolvimento.
+Desvantagens:
+ * Pode ser menos granular que o SemVer na comunicação de quebras de compatibilidade versus novas funcionalidades.
+Escolhendo o Padrão Certo
+A escolha do padrão de versionamento depende de vários fatores:
+ * Público-alvo: Se o software é para desenvolvedores (bibliotecas, APIs), o SemVer é altamente recomendado. Se for para usuários finais, um padrão mais simples como o baseado em datas ou fases pode ser suficiente.
+ * Frequência de Releases: Projetos com releases frequentes e automáticas se beneficiam do versionamento contínuo. Projetos com releases menos frequentes e mais impactantes se beneficiam do SemVer.
+ * Tamanho e Complexidade do Projeto: Projetos grandes e complexos com muitas dependências se beneficiam da clareza do SemVer.
+ * Cultura da Equipe: É importante que a equipe entenda e siga o padrão escolhido consistentemente.
+Independentemente do padrão escolhido, a consistência é a chave. Definir e documentar o padrão de versionamento é crucial para evitar confusão e garantir que todos na equipe estejam alinhados.
+Você gostaria de se aprofundar em algum desses padrões ou discutir qual seria o mais adequado para um tipo específico de projeto?
