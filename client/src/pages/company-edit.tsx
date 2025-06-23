@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { editCompanySchema } from "@shared/schema";
 import { z } from "zod";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Upload, Trash2, ImageIcon } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 
 type EditCompanyForm = z.infer<typeof editCompanySchema>;
@@ -20,6 +20,8 @@ export default function CompanyEdit() {
   const { id } = useParams();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const [images, setImages] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   // Fetch company data
   const { data: company, isLoading: isLoadingCompany } = useQuery({
@@ -77,6 +79,9 @@ export default function CompanyEdit() {
         descricaoNegocio: companyData.descricaoNegocio || "",
         tipoProprietario: companyData.tipoProprietario || "",
       });
+      
+      // Set existing images
+      setImages(companyData.images || []);
     }
   }, [company, form]);
 
@@ -89,7 +94,10 @@ export default function CompanyEdit() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          images
+        }),
       });
       
       if (!response.ok) {
@@ -116,6 +124,68 @@ export default function CompanyEdit() {
       });
     },
   });
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const currentImageCount = images.length;
+    const maxImages = 5;
+    const availableSlots = maxImages - currentImageCount;
+    const filesToUpload = Array.from(files).slice(0, availableSlots);
+
+    if (filesToUpload.length === 0) {
+      toast({
+        title: "Limite de imagens",
+        description: "Você pode adicionar no máximo 5 imagens por empresa.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImages(true);
+
+    try {
+      const uploadPromises = filesToUpload.map(async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch('/api/upload/company-image', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Falha no upload da imagem');
+        const result = await response.json();
+        return result.url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      setImages(prev => [...prev, ...uploadedUrls]);
+
+      toast({
+        title: "Imagens enviadas",
+        description: `${uploadedUrls.length} imagem(ns) adicionada(s) com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no upload",
+        description: "Falha ao enviar uma ou mais imagens.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImages(false);
+      event.target.value = '';
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
 
   const onSubmit = (data: EditCompanyForm) => {
     updateCompanyMutation.mutate(data);
