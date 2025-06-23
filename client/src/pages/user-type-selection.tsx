@@ -177,6 +177,19 @@ export default function UserTypeSelection() {
                   </Button>
                 </Link>
               </div>
+              
+              {/* Backoffice Access */}
+              <div className="mt-6">
+                <Link href="/backoffice/login">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    Acesso Backoffice
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

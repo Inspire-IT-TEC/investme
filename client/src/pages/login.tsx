@@ -174,14 +174,7 @@ export default function Login() {
               </p>
             </div>
 
-            <div className="mt-4 text-center">
-              <Link 
-                href="/backoffice" 
-                className="text-sm text-white/60 hover:text-white/80 hover:underline transition-colors"
-              >
-                Acesso para equipe Investme
-              </Link>
-            </div>
+
           </CardContent>
         </Card>
       </div>

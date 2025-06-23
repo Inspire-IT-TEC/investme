@@ -221,7 +221,7 @@ export default function InvestorDashboard() {
             </ModernCardHeader>
             <ModernCardContent>
               <div className="space-y-3">
-                <Link href="/investor/network">
+                <Link href="/network">
                   <Button className="w-full justify-start" variant="outline">
                     <TrendingUp className="w-4 h-4 mr-2" />
                     Ver Rede de Investimentos
