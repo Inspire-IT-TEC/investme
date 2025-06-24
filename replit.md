@@ -1,0 +1,100 @@
+# InvestMe Platform - Project Documentation
+
+## Project Overview
+InvestMe is a comprehensive business platform connecting entrepreneurs with investors through three specialized portals: Entrepreneur Portal, Investor Portal, and Administrative Backoffice. The system facilitates company registration, credit requests, investment analysis, and business networking with complete mobile responsiveness.
+
+## Recent Changes
+- **2025-01-24**: Implemented collapsible filters for mobile network pages (entrepreneur and investor)
+- **2025-01-24**: Enhanced mobile responsiveness for investor profile navigation with 2x2 grid layout
+- **2025-01-24**: Fixed card headers and button layouts for better mobile experience
+- **2025-01-24**: Added responsive typography and spacing throughout the platform
+- **2025-01-23**: Completed Instagram-style image galleries for company profiles
+- **2025-01-23**: Integrated real-time messaging system between investors and entrepreneurs
+- **2025-01-22**: Fixed credit request analysis workflow with proper cache invalidation
+
+## Architecture
+
+### Technology Stack
+- **Frontend**: React 18 + TypeScript, Wouter routing, TanStack Query
+- **Backend**: Express.js + TypeScript, JWT authentication
+- **Database**: PostgreSQL with Drizzle ORM
+- **UI**: Tailwind CSS + shadcn/ui components
+- **Mobile**: Responsive design with collapsible navigation
+
+### Three-Portal Structure
+1. **Entrepreneur Portal** (`/entrepreneur-*`) - Company management and credit requests
+2. **Investor Portal** (`/investor-*`) - Investment analysis and networking
+3. **Backoffice Portal** (`/backoffice-*`) - Administrative oversight
+
+## Key Features Implemented
+
+### Authentication & User Management
+- JWT-based authentication with role separation
+- Email verification and password reset
+- Session management with PostgreSQL store
+
+### Entrepreneur Capabilities
+- Company registration with document upload
+- Credit request submission and tracking
+- Real-time communication with investors
+- Profile and company data management
+
+### Investor Capabilities
+- Investment opportunity browsing with advanced filters
+- "Minhas Análises" workflow for detailed company analysis
+- Real-time messaging with entrepreneurs
+- Instagram-style company gallery viewing
+- Mobile-responsive profile management
+
+### Administrative Features
+- User and company approval workflows
+- System metrics and analytics dashboard
+- Credit request triaging and management
+- Network oversight with comprehensive reporting
+
+### Mobile Responsiveness
+- Collapsible filters for network pages (entrepreneur and investor)
+- 2x2 grid layout for investor profile navigation tabs
+- Responsive card headers and button layouts
+- Touch-friendly interface elements
+- Optimized typography and spacing
+
+## Database Schema
+- Core tables: users, entrepreneurs, investors, companies, credit_requests
+- Supporting: messages, notifications, states, cities
+- Relationships: Users→Roles (1:1), Companies→Entrepreneurs (N:1)
+
+## API Architecture
+- RESTful endpoints with role-based access
+- File upload handling with Multer
+- Real-time messaging endpoints
+- Geographic data (states/cities) integration
+
+## User Preferences
+- Mobile-first responsive design approach
+- Clean, professional interface without excessive animations
+- Practical functionality over decorative elements
+- Fast, efficient user interactions with minimal loading states
+
+## Development Guidelines
+- Use Drizzle ORM for all database operations
+- Implement proper TypeScript typing throughout
+- Follow shadcn/ui component patterns
+- Maintain consistent responsive breakpoints (sm, md, lg, xl)
+- Test mobile layouts on actual devices when possible
+
+## Deployment Configuration
+- Configured for Replit Deployments
+- PostgreSQL database integration
+- Environment variable management for secrets
+- Static file serving for uploads and assets
+
+## Next Development Priorities
+1. Advanced filtering and search capabilities
+2. Enhanced reporting and analytics features
+3. Integration with external financial services
+4. Advanced notification system improvements
+5. Performance optimizations for large datasets
+
+---
+*This documentation serves as the primary reference for project context, technical decisions, and development guidelines.*
