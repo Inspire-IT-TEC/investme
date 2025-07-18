@@ -51,6 +51,8 @@ export default function InvestorCompanyRegistration() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [isConsultingCnpj, setIsConsultingCnpj] = useState(false);
   const [cnpjConsulted, setCnpjConsulted] = useState(false);
+  const [isConsultingCep, setIsConsultingCep] = useState(false);
+  const [cepConsulted, setCepConsulted] = useState(false);
 
   const formatCnpj = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -59,6 +61,12 @@ export default function InvestorCompanyRegistration() {
     if (numbers.length <= 8) return numbers.replace(/(\d{2})(\d{3})(\d{0,3})/, '$1.$2.$3');
     if (numbers.length <= 12) return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/, '$1.$2.$3/$4');
     return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, '$1.$2.$3/$4-$5');
+  };
+
+  const formatCep = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 5) return numbers;
+    return numbers.replace(/(\d{5})(\d{0,3})/, '$1-$2');
   };
 
   const consultCnpjApi = async (cnpj: string) => {
@@ -111,6 +119,57 @@ export default function InvestorCompanyRegistration() {
     const cleanCnpj = cnpj.replace(/\D/g, '');
     if (cleanCnpj.length === 14) {
       consultCnpjApi(cnpj);
+    }
+  };
+
+  const consultCepApi = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      return;
+    }
+
+    setIsConsultingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+      
+      if (!data.erro) {
+        // API retornou sucesso e dados encontrados
+        form.setValue('rua', data.logradouro || '');
+        form.setValue('bairro', data.bairro || '');
+        form.setValue('cidade', data.localidade || '');
+        form.setValue('estado', data.uf || '');
+        setCepConsulted(true);
+        toast({
+          title: "CEP consultado com sucesso!",
+          description: "Os dados de endereço foram preenchidos automaticamente.",
+        });
+      } else {
+        // API retornou erro - CEP não encontrado
+        setCepConsulted(false);
+        toast({
+          title: "CEP não encontrado",
+          description: "Preencha manualmente os dados de endereço.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao consultar CEP:', error);
+      setCepConsulted(false);
+      toast({
+        title: "Erro na consulta",
+        description: "Não foi possível consultar o CEP. Preencha manualmente os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConsultingCep(false);
+    }
+  };
+
+  const handleCepBlur = (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length === 8) {
+      consultCepApi(cep);
     }
   };
 
@@ -405,9 +464,34 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>CEP *</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="00000-000" />
+                            <div className="relative">
+                              <Input 
+                                {...field} 
+                                placeholder="00000-000"
+                                value={formatCep(field.value)}
+                                onChange={(e) => {
+                                  const formatted = formatCep(e.target.value);
+                                  field.onChange(formatted);
+                                  // Reset CEP consultation state when user changes CEP
+                                  if (cepConsulted) {
+                                    setCepConsulted(false);
+                                  }
+                                }}
+                                onBlur={() => handleCepBlur(field.value)}
+                                className={isConsultingCep ? "pr-10" : ""}
+                                disabled={isConsultingCep}
+                              />
+                              {isConsultingCep && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                </div>
+                              )}
+                            </div>
                           </FormControl>
                           <FormMessage />
+                          {isConsultingCep && (
+                            <p className="text-sm text-blue-600 mt-1">Consultando CEP...</p>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -419,9 +503,12 @@ export default function InvestorCompanyRegistration() {
                         <FormItem className="md:col-span-2">
                           <FormLabel>Rua *</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} disabled={cepConsulted} />
                           </FormControl>
                           <FormMessage />
+                          {cepConsulted && (
+                            <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -461,9 +548,12 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Bairro *</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} disabled={cepConsulted} />
                           </FormControl>
                           <FormMessage />
+                          {cepConsulted && (
+                            <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -475,9 +565,12 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Cidade *</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} disabled={cepConsulted} />
                           </FormControl>
                           <FormMessage />
+                          {cepConsulted && (
+                            <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -489,9 +582,12 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Estado *</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="SP" maxLength={2} />
+                            <Input {...field} placeholder="SP" maxLength={2} disabled={cepConsulted} />
                           </FormControl>
                           <FormMessage />
+                          {cepConsulted && (
+                            <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                          )}
                         </FormItem>
                       )}
                     />
