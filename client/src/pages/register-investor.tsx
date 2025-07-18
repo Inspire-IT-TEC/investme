@@ -35,6 +35,8 @@ export default function RegisterInvestor() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isConsultingCpf, setIsConsultingCpf] = useState(false);
   const [cpfConsulted, setCpfConsulted] = useState(false);
+  const [isConsultingCep, setIsConsultingCep] = useState(false);
+  const [cepConsulted, setCepConsulted] = useState(false);
 
   const consultCpfApi = async (cpf: string) => {
     const cleanCpf = cpf.replace(/\D/g, '');
@@ -81,6 +83,54 @@ export default function RegisterInvestor() {
     }
   };
 
+  const consultCepApi = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      return;
+    }
+
+    setIsConsultingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+      
+      if (!data.erro) {
+        // API retornou sucesso e dados encontrados
+        setFormData(prev => ({
+          ...prev,
+          rua: data.logradouro || "",
+          bairro: data.bairro || "",
+          cidade: data.localidade || "",
+          estado: data.uf || "",
+          complemento: data.complemento || prev.complemento
+        }));
+        setCepConsulted(true);
+        toast({
+          title: "CEP consultado com sucesso!",
+          description: "Os dados de endereço foram preenchidos automaticamente.",
+        });
+      } else {
+        // API retornou erro - CEP não encontrado
+        setCepConsulted(false);
+        toast({
+          title: "CEP não encontrado",
+          description: "Preencha manualmente os dados de endereço.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao consultar CEP:', error);
+      setCepConsulted(false);
+      toast({
+        title: "Erro na consulta",
+        description: "Não foi possível consultar o CEP. Preencha manualmente os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConsultingCep(false);
+    }
+  };
+
   const registerMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await fetch("/api/investors/register", {
@@ -115,8 +165,16 @@ export default function RegisterInvestor() {
     
     if (field === "cpf") {
       formattedValue = formatCpf(value);
+      // Reset CPF consultation state when user changes CPF
+      if (cpfConsulted) {
+        setCpfConsulted(false);
+      }
     } else if (field === "cep") {
       formattedValue = formatCep(value);
+      // Reset CEP consultation state when user changes CEP
+      if (cepConsulted) {
+        setCepConsulted(false);
+      }
     } else if (field === "telefone") {
       formattedValue = formatPhone(value);
     }
@@ -133,6 +191,13 @@ export default function RegisterInvestor() {
     const cleanCpf = cpf.replace(/\D/g, '');
     if (cleanCpf.length === 11 && validateCpf(cpf)) {
       consultCpfApi(cpf);
+    }
+  };
+
+  const handleCepBlur = (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length === 8) {
+      consultCepApi(cep);
     }
   };
 
@@ -384,15 +449,27 @@ export default function RegisterInvestor() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="cep">CEP *</Label>
-                    <Input
-                      id="cep"
-                      value={formData.cep}
-                      onChange={(e) => handleInputChange("cep", e.target.value)}
-                      placeholder="00000-000"
-                      className={errors.cep ? "border-red-500" : ""}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="cep"
+                        value={formData.cep}
+                        onChange={(e) => handleInputChange("cep", e.target.value)}
+                        onBlur={(e) => handleCepBlur(e.target.value)}
+                        placeholder="00000-000"
+                        className={errors.cep ? "border-red-500" : ""}
+                        disabled={isConsultingCep}
+                      />
+                      {isConsultingCep && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      )}
+                    </div>
                     {errors.cep && (
                       <p className="text-sm text-red-500 mt-1">{errors.cep}</p>
+                    )}
+                    {isConsultingCep && (
+                      <p className="text-sm text-blue-600 mt-1">Consultando CEP...</p>
                     )}
                   </div>
 
@@ -403,9 +480,13 @@ export default function RegisterInvestor() {
                       value={formData.rua}
                       onChange={(e) => handleInputChange("rua", e.target.value)}
                       className={errors.rua ? "border-red-500" : ""}
+                      disabled={cepConsulted}
                     />
                     {errors.rua && (
                       <p className="text-sm text-red-500 mt-1">{errors.rua}</p>
+                    )}
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
                 </div>
@@ -442,9 +523,13 @@ export default function RegisterInvestor() {
                       value={formData.bairro}
                       onChange={(e) => handleInputChange("bairro", e.target.value)}
                       className={errors.bairro ? "border-red-500" : ""}
+                      disabled={cepConsulted}
                     />
                     {errors.bairro && (
                       <p className="text-sm text-red-500 mt-1">{errors.bairro}</p>
+                    )}
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
 
@@ -455,9 +540,13 @@ export default function RegisterInvestor() {
                       value={formData.cidade}
                       onChange={(e) => handleInputChange("cidade", e.target.value)}
                       className={errors.cidade ? "border-red-500" : ""}
+                      disabled={cepConsulted}
                     />
                     {errors.cidade && (
                       <p className="text-sm text-red-500 mt-1">{errors.cidade}</p>
+                    )}
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
 
@@ -469,9 +558,13 @@ export default function RegisterInvestor() {
                       onChange={(e) => handleInputChange("estado", e.target.value)}
                       placeholder="SP"
                       className={errors.estado ? "border-red-500" : ""}
+                      disabled={cepConsulted}
                     />
                     {errors.estado && (
                       <p className="text-sm text-red-500 mt-1">{errors.estado}</p>
+                    )}
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
                 </div>
