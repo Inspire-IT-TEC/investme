@@ -337,7 +337,7 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
                   )}
                 </div>
                 <ScrollArea className="max-h-80">
-                  {!notifications || notifications.length === 0 ? (
+                  {!notifications || !Array.isArray(notifications) || notifications.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">
                       Nenhuma notificação
                     </div>

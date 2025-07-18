@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Save, AlertCircle, Upload, Trash2 } from "lucide-react";
+import { Building2, Save, AlertCircle, Upload, Trash2, Loader2 } from "lucide-react";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { useLocation } from "wouter";
 
@@ -49,6 +49,70 @@ export default function InvestorCompanyRegistration() {
   const [, setLocation] = useLocation();
   const [images, setImages] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [isConsultingCnpj, setIsConsultingCnpj] = useState(false);
+  const [cnpjConsulted, setCnpjConsulted] = useState(false);
+
+  const formatCnpj = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 5) return numbers.replace(/(\d{2})(\d{0,3})/, '$1.$2');
+    if (numbers.length <= 8) return numbers.replace(/(\d{2})(\d{3})(\d{0,3})/, '$1.$2.$3');
+    if (numbers.length <= 12) return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/, '$1.$2.$3/$4');
+    return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, '$1.$2.$3/$4-$5');
+  };
+
+  const consultCnpjApi = async (cnpj: string) => {
+    const cleanCnpj = cnpj.replace(/\D/g, '');
+    if (cleanCnpj.length !== 14) {
+      return;
+    }
+
+    setIsConsultingCnpj(true);
+    try {
+      const response = await fetch(`https://integracaoconsultas.inspireit.com.br/consulta/${cleanCnpj}`);
+      const data = await response.json();
+      
+      if (data.returnCode === 0 && data.data?.encontrado) {
+        // API retornou sucesso e dados encontrados
+        form.setValue('razaoSocial', data.data.razaoSocial || '');
+        form.setValue('nomeFantasia', data.data.nomeFantasia || '');
+        if (data.data.dataFundacao) {
+          const foundingDate = new Date(data.data.dataFundacao);
+          form.setValue('dataFundacao', foundingDate.toISOString().split('T')[0]);
+        }
+        setCnpjConsulted(true);
+        toast({
+          title: "CNPJ consultado com sucesso!",
+          description: "Os dados da empresa foram preenchidos automaticamente.",
+        });
+      } else {
+        // API não retornou sucesso ou dados não encontrados
+        setCnpjConsulted(false);
+        toast({
+          title: "CNPJ não encontrado",
+          description: "Preencha manualmente os dados da empresa.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao consultar CNPJ:', error);
+      setCnpjConsulted(false);
+      toast({
+        title: "Erro na consulta",
+        description: "Não foi possível consultar o CNPJ. Preencha manualmente os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConsultingCnpj(false);
+    }
+  };
+
+  const handleCnpjBlur = (cnpj: string) => {
+    const cleanCnpj = cnpj.replace(/\D/g, '');
+    if (cleanCnpj.length === 14) {
+      consultCnpjApi(cnpj);
+    }
+  };
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -219,6 +283,49 @@ export default function InvestorCompanyRegistration() {
                 {/* Dados básicos */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Dados Básicos</h3>
+                  
+                  {/* CNPJ - Primeiro campo */}
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="cnpj"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>CNPJ *</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input 
+                                {...field} 
+                                placeholder="00.000.000/0001-00"
+                                value={formatCnpj(field.value)}
+                                onChange={(e) => {
+                                  const formatted = formatCnpj(e.target.value);
+                                  field.onChange(formatted);
+                                  // Reset consultation state when user changes CNPJ
+                                  if (cnpjConsulted) {
+                                    setCnpjConsulted(false);
+                                  }
+                                }}
+                                onBlur={() => handleCnpjBlur(field.value)}
+                                className={isConsultingCnpj ? "pr-10" : ""}
+                                disabled={isConsultingCnpj}
+                              />
+                              {isConsultingCnpj && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                </div>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                          {isConsultingCnpj && (
+                            <p className="text-sm text-blue-600 mt-1">Consultando CNPJ...</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -227,9 +334,12 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Razão Social *</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} disabled={cnpjConsulted} />
                           </FormControl>
                           <FormMessage />
+                          {cnpjConsulted && (
+                            <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -241,23 +351,29 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Nome Fantasia</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} disabled={cnpjConsulted} />
                           </FormControl>
                           <FormMessage />
+                          {cnpjConsulted && (
+                            <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                          )}
                         </FormItem>
                       )}
                     />
                     
                     <FormField
                       control={form.control}
-                      name="cnpj"
+                      name="dataFundacao"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>CNPJ *</FormLabel>
+                          <FormLabel>Data de Fundação *</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="00.000.000/0001-00" />
+                            <Input {...field} type="date" disabled={cnpjConsulted} />
                           </FormControl>
                           <FormMessage />
+                          {cnpjConsulted && (
+                            <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                          )}
                         </FormItem>
                       )}
                     />
