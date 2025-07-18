@@ -11,16 +11,17 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Navbar from "@/components/layout/navbar";
 import { formatCnpj, formatCep, formatCurrency } from "@/lib/validations";
-import { Plus, Trash2, Upload } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2 } from "lucide-react";
 
 export default function CompanyRegistration() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
+    cnpj: "",
     razaoSocial: "",
     nomeFantasia: "",
-    cnpj: "",
+    dataFundacao: "",
     cep: "",
     rua: "",
     numero: "",
@@ -34,7 +35,6 @@ export default function CompanyRegistration() {
     cnaeSecundarios: [] as string[],
     inscricaoEstadual: "",
     inscricaoMunicipal: "",
-    dataFundacao: "",
     faturamento: "",
     ebitda: "",
     dividaLiquida: "",
@@ -52,6 +52,54 @@ export default function CompanyRegistration() {
   ]);
 
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [isConsultingCnpj, setIsConsultingCnpj] = useState(false);
+  const [cnpjConsulted, setCnpjConsulted] = useState(false);
+
+  const consultCnpjApi = async (cnpj: string) => {
+    const cleanCnpj = cnpj.replace(/\D/g, '');
+    if (cleanCnpj.length !== 14) {
+      return;
+    }
+
+    setIsConsultingCnpj(true);
+    try {
+      const response = await fetch(`https://integracaoconsultas.inspireit.com.br/consulta/${cleanCnpj}`);
+      const data = await response.json();
+      
+      if (data.returnCode === 0 && data.data?.encontrado) {
+        // API retornou sucesso e dados encontrados
+        setFormData(prev => ({
+          ...prev,
+          razaoSocial: data.data.razaoSocial || "",
+          nomeFantasia: data.data.nomeFantasia || "",
+          dataFundacao: data.data.dataFundacao ? new Date(data.data.dataFundacao).toISOString().split('T')[0] : ""
+        }));
+        setCnpjConsulted(true);
+        toast({
+          title: "CNPJ consultado com sucesso!",
+          description: "Os dados da empresa foram preenchidos automaticamente.",
+        });
+      } else {
+        // API não retornou sucesso ou dados não encontrados
+        setCnpjConsulted(false);
+        toast({
+          title: "CNPJ não encontrado",
+          description: "Preencha manualmente os dados da empresa.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao consultar CNPJ:', error);
+      setCnpjConsulted(false);
+      toast({
+        title: "Erro na consulta",
+        description: "Não foi possível consultar o CNPJ. Preencha manualmente os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConsultingCnpj(false);
+    }
+  };
 
   const registerMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -78,6 +126,29 @@ export default function CompanyRegistration() {
       });
     },
   });
+
+  const handleInputChange = (field: string, value: string) => {
+    let formattedValue = value;
+    
+    if (field === "cnpj") {
+      formattedValue = formatCnpj(value);
+      // Reset CNPJ consultation state when user changes CNPJ
+      if (cnpjConsulted) {
+        setCnpjConsulted(false);
+      }
+    } else if (field === "cep") {
+      formattedValue = formatCep(value);
+    }
+    
+    setFormData(prev => ({ ...prev, [field]: formattedValue }));
+  };
+
+  const handleCnpjBlur = (cnpj: string) => {
+    const cleanCnpj = cnpj.replace(/\D/g, '');
+    if (cleanCnpj.length === 14) {
+      consultCnpjApi(cnpj);
+    }
+  };
 
   const handleCepChange = async (cep: string) => {
     const cleanCep = cep.replace(/\D/g, '');
@@ -239,16 +310,48 @@ export default function CompanyRegistration() {
               {/* Dados Básicos */}
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Dados Básicos</h3>
+                
+                {/* CNPJ Field - First Field */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label htmlFor="cnpj">CNPJ *</Label>
+                    <div className="relative">
+                      <Input
+                        id="cnpj"
+                        value={formData.cnpj}
+                        onChange={(e) => handleInputChange("cnpj", e.target.value)}
+                        onBlur={(e) => handleCnpjBlur(e.target.value)}
+                        placeholder="00.000.000/0000-00"
+                        className={isConsultingCnpj ? "pr-10" : ""}
+                        disabled={isConsultingCnpj}
+                        required
+                      />
+                      {isConsultingCnpj && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    {isConsultingCnpj && (
+                      <p className="text-sm text-blue-600 mt-1">Consultando CNPJ...</p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="razaoSocial">Razão Social *</Label>
                     <Input
                       id="razaoSocial"
                       value={formData.razaoSocial}
-                      onChange={(e) => setFormData({ ...formData, razaoSocial: e.target.value })}
+                      onChange={(e) => handleInputChange("razaoSocial", e.target.value)}
                       placeholder="Digite a razão social"
+                      disabled={cnpjConsulted}
                       required
                     />
+                    {cnpjConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                    )}
                   </div>
 
                   <div>
@@ -256,20 +359,13 @@ export default function CompanyRegistration() {
                     <Input
                       id="nomeFantasia"
                       value={formData.nomeFantasia}
-                      onChange={(e) => setFormData({ ...formData, nomeFantasia: e.target.value })}
+                      onChange={(e) => handleInputChange("nomeFantasia", e.target.value)}
                       placeholder="Digite o nome fantasia"
+                      disabled={cnpjConsulted}
                     />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="cnpj">CNPJ *</Label>
-                    <Input
-                      id="cnpj"
-                      value={formData.cnpj}
-                      onChange={(e) => setFormData({ ...formData, cnpj: formatCnpj(e.target.value) })}
-                      placeholder="00.000.000/0000-00"
-                      required
-                    />
+                    {cnpjConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                    )}
                   </div>
 
                   <div>
@@ -278,9 +374,13 @@ export default function CompanyRegistration() {
                       id="dataFundacao"
                       type="date"
                       value={formData.dataFundacao}
-                      onChange={(e) => setFormData({ ...formData, dataFundacao: e.target.value })}
+                      onChange={(e) => handleInputChange("dataFundacao", e.target.value)}
+                      disabled={cnpjConsulted}
                       required
                     />
+                    {cnpjConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                    )}
                   </div>
 
                   <div>
