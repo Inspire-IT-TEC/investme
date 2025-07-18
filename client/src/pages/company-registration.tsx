@@ -54,6 +54,8 @@ export default function CompanyRegistration() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [isConsultingCnpj, setIsConsultingCnpj] = useState(false);
   const [cnpjConsulted, setCnpjConsulted] = useState(false);
+  const [isConsultingCep, setIsConsultingCep] = useState(false);
+  const [cepConsulted, setCepConsulted] = useState(false);
 
   const consultCnpjApi = async (cnpj: string) => {
     const cleanCnpj = cnpj.replace(/\D/g, '');
@@ -138,6 +140,10 @@ export default function CompanyRegistration() {
       }
     } else if (field === "cep") {
       formattedValue = formatCep(value);
+      // Reset CEP consultation state when user changes CEP
+      if (cepConsulted) {
+        setCepConsulted(false);
+      }
     }
     
     setFormData(prev => ({ ...prev, [field]: formattedValue }));
@@ -150,27 +156,57 @@ export default function CompanyRegistration() {
     }
   };
 
-  const handleCepChange = async (cep: string) => {
+  const handleCepBlur = (cep: string) => {
     const cleanCep = cep.replace(/\D/g, '');
-    setFormData({ ...formData, cep: formatCep(cleanCep) });
-
     if (cleanCep.length === 8) {
-      try {
-        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-        const data = await response.json();
-        
-        if (!data.erro) {
-          setFormData(prev => ({
-            ...prev,
-            rua: data.logradouro || "",
-            bairro: data.bairro || "",
-            cidade: data.localidade || "",
-            estado: data.uf || ""
-          }));
-        }
-      } catch (error) {
-        console.error("Erro ao buscar CEP:", error);
+      consultCepApi(cep);
+    }
+  };
+
+  const consultCepApi = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      return;
+    }
+
+    setIsConsultingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+      
+      if (!data.erro) {
+        // API retornou sucesso e dados encontrados
+        setFormData(prev => ({
+          ...prev,
+          rua: data.logradouro || "",
+          bairro: data.bairro || "",
+          cidade: data.localidade || "",
+          estado: data.uf || ""
+        }));
+        setCepConsulted(true);
+        toast({
+          title: "CEP consultado com sucesso!",
+          description: "Os dados de endereço foram preenchidos automaticamente.",
+        });
+      } else {
+        // API retornou erro - CEP não encontrado
+        setCepConsulted(false);
+        toast({
+          title: "CEP não encontrado",
+          description: "Preencha manualmente os dados de endereço.",
+          variant: "destructive",
+        });
       }
+    } catch (error) {
+      console.error('Erro ao consultar CEP:', error);
+      setCepConsulted(false);
+      toast({
+        title: "Erro na consulta",
+        description: "Não foi possível consultar o CEP. Preencha manualmente os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConsultingCep(false);
     }
   };
 
@@ -412,13 +448,26 @@ export default function CompanyRegistration() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="cep">CEP *</Label>
-                    <Input
-                      id="cep"
-                      value={formData.cep}
-                      onChange={(e) => handleCepChange(e.target.value)}
-                      placeholder="00000-000"
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="cep"
+                        value={formData.cep}
+                        onChange={(e) => handleInputChange("cep", e.target.value)}
+                        onBlur={(e) => handleCepBlur(e.target.value)}
+                        placeholder="00000-000"
+                        className={isConsultingCep ? "pr-10" : ""}
+                        disabled={isConsultingCep}
+                        required
+                      />
+                      {isConsultingCep && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    {isConsultingCep && (
+                      <p className="text-sm text-blue-600 mt-1">Consultando CEP...</p>
+                    )}
                   </div>
 
                   <div className="md:col-span-2">
@@ -426,10 +475,14 @@ export default function CompanyRegistration() {
                     <Input
                       id="rua"
                       value={formData.rua}
-                      onChange={(e) => setFormData({ ...formData, rua: e.target.value })}
+                      onChange={(e) => handleInputChange("rua", e.target.value)}
                       placeholder="Preenchido automaticamente"
+                      disabled={cepConsulted}
                       required
                     />
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                    )}
                   </div>
 
                   <div>
@@ -437,7 +490,7 @@ export default function CompanyRegistration() {
                     <Input
                       id="numero"
                       value={formData.numero}
-                      onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                      onChange={(e) => handleInputChange("numero", e.target.value)}
                       placeholder="123"
                       required
                     />
@@ -448,7 +501,7 @@ export default function CompanyRegistration() {
                     <Input
                       id="complemento"
                       value={formData.complemento}
-                      onChange={(e) => setFormData({ ...formData, complemento: e.target.value })}
+                      onChange={(e) => handleInputChange("complemento", e.target.value)}
                       placeholder="Sala, Andar..."
                     />
                   </div>
@@ -458,10 +511,14 @@ export default function CompanyRegistration() {
                     <Input
                       id="bairro"
                       value={formData.bairro}
-                      onChange={(e) => setFormData({ ...formData, bairro: e.target.value })}
+                      onChange={(e) => handleInputChange("bairro", e.target.value)}
                       placeholder="Preenchido automaticamente"
+                      disabled={cepConsulted}
                       required
                     />
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                    )}
                   </div>
 
                   <div>
@@ -469,10 +526,14 @@ export default function CompanyRegistration() {
                     <Input
                       id="cidade"
                       value={formData.cidade}
-                      onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
+                      onChange={(e) => handleInputChange("cidade", e.target.value)}
                       placeholder="Preenchido automaticamente"
+                      disabled={cepConsulted}
                       required
                     />
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                    )}
                   </div>
 
                   <div>
@@ -480,10 +541,14 @@ export default function CompanyRegistration() {
                     <Input
                       id="estado"
                       value={formData.estado}
-                      onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
+                      onChange={(e) => handleInputChange("estado", e.target.value)}
                       placeholder="SP"
+                      disabled={cepConsulted}
                       required
                     />
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                    )}
                   </div>
                 </div>
               </div>
