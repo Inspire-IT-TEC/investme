@@ -137,19 +137,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Investor Registration Route
   app.post('/api/investors/register', async (req, res) => {
     try {
-      const investorData = insertUserSchema.parse({
+      const investorData = insertInvestorSchema.parse({
         ...req.body,
-        tipo: 'investor',
         status: 'pendente'
       });
       
-      // Check if user already exists by email or CPF
-      const existingByEmail = await storage.getUserByEmail(investorData.email);
+      // Check if investor already exists by email or CPF
+      const existingByEmail = await storage.getInvestorByEmail(investorData.email);
       if (existingByEmail) {
         return res.status(400).json({ message: 'Email já cadastrado' });
       }
       
-      const existingByCpf = await storage.getUserByCpf(investorData.cpf);
+      const existingByCpf = await storage.getInvestorByCpf(investorData.cpf);
       if (existingByCpf) {
         return res.status(400).json({ message: 'CPF já cadastrado' });
       }
@@ -157,10 +156,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await bcrypt.hash(investorData.senha, SALT_ROUNDS);
       
-      const investor = await storage.createUser({
+      const investor = await storage.createInvestor({
         ...investorData,
         senha: hashedPassword,
-        tipo: 'investor',
         status: 'pendente'
       });
 
