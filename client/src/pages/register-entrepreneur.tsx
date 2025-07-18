@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, ArrowLeft } from "lucide-react";
+import { Building2, ArrowLeft, Loader2 } from "lucide-react";
 import { formatCpf, formatCep, formatPhone, validateCpf, validateEmail, validatePassword } from "@/lib/validations";
 
 export default function RegisterEntrepreneur() {
@@ -14,11 +14,12 @@ export default function RegisterEntrepreneur() {
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
+    cpf: "",
     nomeCompleto: "",
+    dataNascimento: "",
     email: "",
     senha: "",
     confirmarSenha: "",
-    cpf: "",
     rg: "",
     telefone: "",
     cep: "",
@@ -31,6 +32,103 @@ export default function RegisterEntrepreneur() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isConsultingCpf, setIsConsultingCpf] = useState(false);
+  const [cpfConsulted, setCpfConsulted] = useState(false);
+  const [isConsultingCep, setIsConsultingCep] = useState(false);
+  const [cepConsulted, setCepConsulted] = useState(false);
+
+  const consultCpfApi = async (cpf: string) => {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    if (cleanCpf.length !== 11 || !validateCpf(cpf)) {
+      return;
+    }
+
+    setIsConsultingCpf(true);
+    try {
+      const response = await fetch(`https://integracaoconsultas.inspireit.com.br/consulta/${cleanCpf}`);
+      const data = await response.json();
+      
+      if (data.returnCode === 0 && data.data?.encontrado) {
+        // API retornou sucesso e dados encontrados
+        setFormData(prev => ({
+          ...prev,
+          nomeCompleto: data.data.nomeCompleto || "",
+          dataNascimento: data.data.dataNascimento ? new Date(data.data.dataNascimento).toISOString().split('T')[0] : ""
+        }));
+        setCpfConsulted(true);
+        toast({
+          title: "CPF consultado com sucesso!",
+          description: "Os dados foram preenchidos automaticamente.",
+        });
+      } else {
+        // API não retornou sucesso ou dados não encontrados
+        setCpfConsulted(false);
+        toast({
+          title: "CPF não encontrado",
+          description: "Preencha manualmente os dados pessoais.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao consultar CPF:', error);
+      setCpfConsulted(false);
+      toast({
+        title: "Erro na consulta",
+        description: "Não foi possível consultar o CPF. Preencha manualmente os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConsultingCpf(false);
+    }
+  };
+
+  const consultCepApi = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      return;
+    }
+
+    setIsConsultingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+      
+      if (!data.erro) {
+        // API retornou sucesso e dados encontrados
+        setFormData(prev => ({
+          ...prev,
+          rua: data.logradouro || "",
+          bairro: data.bairro || "",
+          cidade: data.localidade || "",
+          estado: data.uf || "",
+          complemento: data.complemento || prev.complemento
+        }));
+        setCepConsulted(true);
+        toast({
+          title: "CEP consultado com sucesso!",
+          description: "Os dados de endereço foram preenchidos automaticamente.",
+        });
+      } else {
+        // API retornou erro - CEP não encontrado
+        setCepConsulted(false);
+        toast({
+          title: "CEP não encontrado",
+          description: "Preencha manualmente os dados de endereço.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao consultar CEP:', error);
+      setCepConsulted(false);
+      toast({
+        title: "Erro na consulta",
+        description: "Não foi possível consultar o CEP. Preencha manualmente os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConsultingCep(false);
+    }
+  };
 
   const registerMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -66,8 +164,16 @@ export default function RegisterEntrepreneur() {
     
     if (field === "cpf") {
       formattedValue = formatCpf(value);
+      // Reset CPF consultation state when user changes CPF
+      if (cpfConsulted) {
+        setCpfConsulted(false);
+      }
     } else if (field === "cep") {
       formattedValue = formatCep(value);
+      // Reset CEP consultation state when user changes CEP
+      if (cepConsulted) {
+        setCepConsulted(false);
+      }
     } else if (field === "telefone") {
       formattedValue = formatPhone(value);
     }
@@ -80,11 +186,33 @@ export default function RegisterEntrepreneur() {
     }
   };
 
+  const handleCpfBlur = (cpf: string) => {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    if (cleanCpf.length === 11 && validateCpf(cpf)) {
+      consultCpfApi(cpf);
+    }
+  };
+
+  const handleCepBlur = (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length === 8) {
+      consultCepApi(cep);
+    }
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    if (!validateCpf(formData.cpf)) {
+      newErrors.cpf = "CPF inválido";
+    }
+
     if (!formData.nomeCompleto.trim()) {
       newErrors.nomeCompleto = "Nome completo é obrigatório";
+    }
+
+    if (!formData.dataNascimento) {
+      newErrors.dataNascimento = "Data de nascimento é obrigatória";
     }
 
     if (!validateEmail(formData.email)) {
@@ -98,10 +226,6 @@ export default function RegisterEntrepreneur() {
 
     if (formData.senha !== formData.confirmarSenha) {
       newErrors.confirmarSenha = "Senhas não coincidem";
-    }
-
-    if (!validateCpf(formData.cpf)) {
-      newErrors.cpf = "CPF inválido";
     }
 
     if (!formData.rg.trim()) {
@@ -162,6 +286,35 @@ export default function RegisterEntrepreneur() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">Dados Pessoais</h3>
                 
+                {/* CPF Field - First Field */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="cpf">CPF *</Label>
+                    <div className="relative">
+                      <Input
+                        id="cpf"
+                        value={formData.cpf}
+                        onChange={(e) => handleInputChange("cpf", e.target.value)}
+                        onBlur={(e) => handleCpfBlur(e.target.value)}
+                        placeholder="000.000.000-00"
+                        className={errors.cpf ? "border-red-500" : ""}
+                        disabled={isConsultingCpf}
+                      />
+                      {isConsultingCpf && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    {errors.cpf && (
+                      <p className="text-sm text-red-500 mt-1">{errors.cpf}</p>
+                    )}
+                    {isConsultingCpf && (
+                      <p className="text-sm text-blue-600 mt-1">Consultando CPF...</p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="nomeCompleto">Nome Completo *</Label>
@@ -170,12 +323,36 @@ export default function RegisterEntrepreneur() {
                       value={formData.nomeCompleto}
                       onChange={(e) => handleInputChange("nomeCompleto", e.target.value)}
                       className={errors.nomeCompleto ? "border-red-500" : ""}
+                      disabled={cpfConsulted}
                     />
                     {errors.nomeCompleto && (
                       <p className="text-sm text-red-500 mt-1">{errors.nomeCompleto}</p>
                     )}
+                    {cpfConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                    )}
                   </div>
 
+                  <div>
+                    <Label htmlFor="dataNascimento">Data de Nascimento *</Label>
+                    <Input
+                      id="dataNascimento"
+                      type="date"
+                      value={formData.dataNascimento}
+                      onChange={(e) => handleInputChange("dataNascimento", e.target.value)}
+                      className={errors.dataNascimento ? "border-red-500" : ""}
+                      disabled={cpfConsulted}
+                    />
+                    {errors.dataNascimento && (
+                      <p className="text-sm text-red-500 mt-1">{errors.dataNascimento}</p>
+                    )}
+                    {cpfConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="email">Email *</Label>
                     <Input
@@ -188,6 +365,16 @@ export default function RegisterEntrepreneur() {
                     {errors.email && (
                       <p className="text-sm text-red-500 mt-1">{errors.email}</p>
                     )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="telefone">Telefone</Label>
+                    <Input
+                      id="telefone"
+                      value={formData.telefone}
+                      onChange={(e) => handleInputChange("telefone", e.target.value)}
+                      placeholder="(00) 00000-0000"
+                    />
                   </div>
                 </div>
 
@@ -221,21 +408,7 @@ export default function RegisterEntrepreneur() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="cpf">CPF *</Label>
-                    <Input
-                      id="cpf"
-                      value={formData.cpf}
-                      onChange={(e) => handleInputChange("cpf", e.target.value)}
-                      placeholder="000.000.000-00"
-                      className={errors.cpf ? "border-red-500" : ""}
-                    />
-                    {errors.cpf && (
-                      <p className="text-sm text-red-500 mt-1">{errors.cpf}</p>
-                    )}
-                  </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                   <div>
                     <Label htmlFor="rg">RG *</Label>
                     <Input
@@ -248,16 +421,6 @@ export default function RegisterEntrepreneur() {
                       <p className="text-sm text-red-500 mt-1">{errors.rg}</p>
                     )}
                   </div>
-
-                  <div>
-                    <Label htmlFor="telefone">Telefone</Label>
-                    <Input
-                      id="telefone"
-                      value={formData.telefone}
-                      onChange={(e) => handleInputChange("telefone", e.target.value)}
-                      placeholder="(00) 00000-0000"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -268,15 +431,27 @@ export default function RegisterEntrepreneur() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="cep">CEP *</Label>
-                    <Input
-                      id="cep"
-                      value={formData.cep}
-                      onChange={(e) => handleInputChange("cep", e.target.value)}
-                      placeholder="00000-000"
-                      className={errors.cep ? "border-red-500" : ""}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="cep"
+                        value={formData.cep}
+                        onChange={(e) => handleInputChange("cep", e.target.value)}
+                        onBlur={(e) => handleCepBlur(e.target.value)}
+                        placeholder="00000-000"
+                        className={errors.cep ? "border-red-500" : ""}
+                        disabled={isConsultingCep}
+                      />
+                      {isConsultingCep && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      )}
+                    </div>
                     {errors.cep && (
                       <p className="text-sm text-red-500 mt-1">{errors.cep}</p>
+                    )}
+                    {isConsultingCep && (
+                      <p className="text-sm text-blue-600 mt-1">Consultando CEP...</p>
                     )}
                   </div>
 
@@ -287,9 +462,13 @@ export default function RegisterEntrepreneur() {
                       value={formData.rua}
                       onChange={(e) => handleInputChange("rua", e.target.value)}
                       className={errors.rua ? "border-red-500" : ""}
+                      disabled={cepConsulted}
                     />
                     {errors.rua && (
                       <p className="text-sm text-red-500 mt-1">{errors.rua}</p>
+                    )}
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
                 </div>
@@ -326,9 +505,13 @@ export default function RegisterEntrepreneur() {
                       value={formData.bairro}
                       onChange={(e) => handleInputChange("bairro", e.target.value)}
                       className={errors.bairro ? "border-red-500" : ""}
+                      disabled={cepConsulted}
                     />
                     {errors.bairro && (
                       <p className="text-sm text-red-500 mt-1">{errors.bairro}</p>
+                    )}
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
 
@@ -339,9 +522,13 @@ export default function RegisterEntrepreneur() {
                       value={formData.cidade}
                       onChange={(e) => handleInputChange("cidade", e.target.value)}
                       className={errors.cidade ? "border-red-500" : ""}
+                      disabled={cepConsulted}
                     />
                     {errors.cidade && (
                       <p className="text-sm text-red-500 mt-1">{errors.cidade}</p>
+                    )}
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
 
@@ -353,9 +540,13 @@ export default function RegisterEntrepreneur() {
                       onChange={(e) => handleInputChange("estado", e.target.value)}
                       placeholder="SP"
                       className={errors.estado ? "border-red-500" : ""}
+                      disabled={cepConsulted}
                     />
                     {errors.estado && (
                       <p className="text-sm text-red-500 mt-1">{errors.estado}</p>
+                    )}
+                    {cepConsulted && (
+                      <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
                 </div>

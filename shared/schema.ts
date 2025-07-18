@@ -11,6 +11,8 @@ export const entrepreneurs = pgTable("entrepreneurs", {
   nomeCompleto: text("nome_completo").notNull(),
   email: text("email").notNull().unique(),
   senha: text("senha").notNull(),
+  telefone: text("telefone"),
+  dataNascimento: text("data_nascimento"),
   cep: text("cep").notNull(),
   rua: text("rua").notNull(),
   numero: text("numero").notNull(),

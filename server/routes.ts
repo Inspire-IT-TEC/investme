@@ -175,19 +175,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Entrepreneur Registration Route
   app.post('/api/entrepreneurs/register', async (req, res) => {
     try {
-      const entrepreneurData = insertUserSchema.parse({
+      const entrepreneurData = insertEntrepreneurSchema.parse({
         ...req.body,
-        tipo: 'entrepreneur',
         status: 'ativo'
       });
       
-      // Check if user already exists by email or CPF
-      const existingByEmail = await storage.getUserByEmail(entrepreneurData.email);
+      // Check if entrepreneur already exists by email or CPF
+      const existingByEmail = await storage.getEntrepreneurByEmail(entrepreneurData.email);
       if (existingByEmail) {
         return res.status(400).json({ message: 'Email já cadastrado' });
       }
       
-      const existingByCpf = await storage.getUserByCpf(entrepreneurData.cpf);
+      const existingByCpf = await storage.getEntrepreneurByCpf(entrepreneurData.cpf);
       if (existingByCpf) {
         return res.status(400).json({ message: 'CPF já cadastrado' });
       }
@@ -195,10 +194,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await bcrypt.hash(entrepreneurData.senha, SALT_ROUNDS);
       
-      const entrepreneur = await storage.createUser({
+      const entrepreneur = await storage.createEntrepreneur({
         ...entrepreneurData,
         senha: hashedPassword,
-        tipo: 'entrepreneur',
         status: 'pendente',
         cadastroAprovado: false,
         emailConfirmado: false,
