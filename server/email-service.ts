@@ -21,7 +21,7 @@ interface EmailOptions {
 }
 
 export class EmailService {
-  private fromEmail = process.env.FROM_EMAIL || "noreply@investme.com";
+  private fromEmail = process.env.FROM_EMAIL || "suporte@investme.com.br";
 
   async sendEmail({ to, subject, html, text }: EmailOptions): Promise<void> {
     console.log(`Attempting to send email to: ${to}`);
