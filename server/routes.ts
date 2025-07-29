@@ -2619,7 +2619,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: 'Se o email existir, um link de recuperação será enviado.' });
     } catch (error: any) {
       console.error('Password reset request error:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
+      
+      // Provide more specific error messages based on the error type
+      if (error.message.includes('AWS credentials')) {
+        res.status(500).json({ 
+          message: 'Serviço de email temporariamente indisponível. Tente novamente mais tarde.' 
+        });
+      } else if (error.message.includes('FROM_EMAIL')) {
+        res.status(500).json({ 
+          message: 'Configuração de email pendente. Entre em contato com o administrador.' 
+        });
+      } else {
+        res.status(500).json({ 
+          message: 'Erro ao enviar email. Tente novamente em alguns minutos.' 
+        });
+      }
     }
   });
 

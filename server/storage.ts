@@ -178,7 +178,7 @@ export interface IStorage {
   createPasswordResetToken(tokenData: InsertPasswordResetToken): Promise<PasswordResetToken>;
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   usePasswordResetToken(token: string): Promise<void>;
-  updateUserPassword(email: string, userType: string, newPassword: string): Promise<void>;
+  updateUserPassword(email: string, userType: string, hashedPassword: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1557,11 +1557,36 @@ export class DatabaseStorage implements IStorage {
     return resetToken;
   }
 
-  async markPasswordResetTokenAsUsed(tokenId: number): Promise<void> {
+  async usePasswordResetToken(token: string): Promise<void> {
     await db
       .update(passwordResetTokens)
       .set({ used: true })
-      .where(eq(passwordResetTokens.id, tokenId));
+      .where(eq(passwordResetTokens.token, token));
+  }
+
+  async updateUserPassword(email: string, userType: string, hashedPassword: string): Promise<void> {
+    if (userType === 'entrepreneur') {
+      await db
+        .update(entrepreneurs)
+        .set({ senha: hashedPassword })
+        .where(eq(entrepreneurs.email, email));
+    } else if (userType === 'investor') {
+      await db
+        .update(investors)
+        .set({ senha: hashedPassword })
+        .where(eq(investors.email, email));
+    } else if (userType === 'admin') {
+      await db
+        .update(adminUsers)
+        .set({ password: hashedPassword })
+        .where(eq(adminUsers.email, email));
+    } else {
+      // Legacy users table
+      await db
+        .update(users)
+        .set({ senha: hashedPassword })
+        .where(eq(users.email, email));
+    }
   }
 }
 

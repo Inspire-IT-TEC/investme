@@ -749,10 +749,6 @@ export const passwordResetRequestSchema = z.object({
 export const passwordResetConfirmSchema = z.object({
   token: z.string().min(1, "Token é obrigatório"),
   newPassword: z.string().min(6, "Nova senha deve ter pelo menos 6 caracteres"),
-  confirmPassword: z.string().min(1, "Confirmação de senha é obrigatória"),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Senhas não coincidem",
-  path: ["confirmPassword"],
 });
 
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
