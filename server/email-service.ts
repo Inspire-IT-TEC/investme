@@ -5,8 +5,9 @@ if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
   console.error('AWS credentials not found in environment variables');
 }
 
-const sesClient = new SESClient({
-  region: process.env.AWS_REGION || "us-east-1",
+// Try multiple regions for AWS SES
+const createSESClient = (region: string) => new SESClient({
+  region: region,
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
@@ -24,18 +25,26 @@ export class EmailService {
   private fromEmail = process.env.FROM_EMAIL || "suporte@investme.com.br";
 
   async sendEmail({ to, subject, html, text }: EmailOptions): Promise<void> {
-    console.log(`Attempting to send email to: ${to}`);
+    console.log(`🚀 REAL EMAIL MODE - Attempting to send email to: ${to}`);
     console.log(`Using FROM_EMAIL: ${this.fromEmail}`);
+    console.log(`AWS Region: ${process.env.AWS_REGION || "us-east-1"}`);
+    console.log(`AWS_ACCESS_KEY_ID: ${process.env.AWS_ACCESS_KEY_ID ? `${process.env.AWS_ACCESS_KEY_ID.substring(0, 8)}***` : 'NOT SET'}`);
+    console.log(`AWS_SECRET_ACCESS_KEY: ${process.env.AWS_SECRET_ACCESS_KEY ? `${process.env.AWS_SECRET_ACCESS_KEY.substring(0, 8)}***` : 'NOT SET'}`);
 
-    // Check if AWS credentials are properly configured
+    // Validate AWS credentials
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      console.log('⚠️ AWS credentials not configured - using simulation mode');
-      this.simulateEmail(to, subject, html);
-      return;
+      const error = 'AWS credentials not configured. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.';
+      console.error('❌', error);
+      throw new Error(error);
     }
 
-    // Try to send with AWS SES
-    try {
+    // Test multiple regions
+    const regions = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'];
+    
+    for (const region of regions) {
+      console.log(`🌎 Trying region: ${region}`);
+      
+      const sesClient = createSESClient(region);
       const command = new SendEmailCommand({
         Source: this.fromEmail,
         Destination: {
@@ -61,23 +70,28 @@ export class EmailService {
         },
       });
 
-      const result = await sesClient.send(command);
-      console.log(`✅ Email sent successfully via AWS SES to ${to}. MessageId: ${result.MessageId}`);
-      return;
-    } catch (error: any) {
-      console.error("❌ AWS SES failed:", error.message);
-      
-      // Check for specific AWS SES errors
-      if (error.Code === 'MessageRejected') {
-        console.error('📧 Email address not verified in AWS SES. Please verify the FROM_EMAIL address in AWS SES console.');
-      } else if (error.Code === 'SignatureDoesNotMatch') {
-        console.error('🔑 AWS credentials invalid. Please check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.');
+      try {
+        const result = await sesClient.send(command);
+        console.log(`✅ Email sent successfully via AWS SES (${region}) to ${to}`);
+        console.log(`📧 MessageId: ${result.MessageId}`);
+        return;
+      } catch (error: any) {
+        console.log(`❌ Region ${region} failed: ${error.Code} - ${error.message}`);
+        
+        // If it's not a credential issue, try next region
+        if (error.Code !== 'SignatureDoesNotMatch' && error.Code !== 'InvalidParameterValue') {
+          continue;
+        }
+        
+        // For signature errors, provide specific guidance
+        if (error.Code === 'MessageRejected') {
+          throw new Error(`Email address "${this.fromEmail}" not verified in AWS SES region ${region}. Please verify this address in AWS SES console.`);
+        }
       }
-      
-      // Fall back to simulation
-      console.log('🔄 Falling back to simulation mode...');
-      this.simulateEmail(to, subject, html);
     }
+    
+    // If all regions failed
+    throw new Error('AWS SES failed in all regions. Please check: 1) Credentials are valid, 2) Email address is verified, 3) Account is not in sandbox mode.');
   }
 
   private simulateEmail(to: string, subject: string, html: string): void {
