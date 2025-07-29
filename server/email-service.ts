@@ -27,15 +27,69 @@ export class EmailService {
     console.log(`Attempting to send email to: ${to}`);
     console.log(`Using FROM_EMAIL: ${this.fromEmail}`);
 
-    // Always use simulation mode in development or when AWS fails
-    console.log('=== EMAIL SIMULATION (Development Mode) ===');
+    // Check if AWS credentials are properly configured
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      console.log('⚠️ AWS credentials not configured - using simulation mode');
+      this.simulateEmail(to, subject, html);
+      return;
+    }
+
+    // Try to send with AWS SES
+    try {
+      const command = new SendEmailCommand({
+        Source: this.fromEmail,
+        Destination: {
+          ToAddresses: [to],
+        },
+        Message: {
+          Subject: {
+            Data: subject,
+            Charset: "UTF-8",
+          },
+          Body: {
+            Html: {
+              Data: html,
+              Charset: "UTF-8",
+            },
+            ...(text && {
+              Text: {
+                Data: text,
+                Charset: "UTF-8",
+              },
+            }),
+          },
+        },
+      });
+
+      const result = await sesClient.send(command);
+      console.log(`✅ Email sent successfully via AWS SES to ${to}. MessageId: ${result.MessageId}`);
+      return;
+    } catch (error: any) {
+      console.error("❌ AWS SES failed:", error.message);
+      
+      // Check for specific AWS SES errors
+      if (error.Code === 'MessageRejected') {
+        console.error('📧 Email address not verified in AWS SES. Please verify the FROM_EMAIL address in AWS SES console.');
+      } else if (error.Code === 'SignatureDoesNotMatch') {
+        console.error('🔑 AWS credentials invalid. Please check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.');
+      }
+      
+      // Fall back to simulation
+      console.log('🔄 Falling back to simulation mode...');
+      this.simulateEmail(to, subject, html);
+    }
+  }
+
+  private simulateEmail(to: string, subject: string, html: string): void {
+    console.log('=== EMAIL SIMULATION (AWS SES not available) ===');
     console.log(`To: ${to}`);
     console.log(`From: ${this.fromEmail}`);
     console.log(`Subject: ${subject}`);
     console.log(`HTML Content: ${html.substring(0, 300)}...`);
     console.log(`Reset Link: ${this.extractResetLink(html)}`);
     console.log('=== END EMAIL SIMULATION ===');
-    console.log('✅ Email would be sent successfully in production');
+    console.log('⚠️ Email NOT sent - simulation mode active');
+    console.log('💡 To send real emails, configure AWS SES credentials and verify the sender email');
   }
 
   private extractResetLink(html: string): string {
