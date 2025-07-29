@@ -21,8 +21,12 @@ import {
   multiplesDataSchema,
   insertPlatformNotificationSchema,
   insertNetworkPostSchema,
-  insertNetworkCommentSchema
+  insertNetworkCommentSchema,
+  passwordResetRequestSchema,
+  passwordResetConfirmSchema
 } from "@shared/schema";
+import { emailService } from "./email-service";
+import crypto from "crypto";
 
 const JWT_SECRET = process.env.JWT_SECRET || "investme-secret-key";
 const SALT_ROUNDS = 10;
@@ -391,6 +395,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: 'Senha alterada com sucesso' });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao alterar senha' });
+    }
+  });
+
+  // Password reset routes
+  app.post('/api/password-reset/request', async (req, res) => {
+    try {
+      const { email } = passwordResetRequestSchema.parse(req.body);
+      
+      // Check which user type has this email
+      let userType = '';
+      let userExists = false;
+
+      // Check entrepreneurs
+      const entrepreneur = await storage.getEntrepreneurByEmail(email);
+      if (entrepreneur) {
+        userType = 'entrepreneur';
+        userExists = true;
+      }
+
+      // Check investors  
+      if (!userExists) {
+        const investor = await storage.getInvestorByEmail(email);
+        if (investor) {
+          userType = 'investor';
+          userExists = true;
+        }
+      }
+
+      // Check admin users
+      if (!userExists) {
+        const adminUser = await storage.getAdminUserByEmail(email);
+        if (adminUser) {
+          userType = 'admin';
+          userExists = true;
+        }
+      }
+
+      // Check legacy users table
+      if (!userExists) {
+        const user = await storage.getUserByEmail(email);
+        if (user) {
+          userType = user.tipo || 'user';
+          userExists = true;
+        }
+      }
+
+      if (!userExists) {
+        return res.status(404).json({ message: 'Email não encontrado no sistema' });
+      }
+
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      await storage.createPasswordResetToken({
+        email,
+        token: resetToken,
+        userType,
+        expiresAt,
+        used: false
+      });
+
+      // Send reset email
+      await emailService.sendPasswordResetEmail(email, resetToken, userType);
+
+      res.json({ message: 'Email de recuperação de senha enviado com sucesso' });
+    } catch (error: any) {
+      console.error('Password reset request error:', error);
+      res.status(500).json({ message: error.message || 'Erro ao solicitar recuperação de senha' });
+    }
+  });
+
+  app.post('/api/password-reset/confirm', async (req, res) => {
+    try {
+      const { token, newPassword } = passwordResetConfirmSchema.parse(req.body);
+
+      const resetToken = await storage.getPasswordResetToken(token);
+      if (!resetToken) {
+        return res.status(400).json({ message: 'Token inválido ou expirado' });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+      // Update user password
+      await storage.updateUserPassword(resetToken.email, resetToken.userType, hashedPassword);
+
+      // Mark token as used
+      await storage.usePasswordResetToken(token);
+
+      res.json({ message: 'Senha redefinida com sucesso' });
+    } catch (error: any) {
+      console.error('Password reset confirm error:', error);
+      res.status(500).json({ message: error.message || 'Erro ao redefinir senha' });
     }
   });
 
@@ -2459,6 +2557,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =============================================================================
   // END NETWORK ROUTES
   // =============================================================================
+
+  // Password Reset Routes
+  app.post('/api/password-reset/request', async (req, res) => {
+    try {
+      const { email } = passwordResetRequestSchema.parse(req.body);
+      
+      // Find user in entrepreneurs, investors, or admin users table
+      let user = null;
+      let userType = '';
+      
+      // Check entrepreneurs
+      const entrepreneurs = await storage.getUsers('empreendedor');
+      const entrepreneur = entrepreneurs.find(u => u.email === email);
+      if (entrepreneur) {
+        user = entrepreneur;
+        userType = 'entrepreneur';
+      }
+      
+      // Check investors
+      if (!user) {
+        const investors = await storage.getInvestors();
+        const investor = investors.find(u => u.email === email);
+        if (investor) {
+          user = investor;
+          userType = 'investor';
+        }
+      }
+      
+      // Check admin users
+      if (!user) {
+        const adminUsers = await storage.getAdminUsers();
+        const adminUser = adminUsers.find(u => u.email === email);
+        if (adminUser) {
+          user = adminUser;
+          userType = 'admin';
+        }
+      }
+      
+      if (!user) {
+        // Return success even if user not found (security)
+        return res.json({ message: 'Se o email existir, um link de recuperação será enviado.' });
+      }
+      
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+      
+      // Store token in database
+      await storage.createPasswordResetToken({
+        email,
+        token: resetToken,
+        userType,
+        expiresAt,
+        used: false
+      });
+      
+      // Send email
+      await emailService.sendPasswordResetEmail(email, resetToken, userType);
+      
+      res.json({ message: 'Se o email existir, um link de recuperação será enviado.' });
+    } catch (error: any) {
+      console.error('Password reset request error:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  app.post('/api/password-reset/confirm', async (req, res) => {
+    try {
+      const { token, newPassword, confirmPassword } = passwordResetConfirmSchema.parse(req.body);
+      
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ message: 'As senhas não coincidem' });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'A senha deve ter pelo menos 6 caracteres' });
+      }
+      
+      // Find and validate token
+      const resetToken = await storage.getPasswordResetToken(token);
+      
+      if (!resetToken || resetToken.used || new Date() > new Date(resetToken.expiresAt)) {
+        return res.status(400).json({ message: 'Token inválido ou expirado' });
+      }
+      
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+      
+      // Update user password based on type
+      if (resetToken.userType === 'entrepreneur') {
+        const entrepreneurs = await storage.getUsers('empreendedor');
+        const user = entrepreneurs.find(u => u.email === resetToken.email);
+        if (user) {
+          await storage.updateUser(user.id, { senha: hashedPassword });
+        }
+      } else if (resetToken.userType === 'investor') {
+        const investors = await storage.getInvestors();
+        const user = investors.find(u => u.email === resetToken.email);
+        if (user) {
+          await storage.updateInvestor(user.id, { senha: hashedPassword });
+        }
+      } else if (resetToken.userType === 'admin') {
+        const adminUsers = await storage.getAdminUsers();
+        const user = adminUsers.find(u => u.email === resetToken.email);
+        if (user) {
+          await storage.updateAdminUser(user.id, { senha: hashedPassword });
+        }
+      }
+      
+      // Mark token as used
+      await storage.markPasswordResetTokenAsUsed(resetToken.id);
+      
+      res.json({ message: 'Senha redefinida com sucesso' });
+    } catch (error: any) {
+      console.error('Password reset confirm error:', error);
+      res.status(500).json({ message: error.message || 'Erro ao redefinir senha' });
+    }
+  });
 
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

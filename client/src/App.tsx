@@ -40,6 +40,8 @@ import InvestorCompanyEdit from "@/pages/investor-company-edit";
 import Companies from "@/pages/companies";
 import CreditRequests from "@/pages/credit-requests";
 import Network from "@/pages/network";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 
 function Router() {
   return (
@@ -51,6 +53,11 @@ function Router() {
       <Route path="/login/entrepreneur" component={Login} />
       <Route path="/login/investor" component={Login} />
       <Route path="/login" component={Login} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/forgot-password/entrepreneur" component={ForgotPassword} />
+      <Route path="/forgot-password/investor" component={ForgotPassword} />
+      <Route path="/forgot-password/admin" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/register" component={Register} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/investor-dashboard" component={InvestorDashboard} />

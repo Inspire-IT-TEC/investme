@@ -162,7 +162,7 @@ export default function Login() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-2">
               <p className="text-sm text-white/80">
                 Não tem uma conta?{" "}
                 <Link 
@@ -170,6 +170,14 @@ export default function Login() {
                   className="font-medium text-white hover:text-white/80 hover:underline transition-colors"
                 >
                   Cadastre-se aqui
+                </Link>
+              </p>
+              <p className="text-sm text-white/80">
+                <Link 
+                  href={`/forgot-password${userType === 'investor' ? '/investor' : userType === 'entrepreneur' ? '/entrepreneur' : ''}`}
+                  className="font-medium text-white hover:text-white/80 hover:underline transition-colors"
+                >
+                  Esqueceu sua senha?
                 </Link>
               </p>
             </div>

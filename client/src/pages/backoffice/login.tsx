@@ -110,13 +110,23 @@ export default function BackofficeLogin() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <a 
-                href="/" 
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                ← Voltar ao site principal
-              </a>
+            <div className="mt-6 text-center space-y-2">
+              <div>
+                <a 
+                  href="/forgot-password/admin" 
+                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                >
+                  Esqueceu sua senha?
+                </a>
+              </div>
+              <div>
+                <a 
+                  href="/" 
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  ← Voltar ao site principal
+                </a>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -628,6 +628,17 @@ export const networkLikes = pgTable("network_likes", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Password reset tokens table
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull(),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  userType: varchar("user_type", { length: 50 }).notNull(), // 'entrepreneur', 'investor', 'admin'
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const statesRelations = relations(states, ({ many }) => ({
   cities: many(cities),
@@ -724,3 +735,27 @@ export type NetworkComment = typeof networkComments.$inferSelect;
 
 export type InsertNetworkLike = z.infer<typeof insertNetworkLikeSchema>;
 export type NetworkLike = typeof networkLikes.$inferSelect;
+
+// Validation schemas for password reset
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const passwordResetRequestSchema = z.object({
+  email: z.string().email("Email inválido"),
+});
+
+export const passwordResetConfirmSchema = z.object({
+  token: z.string().min(1, "Token é obrigatório"),
+  newPassword: z.string().min(6, "Nova senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string().min(1, "Confirmação de senha é obrigatória"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
+export type PasswordResetConfirm = z.infer<typeof passwordResetConfirmSchema>;

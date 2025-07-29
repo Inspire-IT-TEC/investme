@@ -17,6 +17,7 @@ import {
   networkPosts,
   networkComments,
   networkLikes,
+  passwordResetTokens,
   type User, 
   type InsertUser,
   type Entrepreneur,
@@ -43,7 +44,9 @@ import {
   type InsertNotificationRead,
   valuations,
   type Valuation,
-  type InsertValuation
+  type InsertValuation,
+  type PasswordResetToken,
+  type InsertPasswordResetToken
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, like, ilike, sql, or, lt, ne, count, asc, isNull, isNotNull, gte, lte } from "drizzle-orm";
@@ -170,6 +173,12 @@ export interface IStorage {
   // Company images methods
   createCompanyImage(image: any): Promise<any>;
   getCompanyImages(companyId: number): Promise<any[]>;
+  
+  // Password reset methods
+  createPasswordResetToken(tokenData: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  usePasswordResetToken(token: string): Promise<void>;
+  updateUserPassword(email: string, userType: string, newPassword: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1528,6 +1537,31 @@ export class DatabaseStorage implements IStorage {
       .from(companyImages)
       .where(eq(companyImages.companyId, companyId))
       .orderBy(desc(companyImages.createdAt));
+  }
+
+  // Password reset methods
+  async createPasswordResetToken(tokenData: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const [token] = await db
+      .insert(passwordResetTokens)
+      .values(tokenData)
+      .returning();
+    return token;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token))
+      .limit(1);
+    return resetToken;
+  }
+
+  async markPasswordResetTokenAsUsed(tokenId: number): Promise<void> {
+    await db
+      .update(passwordResetTokens)
+      .set({ used: true })
+      .where(eq(passwordResetTokens.id, tokenId));
   }
 }
 
