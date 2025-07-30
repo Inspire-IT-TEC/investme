@@ -1191,6 +1191,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Company Routes
   app.get('/api/companies', authenticateToken, async (req: any, res) => {
     try {
+      const { userId, entrepreneurId, status, search } = req.query;
+      
+      // If entrepreneurId is provided, use it directly
+      if (entrepreneurId) {
+        const companies = await storage.getCompanies(parseInt(entrepreneurId as string), status as string, search as string);
+        res.json(companies);
+        return;
+      }
+      
+      // If userId is provided, use it
+      if (userId) {
+        const companies = await storage.getUserCompanies(parseInt(userId as string));
+        res.json(companies);
+        return;
+      }
+      
+      // Default: use authenticated user's companies
       const companies = await storage.getUserCompanies(req.user.id);
       res.json(companies);
     } catch (error: any) {

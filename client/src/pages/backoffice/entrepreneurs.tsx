@@ -498,7 +498,7 @@ function EntrepreneurDetailView({ entrepreneur }: { entrepreneur: any }) {
   const { data: entrepreneurCompanies } = useQuery({
     queryKey: ["/api/companies", entrepreneur.id],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/companies?userId=${entrepreneur.id}`);
+      const response = await apiRequest("GET", `/api/companies?entrepreneurId=${entrepreneur.id}`);
       return response.json();
     }
   });
