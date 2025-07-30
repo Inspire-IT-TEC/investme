@@ -60,6 +60,10 @@ export default function ResetPassword() {
         newPassword: data.newPassword,
         confirmPassword: data.confirmPassword
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+      }
       return response.json();
     },
     onSuccess: () => {

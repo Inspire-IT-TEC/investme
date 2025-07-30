@@ -36,6 +36,10 @@ export default function Register() {
     mutationFn: async (data: any) => {
       const { confirmSenha, ...submitData } = data;
       const response = await apiRequest("POST", "/api/auth/register", submitData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+      }
       return response.json();
     },
     onSuccess: (data) => {

@@ -23,6 +23,10 @@ export default function BackofficeLogin() {
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const response = await apiRequest("POST", "/api/admin/auth/login", data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+      }
       return response.json();
     },
     onSuccess: (data) => {

@@ -106,6 +106,10 @@ export default function CompanyRegistration() {
   const registerMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await apiRequest("POST", "/api/companies", data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+      }
       return response.json();
     },
     onSuccess: () => {
