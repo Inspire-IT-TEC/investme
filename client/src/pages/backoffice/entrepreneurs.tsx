@@ -96,11 +96,22 @@ export default function BackofficeEntrepreneurs() {
       const response = await apiRequest("PATCH", `/api/admin/entrepreneurs/${userId}/approve-field`, { field, approved });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      // Update the selected entrepreneur state immediately to reflect changes in the modal
+      if (selectedEntrepreneur && selectedEntrepreneur.id === variables.userId) {
+        setSelectedEntrepreneur(prev => ({
+          ...prev,
+          [variables.field]: variables.approved,
+          updatedAt: new Date().toISOString()
+        }));
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/admin/entrepreneurs"] });
       toast({
         title: "Status atualizado",
-        description: "Item do perfil atualizado com sucesso.",
+        description: `${variables.field === 'cadastroAprovado' ? 'Cadastro' : 
+                      variables.field === 'emailConfirmado' ? 'Email' : 
+                      'Documentos'} ${variables.approved ? 'aprovado' : 'rejeitado'} com sucesso.`,
       });
     },
     onError: (error: any) => {
@@ -182,17 +193,18 @@ export default function BackofficeEntrepreneurs() {
             <Button 
               size="sm" 
               variant={entrepreneur.cadastroAprovado ? "default" : "outline"}
+              className={entrepreneur.cadastroAprovado ? "bg-green-600 hover:bg-green-700" : ""}
               onClick={() => approveFieldMutation.mutate({ userId: entrepreneur.id, field: 'cadastroAprovado', approved: true })}
-              disabled={approveFieldMutation.isPending}
+              disabled={approveFieldMutation.isPending || entrepreneur.cadastroAprovado}
             >
               <CheckCircle className="w-4 h-4 mr-1" />
-              Aprovar
+              {entrepreneur.cadastroAprovado ? "Aprovado" : "Aprovar"}
             </Button>
             <Button 
               size="sm" 
               variant={!entrepreneur.cadastroAprovado ? "destructive" : "outline"}
               onClick={() => approveFieldMutation.mutate({ userId: entrepreneur.id, field: 'cadastroAprovado', approved: false })}
-              disabled={approveFieldMutation.isPending}
+              disabled={approveFieldMutation.isPending || !entrepreneur.cadastroAprovado}
             >
               <XCircle className="w-4 h-4 mr-1" />
               Rejeitar
@@ -209,17 +221,18 @@ export default function BackofficeEntrepreneurs() {
             <Button 
               size="sm" 
               variant={entrepreneur.emailConfirmado ? "default" : "outline"}
+              className={entrepreneur.emailConfirmado ? "bg-green-600 hover:bg-green-700" : ""}
               onClick={() => approveFieldMutation.mutate({ userId: entrepreneur.id, field: 'emailConfirmado', approved: true })}
-              disabled={approveFieldMutation.isPending}
+              disabled={approveFieldMutation.isPending || entrepreneur.emailConfirmado}
             >
               <CheckCircle className="w-4 h-4 mr-1" />
-              Aprovar
+              {entrepreneur.emailConfirmado ? "Aprovado" : "Aprovar"}
             </Button>
             <Button 
               size="sm" 
               variant={!entrepreneur.emailConfirmado ? "destructive" : "outline"}
               onClick={() => approveFieldMutation.mutate({ userId: entrepreneur.id, field: 'emailConfirmado', approved: false })}
-              disabled={approveFieldMutation.isPending}
+              disabled={approveFieldMutation.isPending || !entrepreneur.emailConfirmado}
             >
               <XCircle className="w-4 h-4 mr-1" />
               Rejeitar
@@ -236,17 +249,18 @@ export default function BackofficeEntrepreneurs() {
             <Button 
               size="sm" 
               variant={entrepreneur.documentosVerificados ? "default" : "outline"}
+              className={entrepreneur.documentosVerificados ? "bg-green-600 hover:bg-green-700" : ""}
               onClick={() => approveFieldMutation.mutate({ userId: entrepreneur.id, field: 'documentosVerificados', approved: true })}
-              disabled={approveFieldMutation.isPending}
+              disabled={approveFieldMutation.isPending || entrepreneur.documentosVerificados}
             >
               <CheckCircle className="w-4 h-4 mr-1" />
-              Aprovar
+              {entrepreneur.documentosVerificados ? "Aprovado" : "Aprovar"}
             </Button>
             <Button 
               size="sm" 
               variant={!entrepreneur.documentosVerificados ? "destructive" : "outline"}
               onClick={() => approveFieldMutation.mutate({ userId: entrepreneur.id, field: 'documentosVerificados', approved: false })}
-              disabled={approveFieldMutation.isPending}
+              disabled={approveFieldMutation.isPending || !entrepreneur.documentosVerificados}
             >
               <XCircle className="w-4 h-4 mr-1" />
               Rejeitar
