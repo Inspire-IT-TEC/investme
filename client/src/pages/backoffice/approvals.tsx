@@ -41,7 +41,7 @@ export default function BackofficeApprovals() {
   const { data: pendingEntrepreneurs, isLoading: entrepreneursLoading } = useQuery({
     queryKey: ["/api/admin/entrepreneurs", "pendente"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/admin/users?tipo=entrepreneur&status=pendente");
+      const response = await apiRequest("GET", "/api/admin/entrepreneurs?status=pendente");
       return response.json();
     },
   });
@@ -92,8 +92,8 @@ export default function BackofficeApprovals() {
 
   // Approve entrepreneur mutation
   const approveEntrepreneurMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      const response = await apiRequest("POST", `/api/admin/users/${userId}/approve`);
+    mutationFn: async (entrepreneurId: number) => {
+      const response = await apiRequest("POST", `/api/admin/entrepreneurs/${entrepreneurId}/approve`);
       return response.json();
     },
     onSuccess: () => {
@@ -114,8 +114,8 @@ export default function BackofficeApprovals() {
 
   // Reject entrepreneur mutation
   const rejectEntrepreneurMutation = useMutation({
-    mutationFn: async ({ userId, reason }: { userId: number; reason: string }) => {
-      const response = await apiRequest("POST", `/api/admin/users/${userId}/reject`, { reason });
+    mutationFn: async ({ entrepreneurId, reason }: { entrepreneurId: number; reason: string }) => {
+      const response = await apiRequest("POST", `/api/admin/entrepreneurs/${entrepreneurId}/reject`, { reason });
       return response.json();
     },
     onSuccess: () => {
@@ -374,7 +374,7 @@ export default function BackofficeApprovals() {
                                           <Button
                                             onClick={() => {
                                               rejectEntrepreneurMutation.mutate({
-                                                userId: entrepreneur.id,
+                                                entrepreneurId: entrepreneur.id,
                                                 reason: rejectionReason
                                               });
                                               setRejectionReason("");

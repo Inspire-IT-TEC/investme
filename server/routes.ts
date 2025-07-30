@@ -887,6 +887,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Entrepreneurs Routes
+  app.get('/api/admin/entrepreneurs', authenticateAdminToken, async (req, res) => {
+    try {
+      const { status } = req.query;
+      const entrepreneurs = await storage.getEntrepreneurs(status as string);
+      res.json(entrepreneurs);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar empreendedores' });
+    }
+  });
+
+  // Approve entrepreneur
+  app.post('/api/admin/entrepreneurs/:id/approve', authenticateAdminToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const entrepreneur = await storage.approveEntrepreneur(parseInt(id));
+      if (!entrepreneur) {
+        return res.status(404).json({ message: 'Empreendedor não encontrado' });
+      }
+      res.json({ message: 'Empreendedor aprovado com sucesso', entrepreneur });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao aprovar empreendedor' });
+    }
+  });
+
+  // Reject entrepreneur
+  app.post('/api/admin/entrepreneurs/:id/reject', authenticateAdminToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      const entrepreneur = await storage.rejectEntrepreneur(parseInt(id), reason);
+      if (!entrepreneur) {
+        return res.status(404).json({ message: 'Empreendedor não encontrado' });
+      }
+      res.json({ message: 'Empreendedor rejeitado', entrepreneur });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao rejeitar empreendedor' });
+    }
+  });
+
   // Admin Users/Entrepreneurs Routes
   app.get('/api/admin/users', authenticateAdminToken, async (req, res) => {
     try {

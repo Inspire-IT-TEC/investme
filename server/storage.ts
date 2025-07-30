@@ -131,6 +131,11 @@ export interface IStorage {
   approveInvestor(investorId: number): Promise<Investor | undefined>;
   rejectInvestor(investorId: number, reason: string): Promise<Investor | undefined>;
 
+  // Admin entrepreneur management methods  
+  getEntrepreneurs(status?: string): Promise<any[]>;
+  approveEntrepreneur(entrepreneurId: number): Promise<Entrepreneur | undefined>;
+  rejectEntrepreneur(entrepreneurId: number, reason: string): Promise<Entrepreneur | undefined>;
+
   // Admin user management methods
   getUsersByTypeAndStatus(tipo?: string, status?: string): Promise<any[]>;
   approveUser(userId: number): Promise<User | undefined>;
@@ -1038,6 +1043,62 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return updatedInvestor;
+  }
+
+  // Admin entrepreneur management methods
+  async getEntrepreneurs(status?: string): Promise<any[]> {
+    // Get entrepreneurs from the entrepreneurs table
+    const entrepreneurResults = await db
+      .select({
+        id: entrepreneurs.id,
+        email: entrepreneurs.email,
+        nomeCompleto: entrepreneurs.nomeCompleto,
+        cpf: entrepreneurs.cpf,
+        rg: entrepreneurs.rg,
+        telefone: entrepreneurs.telefone,
+        cadastroAprovado: entrepreneurs.cadastroAprovado,
+        emailConfirmado: entrepreneurs.emailConfirmado,
+        documentosVerificados: entrepreneurs.documentosVerificados,
+        createdAt: entrepreneurs.createdAt,
+        updatedAt: entrepreneurs.updatedAt,
+        status: entrepreneurs.status
+      })
+      .from(entrepreneurs)
+      .orderBy(desc(entrepreneurs.createdAt));
+
+    // Filter by status if provided
+    if (status && status !== 'all') {
+      return entrepreneurResults.filter(entrepreneur => entrepreneur.status === status);
+    }
+
+    return entrepreneurResults;
+  }
+
+  async approveEntrepreneur(entrepreneurId: number): Promise<Entrepreneur | undefined> {
+    const [updatedEntrepreneur] = await db
+      .update(entrepreneurs)
+      .set({
+        status: 'ativo',
+        cadastroAprovado: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(entrepreneurs.id, entrepreneurId))
+      .returning();
+
+    return updatedEntrepreneur;
+  }
+
+  async rejectEntrepreneur(entrepreneurId: number, reason: string): Promise<Entrepreneur | undefined> {
+    const [updatedEntrepreneur] = await db
+      .update(entrepreneurs)
+      .set({
+        status: 'rejeitado',
+        updatedAt: new Date(),
+      })
+      .where(eq(entrepreneurs.id, entrepreneurId))
+      .returning();
+
+    return updatedEntrepreneur;
   }
 
   // Admin network methods
