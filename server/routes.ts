@@ -166,8 +166,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pendente'
       });
 
+      // Generate confirmation token and send email
+      const confirmationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      await storage.createEmailConfirmationToken({
+        email: investor.email,
+        token: confirmationToken,
+        userType: 'investor',
+        expiresAt
+      });
+
+      // Send confirmation email
+      await emailService.sendEmailConfirmation(investor.email, confirmationToken, 'investor');
+
       res.status(201).json({ 
-        message: 'Investidor cadastrado com sucesso! Aguarde aprovação do backoffice.',
+        message: 'Investidor cadastrado com sucesso! Verifique seu email para confirmar sua conta.',
         investor: { ...investor, senha: undefined } 
       });
     } catch (error: any) {
@@ -207,8 +221,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         documentosVerificados: false
       });
 
+      // Generate confirmation token and send email
+      const confirmationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      await storage.createEmailConfirmationToken({
+        email: entrepreneur.email,
+        token: confirmationToken,
+        userType: 'entrepreneur',
+        expiresAt
+      });
+
+      // Send confirmation email
+      await emailService.sendEmailConfirmation(entrepreneur.email, confirmationToken, 'entrepreneur');
+
       res.status(201).json({ 
-        message: 'Empreendedor cadastrado com sucesso!',
+        message: 'Empreendedor cadastrado com sucesso! Verifique seu email para confirmar sua conta.',
         entrepreneur: { ...entrepreneur, senha: undefined } 
       });
     } catch (error: any) {
@@ -222,42 +250,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { login, senha } = req.body; // login can be email or CPF
       
-      let user = await storage.getUserByEmail(login);
-      if (!user) {
-        user = await storage.getUserByCpf(login);
+      // Try to find investor by email first, then by CPF
+      let investor = await storage.getInvestorByEmail(login);
+      if (!investor) {
+        investor = await storage.getInvestorByCpf(login);
       }
 
-      if (!user) {
+      if (!investor) {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
-      // Check if user is actually an investor
-      if (user.tipo !== 'investor') {
-        return res.status(401).json({ message: 'Acesso não autorizado para investidores' });
+      // Check if email is confirmed
+      if (!investor.emailConfirmado) {
+        return res.status(401).json({ 
+          message: 'Email não confirmado. Verifique sua caixa de entrada e confirme seu email antes de fazer login.',
+          requiresEmailConfirmation: true,
+          email: investor.email
+        });
       }
 
       // Check if investor account is approved
-      if (user.status === 'pendente') {
+      if (investor.status === 'pendente') {
         return res.status(401).json({ message: 'Conta aguardando aprovação do backoffice' });
       }
 
-      if (user.status === 'inativo') {
+      if (investor.status === 'inativo') {
         return res.status(401).json({ message: 'Conta inativa. Entre em contato com o suporte.' });
       }
 
-      const isValidPassword = await bcrypt.compare(senha, user.senha);
+      const isValidPassword = await bcrypt.compare(senha, investor.senha);
       if (!isValidPassword) {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, tipo: user.tipo, type: 'investor' },
+        { id: investor.id, email: investor.email, tipo: 'investor', type: 'investor' },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
 
       res.json({ 
-        user: { ...user, senha: undefined, role: 'investor' }, 
+        user: { ...investor, senha: undefined, role: 'investor' }, 
         token,
         userType: 'investor'
       });
@@ -272,46 +305,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { login, senha } = req.body; // login can be email or CPF
       
-      let user = await storage.getUserByEmail(login);
-      if (!user) {
-        user = await storage.getUserByCpf(login);
+      // Try to find entrepreneur by email first, then by CPF
+      let entrepreneur = await storage.getEntrepreneurByEmail(login);
+      if (!entrepreneur) {
+        entrepreneur = await storage.getEntrepreneurByCpf(login);
       }
 
-      if (!user) {
+      if (!entrepreneur) {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
-      // Check if user is actually an entrepreneur
-      if (user.tipo !== 'entrepreneur') {
-        return res.status(401).json({ message: 'Acesso não autorizado para empreendedores' });
+      // Check if email is confirmed
+      if (!entrepreneur.emailConfirmado) {
+        return res.status(401).json({ 
+          message: 'Email não confirmado. Verifique sua caixa de entrada e confirme seu email antes de fazer login.',
+          requiresEmailConfirmation: true,
+          email: entrepreneur.email
+        });
       }
 
       // Check if entrepreneur account is approved
-      if (user.status === 'pendente') {
+      if (entrepreneur.status === 'pendente') {
         return res.status(401).json({ message: 'Conta aguardando aprovação do backoffice' });
       }
 
-      if (user.status === 'inativo') {
+      if (entrepreneur.status === 'inativo') {
         return res.status(401).json({ message: 'Conta inativa. Entre em contato com o suporte.' });
       }
 
-      const isValidPassword = await bcrypt.compare(senha, user.senha);
+      const isValidPassword = await bcrypt.compare(senha, entrepreneur.senha);
       if (!isValidPassword) {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, tipo: user.tipo, type: 'entrepreneur' },
+        { id: entrepreneur.id, email: entrepreneur.email, tipo: 'entrepreneur', type: 'entrepreneur' },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
 
       res.json({ 
-        user: { ...user, senha: undefined, role: 'entrepreneur' }, 
+        user: { ...entrepreneur, senha: undefined, role: 'entrepreneur' }, 
         token,
         userType: 'entrepreneur'
       });
     } catch (error: any) {
+      console.error('Erro no login do empreendedor:', error);
       res.status(400).json({ message: error.message || 'Erro no login do empreendedor' });
     }
   });
@@ -489,6 +528,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Password reset confirm error:', error);
       res.status(500).json({ message: error.message || 'Erro ao redefinir senha' });
+    }
+  });
+
+  // Email confirmation routes
+  app.post('/api/email-confirmation/request', async (req, res) => {
+    try {
+      const { email, userType } = req.body;
+
+      if (!email || !userType) {
+        return res.status(400).json({ message: 'Email e tipo de usuário são obrigatórios' });
+      }
+
+      if (!['entrepreneur', 'investor'].includes(userType)) {
+        return res.status(400).json({ message: 'Tipo de usuário inválido' });
+      }
+
+      // Check if user exists and is not already confirmed
+      let userExists = false;
+      let emailAlreadyConfirmed = false;
+
+      if (userType === 'entrepreneur') {
+        const entrepreneur = await storage.getEntrepreneurByEmail(email);
+        if (!entrepreneur) {
+          return res.status(404).json({ message: 'Empreendedor não encontrado' });
+        }
+        userExists = true;
+        emailAlreadyConfirmed = entrepreneur.emailConfirmado;
+      } else if (userType === 'investor') {
+        const investor = await storage.getInvestorByEmail(email);
+        if (!investor) {
+          return res.status(404).json({ message: 'Investidor não encontrado' });
+        }
+        userExists = true;
+        emailAlreadyConfirmed = investor.emailConfirmado;
+      }
+
+      if (emailAlreadyConfirmed) {
+        return res.status(400).json({ message: 'Email já confirmado' });
+      }
+
+      // Generate confirmation token
+      const confirmationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Save token to database
+      await storage.createEmailConfirmationToken({
+        email,
+        token: confirmationToken,
+        userType,
+        expiresAt
+      });
+
+      // Send confirmation email
+      await emailService.sendEmailConfirmation(email, confirmationToken, userType as 'entrepreneur' | 'investor');
+
+      res.json({ message: 'Email de confirmação enviado com sucesso' });
+    } catch (error: any) {
+      console.error('Email confirmation request error:', error);
+      res.status(500).json({ message: error.message || 'Erro ao enviar email de confirmação' });
+    }
+  });
+
+  app.post('/api/email-confirmation/confirm', async (req, res) => {
+    try {
+      const { token } = req.body;
+
+      if (!token) {
+        return res.status(400).json({ message: 'Token é obrigatório' });
+      }
+
+      const confirmationToken = await storage.getEmailConfirmationToken(token);
+      if (!confirmationToken) {
+        return res.status(400).json({ message: 'Token inválido ou expirado' });
+      }
+
+      // Confirm user email
+      await storage.confirmUserEmail(confirmationToken.email, confirmationToken.userType);
+
+      // Mark token as used
+      await storage.useEmailConfirmationToken(token);
+
+      res.json({ message: 'Email confirmado com sucesso! Agora você pode fazer login.' });
+    } catch (error: any) {
+      console.error('Email confirmation error:', error);
+      res.status(500).json({ message: error.message || 'Erro ao confirmar email' });
     }
   });
 
@@ -2687,6 +2811,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Password reset confirm error:', error);
       res.status(500).json({ message: error.message || 'Erro ao redefinir senha' });
+    }
+  });
+
+  // Email Confirmation Routes
+  app.post('/api/email-confirmation/confirm', async (req, res) => {
+    try {
+      const { token } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ message: 'Token é obrigatório' });
+      }
+
+      const confirmationToken = await storage.getEmailConfirmationToken(token);
+      
+      if (!confirmationToken) {
+        return res.status(400).json({ message: 'Token inválido ou expirado' });
+      }
+
+      if (confirmationToken.expiresAt < new Date()) {
+        return res.status(400).json({ message: 'Token expirado. Solicite um novo email de confirmação.' });
+      }
+
+      // Update user email confirmation status based on user type
+      if (confirmationToken.userType === 'entrepreneur') {
+        const entrepreneur = await storage.getEntrepreneurByEmail(confirmationToken.email);
+        if (entrepreneur) {
+          await storage.updateEntrepreneur(entrepreneur.id, { emailConfirmado: true });
+        }
+      } else if (confirmationToken.userType === 'investor') {
+        const investor = await storage.getInvestorByEmail(confirmationToken.email);
+        if (investor) {
+          await storage.updateInvestor(investor.id, { emailConfirmado: true });
+        }
+      }
+
+      // Delete the confirmation token
+      await storage.deleteEmailConfirmationToken(confirmationToken.id);
+
+      res.json({ message: 'Email confirmado com sucesso! Você já pode fazer login na plataforma.' });
+    } catch (error: any) {
+      console.error('Email confirmation error:', error);
+      res.status(500).json({ message: error.message || 'Erro ao confirmar email' });
+    }
+  });
+
+  app.post('/api/email-confirmation/request', async (req, res) => {
+    try {
+      const { email, userType } = req.body;
+      
+      if (!email || !userType) {
+        return res.status(400).json({ message: 'Email e tipo de usuário são obrigatórios' });
+      }
+
+      // Verify user exists and hasn't confirmed email yet
+      let user = null;
+      if (userType === 'entrepreneur') {
+        user = await storage.getEntrepreneurByEmail(email);
+      } else if (userType === 'investor') {
+        user = await storage.getInvestorByEmail(email);
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+
+      if (user.emailConfirmado) {
+        return res.status(400).json({ message: 'Email já foi confirmado' });
+      }
+
+      // Delete any existing confirmation tokens for this email
+      await storage.deleteEmailConfirmationTokensByEmail(email);
+
+      // Generate new confirmation token
+      const confirmationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      await storage.createEmailConfirmationToken({
+        email,
+        token: confirmationToken,
+        userType,
+        expiresAt
+      });
+
+      // Send confirmation email
+      await emailService.sendEmailConfirmation(email, confirmationToken, userType);
+
+      res.json({ message: 'Email de confirmação enviado com sucesso' });
+    } catch (error: any) {
+      console.error('Email confirmation request error:', error);
+      res.status(500).json({ message: error.message || 'Erro ao solicitar confirmação de email' });
     }
   });
 

@@ -18,6 +18,7 @@ import {
   networkComments,
   networkLikes,
   passwordResetTokens,
+  emailConfirmationTokens,
   type User, 
   type InsertUser,
   type Entrepreneur,
@@ -46,7 +47,9 @@ import {
   type Valuation,
   type InsertValuation,
   type PasswordResetToken,
-  type InsertPasswordResetToken
+  type InsertPasswordResetToken,
+  type EmailConfirmationToken,
+  type InsertEmailConfirmationToken
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, like, ilike, sql, or, lt, ne, count, asc, isNull, isNotNull, gte, lte } from "drizzle-orm";
@@ -64,6 +67,7 @@ export interface IStorage {
   getEntrepreneurByEmail(email: string): Promise<Entrepreneur | undefined>;
   getEntrepreneurByCpf(cpf: string): Promise<Entrepreneur | undefined>;
   createEntrepreneur(entrepreneur: InsertEntrepreneur): Promise<Entrepreneur>;
+  updateEntrepreneur(id: number, updateData: Partial<Entrepreneur>): Promise<Entrepreneur | undefined>;
   updateEntrepreneurApproval(id: number, field: 'cadastroAprovado' | 'emailConfirmado' | 'documentosVerificados', approved: boolean, adminId: number): Promise<Entrepreneur | undefined>;
 
   // Investor methods
@@ -179,6 +183,14 @@ export interface IStorage {
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   usePasswordResetToken(token: string): Promise<void>;
   updateUserPassword(email: string, userType: string, hashedPassword: string): Promise<void>;
+
+  // Email confirmation methods
+  createEmailConfirmationToken(tokenData: InsertEmailConfirmationToken): Promise<EmailConfirmationToken>;
+  getEmailConfirmationToken(token: string): Promise<EmailConfirmationToken | undefined>;
+  useEmailConfirmationToken(token: string): Promise<void>;
+  deleteEmailConfirmationToken(id: number): Promise<void>;
+  deleteEmailConfirmationTokensByEmail(email: string): Promise<void>;
+  confirmUserEmail(email: string, userType: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -246,6 +258,15 @@ export class DatabaseStorage implements IStorage {
 
   async createEntrepreneur(insertEntrepreneur: InsertEntrepreneur): Promise<Entrepreneur> {
     const [entrepreneur] = await db.insert(entrepreneurs).values(insertEntrepreneur).returning();
+    return entrepreneur;
+  }
+
+  async updateEntrepreneur(id: number, updateData: Partial<Entrepreneur>): Promise<Entrepreneur | undefined> {
+    const [entrepreneur] = await db
+      .update(entrepreneurs)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(entrepreneurs.id, id))
+      .returning();
     return entrepreneur;
   }
 
@@ -1578,13 +1599,74 @@ export class DatabaseStorage implements IStorage {
     } else if (userType === 'admin') {
       await db
         .update(adminUsers)
-        .set({ password: hashedPassword })
+        .set({ senha: hashedPassword })
         .where(eq(adminUsers.email, email));
     } else {
       // Legacy users table
       await db
         .update(users)
         .set({ senha: hashedPassword })
+        .where(eq(users.email, email));
+    }
+  }
+
+  // Email confirmation methods
+  async createEmailConfirmationToken(tokenData: InsertEmailConfirmationToken): Promise<EmailConfirmationToken> {
+    const [token] = await db
+      .insert(emailConfirmationTokens)
+      .values(tokenData)
+      .returning();
+    return token;
+  }
+
+  async getEmailConfirmationToken(token: string): Promise<EmailConfirmationToken | undefined> {
+    const [confirmationToken] = await db
+      .select()
+      .from(emailConfirmationTokens)
+      .where(and(
+        eq(emailConfirmationTokens.token, token),
+        isNull(emailConfirmationTokens.usedAt),
+        gte(emailConfirmationTokens.expiresAt, new Date())
+      ))
+      .limit(1);
+    return confirmationToken;
+  }
+
+  async useEmailConfirmationToken(token: string): Promise<void> {
+    await db
+      .update(emailConfirmationTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(emailConfirmationTokens.token, token));
+  }
+
+  async deleteEmailConfirmationToken(id: number): Promise<void> {
+    await db
+      .delete(emailConfirmationTokens)
+      .where(eq(emailConfirmationTokens.id, id));
+  }
+
+  async deleteEmailConfirmationTokensByEmail(email: string): Promise<void> {
+    await db
+      .delete(emailConfirmationTokens)
+      .where(eq(emailConfirmationTokens.email, email));
+  }
+
+  async confirmUserEmail(email: string, userType: string): Promise<void> {
+    if (userType === 'entrepreneur') {
+      await db
+        .update(entrepreneurs)
+        .set({ emailConfirmado: true })
+        .where(eq(entrepreneurs.email, email));
+    } else if (userType === 'investor') {
+      await db
+        .update(investors)
+        .set({ emailConfirmado: true })
+        .where(eq(investors.email, email));
+    } else {
+      // Legacy users table
+      await db
+        .update(users)
+        .set({ emailConfirmado: true })
         .where(eq(users.email, email));
     }
   }

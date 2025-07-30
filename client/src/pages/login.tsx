@@ -11,7 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
 import { InvestmeLogo } from "@/components/ui/logo";
-import { TrendingUp, Building2 } from "lucide-react";
+import { TrendingUp, Building2, Mail } from "lucide-react";
 
 export default function Login() {
   const [location, setLocation] = useLocation();
@@ -36,9 +36,19 @@ export default function Login() {
     return '/api/auth/login';
   };
 
+  const [emailConfirmationError, setEmailConfirmationError] = useState<{
+    message: string;
+    email: string;
+    userType: string;
+  } | null>(null);
+
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const response = await apiRequest("POST", getLoginEndpoint(), data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -58,9 +68,45 @@ export default function Login() {
       }
     },
     onError: (error: any) => {
+      if (error.requiresEmailConfirmation) {
+        setEmailConfirmationError({
+          message: error.message,
+          email: error.email,
+          userType: getUserType()
+        });
+      } else {
+        toast({
+          title: "Erro no login",
+          description: error.message || "Credenciais inválidas",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
+  const resendEmailMutation = useMutation({
+    mutationFn: async ({ email, userType }: { email: string; userType: string }) => {
+      const response = await apiRequest("POST", "/api/email-confirmation/request", {
+        email,
+        userType
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+      }
+      return response.json();
+    },
+    onSuccess: () => {
       toast({
-        title: "Erro no login",
-        description: error.message || "Credenciais inválidas",
+        title: "Email reenviado!",
+        description: "Verifique sua caixa de entrada e confirme seu email.",
+      });
+      setEmailConfirmationError(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao reenviar email",
+        description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
@@ -143,7 +189,42 @@ export default function Login() {
                 />
               </div>
 
-              {loginMutation.error && (
+              {emailConfirmationError && (
+                <Alert className="bg-amber-100/90 border-amber-300/50 text-amber-800">
+                  <Mail className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-3">
+                      <p className="font-medium">{emailConfirmationError.message}</p>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="text-amber-700 border-amber-300 hover:bg-amber-200"
+                          onClick={() => resendEmailMutation.mutate({
+                            email: emailConfirmationError.email,
+                            userType: emailConfirmationError.userType
+                          })}
+                          disabled={resendEmailMutation.isPending}
+                        >
+                          {resendEmailMutation.isPending ? "Enviando..." : "Reenviar Email"}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="text-amber-700 hover:bg-amber-200"
+                          onClick={() => setEmailConfirmationError(null)}
+                        >
+                          Fechar
+                        </Button>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {loginMutation.error && !emailConfirmationError && (
                 <Alert variant="destructive" className="bg-red-100/90 border-red-300/50 text-red-800">
                   <AlertDescription>
                     {(loginMutation.error as any)?.message || "Erro no login. Verifique suas credenciais."}

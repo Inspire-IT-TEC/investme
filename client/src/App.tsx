@@ -42,6 +42,7 @@ import CreditRequests from "@/pages/credit-requests";
 import Network from "@/pages/network";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
+import { ConfirmEmailPage } from "@/pages/confirm-email";
 
 function Router() {
   return (
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/forgot-password/investor" component={ForgotPassword} />
       <Route path="/forgot-password/admin" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/confirm-email" component={ConfirmEmailPage} />
       <Route path="/register" component={Register} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/investor-dashboard" component={InvestorDashboard} />

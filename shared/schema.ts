@@ -203,6 +203,17 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Email confirmation tokens table
+export const emailConfirmationTokens = pgTable("email_confirmation_tokens", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  userType: text("user_type").notNull(), // 'entrepreneur' or 'investor'
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Messages/Chat table for communication between backoffice and companies
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -449,6 +460,12 @@ export const insertValuationSchema = createInsertSchema(valuations).omit({
   updatedAt: true,
 });
 
+export const insertEmailConfirmationTokenSchema = createInsertSchema(emailConfirmationTokens).omit({
+  id: true,
+  createdAt: true,
+  usedAt: true,
+});
+
 // DCF Schema for validation
 export const dcfDataSchema = z.object({
   projectionYears: z.number().min(3).max(15).default(5),
@@ -524,6 +541,9 @@ export type Message = typeof messages.$inferSelect;
 
 export type InsertValuation = z.infer<typeof insertValuationSchema>;
 export type Valuation = typeof valuations.$inferSelect;
+
+export type InsertEmailConfirmationToken = z.infer<typeof insertEmailConfirmationTokenSchema>;
+export type EmailConfirmationToken = typeof emailConfirmationTokens.$inferSelect;
 
 export type DCFData = z.infer<typeof dcfDataSchema>;
 export type MultiplesData = z.infer<typeof multiplesDataSchema>;

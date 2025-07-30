@@ -245,6 +245,140 @@ export class EmailService {
       text,
     });
   }
+
+  async sendEmailConfirmation(email: string, confirmationToken: string, userType: 'entrepreneur' | 'investor'): Promise<void> {
+    const userTypeLabel = userType === 'entrepreneur' ? 'Empreendedor' : 'Investidor';
+    
+    // Build confirmation URL based on environment
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://your-domain.com' 
+      : 'http://localhost:5000';
+    
+    const confirmationUrl = `${baseUrl}/confirm-email?token=${confirmationToken}&type=${userType}`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Confirmar Email - InvestMe</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+          }
+          .content {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+          }
+          .button {
+            display: inline-block;
+            background: #1e40af;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #6b7280;
+          }
+          .warning {
+            background: #fef3c7;
+            border: 1px solid #d97706;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>🎉 Bem-vindo à InvestMe!</h1>
+          <p>Portal ${userTypeLabel}</p>
+        </div>
+        <div class="content">
+          <h2>Confirme seu endereço de email</h2>
+          <p>Olá!</p>
+          <p>Obrigado por se cadastrar na InvestMe! Para ativar sua conta no Portal ${userTypeLabel}, você precisa confirmar seu endereço de email.</p>
+          
+          <div style="text-align: center;">
+            <a href="${confirmationUrl}" class="button">✓ Confirmar Email</a>
+          </div>
+          
+          <p>Ou copie e cole este link no seu navegador:</p>
+          <p style="background: #e5e7eb; padding: 10px; border-radius: 4px; word-break: break-all; font-family: monospace;">
+            ${confirmationUrl}
+          </p>
+          
+          <div class="warning">
+            <strong>⚠️ Importante:</strong>
+            <ul>
+              <li>Este link é válido por <strong>24 horas</strong></li>
+              <li>Seu login só será liberado após a confirmação</li>
+              <li>Se você não se cadastrou, ignore este email</li>
+            </ul>
+          </div>
+          
+          <p>Após confirmar seu email, você poderá fazer login e acessar todos os recursos da plataforma.</p>
+          
+          <p>Se você tiver alguma dúvida, entre em contato conosco em suporte@investme.com.br</p>
+          
+          <p>Atenciosamente,<br>
+          <strong>Equipe InvestMe</strong></p>
+        </div>
+        <div class="footer">
+          <p>© 2025 InvestMe - Plataforma de Crédito Inteligente</p>
+          <p>Este é um email automático, não responda a esta mensagem.</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const text = `
+      InvestMe - Confirmar Email
+
+      Bem-vindo à InvestMe!
+
+      Obrigado por se cadastrar na InvestMe! Para ativar sua conta no Portal ${userTypeLabel}, você precisa confirmar seu endereço de email.
+
+      Para confirmar, acesse o seguinte link:
+      ${confirmationUrl}
+
+      Importante:
+      - Este link é válido por 24 horas
+      - Seu login só será liberado após a confirmação
+      - Se você não se cadastrou, ignore este email
+
+      Após confirmar seu email, você poderá fazer login e acessar todos os recursos da plataforma.
+
+      Atenciosamente,
+      Equipe InvestMe
+    `;
+
+    await this.sendEmail({
+      to: email,
+      subject: `InvestMe - Confirme seu email (Portal ${userTypeLabel})`,
+      html,
+      text,
+    });
+  }
 }
 
 export const emailService = new EmailService();
