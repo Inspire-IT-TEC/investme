@@ -1272,7 +1272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify ownership
-      if (company.userId !== req.user.id) {
+      if (company.entrepreneurId !== req.user.id) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
@@ -1288,7 +1288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const companyData = insertCompanySchema.parse({
         ...req.body,
-        userId: req.user.id
+        entrepreneurId: req.user.id
       });
 
       console.log('Parsed company data:', JSON.stringify(companyData, null, 2));
@@ -1336,7 +1336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify ownership
-      if (company.userId !== req.user.id) {
+      if (company.entrepreneurId !== req.user.id) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
@@ -1357,7 +1357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify ownership
-      if (company.userId !== req.user.id) {
+      if (company.entrepreneurId !== req.user.id) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
@@ -1379,7 +1379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify ownership
-      if (company.userId !== req.user.id) {
+      if (company.entrepreneurId !== req.user.id) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
@@ -1401,7 +1401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify ownership
-      if (company.userId !== req.user.id) {
+      if (company.entrepreneurId !== req.user.id) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
@@ -1456,7 +1456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify company ownership
       const company = await storage.getCompany(creditRequestData.companyId);
-      if (!company || company.userId !== req.user.id) {
+      if (!company || company.entrepreneurId !== req.user.id) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
