@@ -32,11 +32,11 @@ export default function BackofficeEntrepreneurs() {
 
   // Fetch entrepreneurs
   const { data: entrepreneurs, isLoading } = useQuery({
-    queryKey: ["/api/admin/users", "entrepreneur", statusFilter],
+    queryKey: ["/api/admin/entrepreneurs", statusFilter],
     queryFn: async () => {
       const url = statusFilter === "all" 
-        ? "/api/admin/users?tipo=entrepreneur" 
-        : `/api/admin/users?tipo=entrepreneur&status=${statusFilter}`;
+        ? "/api/admin/entrepreneurs" 
+        : `/api/admin/entrepreneurs?status=${statusFilter}`;
       const response = await apiRequest("GET", url);
       return response.json();
     },
@@ -45,11 +45,11 @@ export default function BackofficeEntrepreneurs() {
   // Approve entrepreneur mutation
   const approveEntrepreneurMutation = useMutation({
     mutationFn: async (entrepreneurId: number) => {
-      const response = await apiRequest("POST", `/api/admin/users/${entrepreneurId}/approve`);
+      const response = await apiRequest("POST", `/api/admin/entrepreneurs/${entrepreneurId}/approve`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/entrepreneurs"] });
       toast({
         title: "Empreendedor aprovado",
         description: "O empreendedor foi aprovado com sucesso.",
@@ -67,11 +67,11 @@ export default function BackofficeEntrepreneurs() {
   // Reject entrepreneur mutation
   const rejectEntrepreneurMutation = useMutation({
     mutationFn: async ({ entrepreneurId, reason }: { entrepreneurId: number; reason: string }) => {
-      const response = await apiRequest("POST", `/api/admin/users/${entrepreneurId}/reject`, { reason });
+      const response = await apiRequest("POST", `/api/admin/entrepreneurs/${entrepreneurId}/reject`, { reason });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/entrepreneurs"] });
       toast({
         title: "Empreendedor rejeitado",
         description: "O empreendedor foi rejeitado.",
@@ -93,7 +93,7 @@ export default function BackofficeEntrepreneurs() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/entrepreneurs"] });
       toast({
         title: "Status atualizado",
         description: "Item do perfil atualizado com sucesso.",
