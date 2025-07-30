@@ -212,7 +212,7 @@ export default function Dashboard() {
                     <ArrowUpRight className="w-4 h-4 ml-auto" />
                   </Button>
                 </Link>
-                <Link href="/credit-request">
+                <Link href="/nova-solicitacao">
                   <Button className="w-full justify-start" variant="outline">
                     <CreditCard className="w-4 h-4 mr-2" />
                     Solicitar Crédito
