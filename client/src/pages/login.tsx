@@ -41,6 +41,7 @@ export default function Login() {
     email: string;
     userType: string;
   } | null>(null);
+  const [hasEmailConfirmationError, setHasEmailConfirmationError] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -74,7 +75,9 @@ export default function Login() {
           email: error.email,
           userType: getUserType()
         });
+        setHasEmailConfirmationError(true);
       } else {
+        setHasEmailConfirmationError(false);
         toast({
           title: "Erro no login",
           description: error.message || "Credenciais inválidas",
@@ -102,6 +105,7 @@ export default function Login() {
         description: "Verifique sua caixa de entrada e confirme seu email.",
       });
       setEmailConfirmationError(null);
+      setHasEmailConfirmationError(false);
     },
     onError: (error: any) => {
       toast({
@@ -214,7 +218,10 @@ export default function Login() {
                           size="sm"
                           variant="ghost"
                           className="text-amber-700 hover:bg-amber-200"
-                          onClick={() => setEmailConfirmationError(null)}
+                          onClick={() => {
+                            setEmailConfirmationError(null);
+                            setHasEmailConfirmationError(false);
+                          }}
                         >
                           Fechar
                         </Button>
@@ -224,7 +231,7 @@ export default function Login() {
                 </Alert>
               )}
 
-              {loginMutation.error && !emailConfirmationError && (
+              {loginMutation.error && !hasEmailConfirmationError && (
                 <Alert variant="destructive" className="bg-red-100/90 border-red-300/50 text-red-800">
                   <AlertDescription>
                     {(loginMutation.error as any)?.message || "Erro no login. Verifique suas credenciais."}
