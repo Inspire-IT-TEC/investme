@@ -999,15 +999,19 @@ export class DatabaseStorage implements IStorage {
       .from(investors)
       .orderBy(desc(investors.createdAt));
 
-    // Combine results
-    const allInvestors = [...userInvestors, ...investorTableResults];
+    // Combine results and remove duplicates based on email
+    // Priority: investors table over users table (more complete data)
+    const allInvestors = [...investorTableResults, ...userInvestors];
+    const uniqueInvestors = allInvestors.filter((investor, index, array) => 
+      array.findIndex(i => i.email === investor.email) === index
+    );
 
     // Filter by status if provided
     if (status && status !== 'all') {
-      return allInvestors.filter(investor => investor.status === status);
+      return uniqueInvestors.filter(investor => investor.status === status);
     }
 
-    return allInvestors;
+    return uniqueInvestors;
   }
 
   async approveInvestor(investorId: number): Promise<Investor | undefined> {
