@@ -32,14 +32,19 @@ export default function BackofficeInvestors() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   // Fetch investors
-  const { data: investors, isLoading } = useQuery({
-    queryKey: ["/api/admin/investors", statusFilter],
+  const { data: allInvestors, isLoading } = useQuery({
+    queryKey: ["/api/admin/investors"],
     queryFn: async () => {
-      const url = statusFilter === "all" ? "/api/admin/investors" : `/api/admin/investors?status=${statusFilter}`;
-      const response = await apiRequest("GET", url);
+      const response = await apiRequest("GET", "/api/admin/investors");
       return response.json();
     },
   });
+
+  // Filter investors based on status filter
+  const investors = allInvestors?.filter((investor: any) => {
+    if (statusFilter === "all") return true;
+    return investor.status === statusFilter;
+  }) || [];
 
   // Approve investor mutation
   const approveInvestorMutation = useMutation({
@@ -411,35 +416,14 @@ export default function BackofficeInvestors() {
                                   <Eye className="w-4 h-4 mr-1" />
                                   Ver
                                 </Button>
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setSelectedInvestor(investor)}
-                                    >
-                                      <UserCheck className="w-4 h-4 mr-1" />
-                                      Analisar
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-2xl">
-                                    <DialogHeader>
-                                      <DialogTitle>Análise do Investidor</DialogTitle>
-                                      <DialogDescription>
-                                        Informações completas para aprovação
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    {selectedInvestor && (
-                                      <div className="space-y-6">
-                                        {renderInvestorDetails(selectedInvestor)}
-                                        
-                                        <div className="border-t pt-4">
-                                          {renderInvestorApprovalItems(selectedInvestor)}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </DialogContent>
-                                </Dialog>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedInvestor(investor)}
+                                >
+                                  <UserCheck className="w-4 h-4 mr-1" />
+                                  Analisar
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>
