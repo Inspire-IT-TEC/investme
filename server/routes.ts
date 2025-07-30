@@ -1091,45 +1091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Granular approval endpoint for entrepreneurs
-  app.patch('/api/admin/entrepreneurs/:id/approve-field', authenticateAdminToken, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const { field, approved } = req.body;
-      
-      // Validate field name
-      const validFields = ['cadastroAprovado', 'emailConfirmado', 'documentosVerificados'];
-      if (!validFields.includes(field)) {
-        return res.status(400).json({ message: 'Campo inválido' });
-      }
 
-      // For entrepreneurs, we update the users table since entrepreneurs are stored there
-      const user = await storage.getUser(parseInt(id));
-      if (!user || user.tipo !== 'entrepreneur') {
-        return res.status(404).json({ message: 'Empreendedor não encontrado' });
-      }
-
-      const updateData: any = {
-        [field]: approved,
-        updatedAt: new Date()
-      };
-      
-      if (approved) {
-        updateData.aprovadoPor = req.admin?.id || 1;
-        updateData.aprovadoEm = new Date();
-      }
-
-      const updatedUser = await storage.updateUser(parseInt(id), updateData);
-
-      if (!updatedUser) {
-        return res.status(404).json({ message: 'Erro ao atualizar empreendedor' });
-      }
-
-      res.json({ message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, entrepreneur: updatedUser });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
-    }
-  });
 
   // Admin Network Routes
   app.get('/api/admin/network', authenticateAdminToken, async (req, res) => {
