@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useBackofficeNavigation } from "@/hooks/use-backoffice-navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,9 @@ import { MessageCircle, Send, Building2, Clock, CheckCircle2, User, Plus } from 
 export default function BackofficeMessages() {
   const { toast } = useToast();
   const isAuthorized = useRequireAdmin();
+
+  // Recarregar dados automaticamente ao navegar para esta tela
+  useBackofficeNavigation();
 
   if (!isAuthorized) {
     return null;

@@ -4,10 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, Clock, CheckCircle, DollarSign, Users, UserCheck } from "lucide-react";
 import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
 import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
+import { useBackofficeNavigation } from "@/hooks/use-backoffice-navigation";
 
 export default function BackofficeDashboard() {
   const { logout } = useAuth();
   const isAuthorized = useRequireAdmin();
+  
+  // Recarregar dados automaticamente ao navegar para esta tela
+  useBackofficeNavigation();
 
   if (!isAuthorized) {
     return null; // Will redirect to login

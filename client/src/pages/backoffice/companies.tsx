@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useBackofficeNavigation } from "@/hooks/use-backoffice-navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,9 @@ export default function BackofficeCompanies() {
   const { toast } = useToast();
   const { logout } = useAuth();
   const isAuthorized = useRequireAdmin();
+  
+  // Recarregar dados automaticamente ao navegar para esta tela
+  useBackofficeNavigation();
 
   if (!isAuthorized) {
     return null;

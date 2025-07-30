@@ -4,6 +4,9 @@
 InvestMe is a comprehensive business platform connecting entrepreneurs with investors through three specialized portals: Entrepreneur Portal, Investor Portal, and Administrative Backoffice. The system facilitates company registration, credit requests, investment analysis, and business networking with complete mobile responsiveness.
 
 ## Recent Changes
+- **2025-01-30**: ✅ Implemented automatic data refresh system for backoffice navigation
+- **2025-01-30**: ✅ Created useBackofficeNavigation hook to invalidate caches when navigating between admin pages
+- **2025-01-30**: ✅ All backoffice pages now automatically reload data when accessed from sidebar navigation
 - **2025-01-30**: ✅ Implemented AWS S3 integration for company image uploads using doc.investme.com.br bucket
 - **2025-01-30**: ✅ Updated company image upload endpoint to store files in S3 instead of local storage
 - **2025-01-30**: ✅ Fixed entrepreneur management page endpoints and added missing address fields

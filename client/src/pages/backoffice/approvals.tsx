@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useBackofficeNavigation } from "@/hooks/use-backoffice-navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,9 @@ export default function BackofficeApprovals() {
   const { logout } = useAuth();
   const queryClient = useQueryClient();
   const isAuthorized = useRequireAdmin();
+  
+  // Recarregar dados automaticamente ao navegar para esta tela
+  useBackofficeNavigation();
 
   if (!isAuthorized) {
     return null;
