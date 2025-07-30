@@ -133,6 +133,8 @@ export interface IStorage {
 
   // Admin entrepreneur management methods  
   getEntrepreneurs(status?: string): Promise<any[]>;
+  getEntrepreneur(id: number): Promise<Entrepreneur | undefined>;
+  updateEntrepreneur(id: number, updateData: Partial<InsertEntrepreneur>): Promise<Entrepreneur | undefined>;
   approveEntrepreneur(entrepreneurId: number): Promise<Entrepreneur | undefined>;
   rejectEntrepreneur(entrepreneurId: number, reason: string): Promise<Entrepreneur | undefined>;
 
@@ -1079,6 +1081,21 @@ export class DatabaseStorage implements IStorage {
     }
 
     return entrepreneurResults;
+  }
+
+  async getEntrepreneur(id: number): Promise<Entrepreneur | undefined> {
+    const [entrepreneur] = await db.select().from(entrepreneurs).where(eq(entrepreneurs.id, id));
+    return entrepreneur || undefined;
+  }
+
+  async updateEntrepreneur(id: number, updateData: Partial<InsertEntrepreneur>): Promise<Entrepreneur | undefined> {
+    const [updatedEntrepreneur] = await db
+      .update(entrepreneurs)
+      .set(updateData)
+      .where(eq(entrepreneurs.id, id))
+      .returning();
+
+    return updatedEntrepreneur || undefined;
   }
 
   async approveEntrepreneur(entrepreneurId: number): Promise<Entrepreneur | undefined> {

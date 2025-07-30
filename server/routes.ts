@@ -2133,9 +2133,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Campo inválido' });
       }
 
-      // For entrepreneurs, we update the users table since entrepreneurs are stored there
-      const user = await storage.getUser(parseInt(id));
-      if (!user || user.tipo !== 'entrepreneur') {
+      // For entrepreneurs, we update the entrepreneurs table
+      const entrepreneur = await storage.getEntrepreneur(parseInt(id));
+      if (!entrepreneur) {
         return res.status(404).json({ message: 'Empreendedor não encontrado' });
       }
 
@@ -2149,13 +2149,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.aprovadoEm = new Date();
       }
 
-      const updatedUser = await storage.updateUser(parseInt(id), updateData);
+      const updatedEntrepreneur = await storage.updateEntrepreneur(parseInt(id), updateData);
 
-      if (!updatedUser) {
+      if (!updatedEntrepreneur) {
         return res.status(404).json({ message: 'Erro ao atualizar empreendedor' });
       }
 
-      res.json({ message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, entrepreneur: updatedUser });
+      res.json({ message: `${field} ${approved ? 'aprovado' : 'rejeitado'} com sucesso`, entrepreneur: updatedEntrepreneur });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao atualizar aprovação' });
     }
