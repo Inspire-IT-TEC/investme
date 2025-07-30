@@ -110,7 +110,10 @@ export class EmailService {
 
 
   async sendPasswordResetEmail(email: string, resetToken: string, userType: string): Promise<void> {
-    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}&type=${userType}`;
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+      : (process.env.CLIENT_URL || 'http://localhost:5000');
+    const resetUrl = `${baseUrl}/reset-password?token=${resetToken}&type=${userType}`;
     
     const userTypeLabel = {
       entrepreneur: 'Empreendedor',
@@ -249,9 +252,11 @@ export class EmailService {
     const userTypeLabel = userType === 'entrepreneur' ? 'Empreendedor' : 'Investidor';
     
     // Build confirmation URL based on environment
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://your-domain.com' 
-      : 'http://localhost:5000';
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+      : (process.env.NODE_ENV === 'production' 
+          ? 'https://your-domain.com' 
+          : 'http://localhost:5000');
     
     const confirmationUrl = `${baseUrl}/confirm-email?token=${confirmationToken}&type=${userType}`;
 

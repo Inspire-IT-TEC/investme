@@ -4,6 +4,8 @@
 InvestMe is a comprehensive business platform connecting entrepreneurs with investors through three specialized portals: Entrepreneur Portal, Investor Portal, and Administrative Backoffice. The system facilitates company registration, credit requests, investment analysis, and business networking with complete mobile responsiveness.
 
 ## Recent Changes
+- **2025-01-30**: ✅ Fixed email confirmation URLs to use correct Replit domain instead of localhost
+- **2025-01-30**: ✅ Activated real AWS SES email delivery for all email types (confirmation, password reset)
 - **2025-01-30**: ✅ Fixed error message display across all authentication pages to show user-friendly messages instead of raw JSON
 - **2025-01-30**: Enhanced error handling in backoffice login, forgot password, reset password, and registration pages
 - **2025-01-30**: ✅ All mutation error responses now properly throw parsed error data for consistent error display
