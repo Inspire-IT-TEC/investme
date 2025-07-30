@@ -580,29 +580,48 @@ function EntrepreneurDetailView({ entrepreneur }: { entrepreneur: any }) {
 
       {/* Companies */}
       <div className="border-t pt-4">
-        <Label className="font-semibold mb-2 block">Empresas Cadastradas</Label>
+        <Label className="font-semibold mb-3 block">Empresas Cadastradas</Label>
         {entrepreneurCompanies && entrepreneurCompanies.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {entrepreneurCompanies.map((company: any) => (
-              <div key={company.id} className="border rounded-lg p-4 bg-gray-50">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="font-semibold text-xs">Razão Social</Label>
-                    <p className="text-sm">{company.razaoSocial}</p>
+              <div key={company.id} className="border rounded-lg p-4 bg-white shadow-sm">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <Label className="font-medium text-xs text-gray-600 uppercase tracking-wide">Razão Social</Label>
+                    <p className="text-sm font-medium text-gray-900">{company.razaoSocial}</p>
                   </div>
-                  <div>
-                    <Label className="font-semibold text-xs">Nome Fantasia</Label>
-                    <p className="text-sm">{company.nomeFantasia}</p>
+                  <div className="space-y-1">
+                    <Label className="font-medium text-xs text-gray-600 uppercase tracking-wide">Nome Fantasia</Label>
+                    <p className="text-sm font-medium text-gray-900">{company.nomeFantasia}</p>
                   </div>
-                  <div>
-                    <Label className="font-semibold text-xs">CNPJ</Label>
-                    <p className="text-sm">{company.cnpj}</p>
+                  <div className="space-y-1">
+                    <Label className="font-medium text-xs text-gray-600 uppercase tracking-wide">CNPJ</Label>
+                    <p className="text-sm font-medium text-gray-900">{company.cnpj}</p>
                   </div>
-                  <div>
-                    <Label className="font-semibold text-xs">Status</Label>
-                    <Badge variant="outline" className="text-xs">
-                      {company.status || 'ativa'}
-                    </Badge>
+                  <div className="space-y-2">
+                    <Label className="font-medium text-xs text-gray-600 uppercase tracking-wide">Status</Label>
+                    <div className="flex items-center">
+                      {company.status === 'aprovada' && (
+                        <Badge className="bg-green-100 text-green-800 border-green-200 text-xs font-medium">
+                          Aprovada
+                        </Badge>
+                      )}
+                      {company.status === 'rejeitada' && (
+                        <Badge className="bg-red-100 text-red-800 border-red-200 text-xs font-medium">
+                          Rejeitada
+                        </Badge>
+                      )}
+                      {company.status === 'pendente' && (
+                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs font-medium">
+                          Pendente
+                        </Badge>
+                      )}
+                      {(!company.status || company.status === 'ativa') && (
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs font-medium">
+                          Ativa
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
