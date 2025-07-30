@@ -31,7 +31,7 @@ export class EmailService {
     // Check if we should use real AWS SES or simulation
     // For testing: temporarily use real AWS when emailing to test addresses
     const isTestEmail = to.includes('test@') || to === 'avillas@gmail.com';
-    const useRealAWS = process.env.AWS_FORCE_REAL === 'true'; // Set AWS_FORCE_REAL=true to use real AWS SES
+    const useRealAWS = process.env.AWS_FORCE_REAL === 'true' || process.env.NODE_ENV === 'production'; // Use real AWS SES in production or when forced
     
     if (!useRealAWS) {
       // Use simulation mode by default
