@@ -5,6 +5,8 @@ import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import multer from "multer";
+import multerS3 from "multer-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import path from "path";
 import fs from "fs";
 import { 
@@ -31,7 +33,44 @@ import crypto from "crypto";
 const JWT_SECRET = process.env.JWT_SECRET || "investme-secret-key";
 const SALT_ROUNDS = 10;
 
-// Multer configuration for file uploads
+// AWS S3 Configuration
+const s3Client = new S3Client({
+  region: "us-east-1", // Adjust region as needed
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
+  }
+});
+
+const BUCKET_NAME = "doc.investme.com.br";
+const BUCKET_URL = "https://doc.investme.com.br";
+
+// Multer configuration for S3 uploads
+const uploadS3 = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: BUCKET_NAME,
+    key: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const fileName = `company-images/${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`;
+      cb(null, fileName);
+    },
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não permitido. Use apenas JPG ou PNG para imagens.'));
+    }
+  }
+});
+
+// Multer configuration for local file uploads (for documents)
 const storage_multer = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(process.cwd(), 'uploads');
@@ -1739,23 +1778,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Company image upload endpoint
-  app.post('/api/upload/company-image', authenticateToken, upload.single('image'), async (req: any, res) => {
+  // Company image upload endpoint - uploads to AWS S3
+  app.post('/api/upload/company-image', authenticateToken, uploadS3.single('image'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: 'Nenhuma imagem foi enviada' });
       }
 
-      // Check file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-      if (!allowedTypes.includes(req.file.mimetype)) {
-        return res.status(400).json({ message: 'Tipo de arquivo não permitido. Use apenas JPG ou PNG.' });
-      }
-
-      // Return the file URL
-      const imageUrl = `/uploads/${req.file.filename}`;
+      // Get the S3 URL from multer-s3
+      const imageUrl = (req.file as any).location;
+      console.log('Image uploaded to S3:', imageUrl);
+      
       res.json({ url: imageUrl });
     } catch (error: any) {
+      console.error('Error uploading image to S3:', error);
       res.status(500).json({ message: error.message || 'Erro ao fazer upload da imagem' });
     }
   });
