@@ -45,7 +45,7 @@ const s3Client = new S3Client({
 const BUCKET_NAME = "doc.investme.com.br";
 const BUCKET_URL = "https://doc.investme.com.br";
 
-// Multer configuration for S3 uploads
+// Multer configuration for S3 uploads (company images)
 const uploadS3 = multer({
   storage: multerS3({
     s3: s3Client,
@@ -66,6 +66,31 @@ const uploadS3 = multer({
       cb(null, true);
     } else {
       cb(new Error('Tipo de arquivo não permitido. Use apenas JPG ou PNG para imagens.'));
+    }
+  }
+});
+
+// Multer configuration for S3 uploads (credit request documents)
+const uploadS3Documents = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: BUCKET_NAME,
+    key: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const fileName = `credit-documents/${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`;
+      cb(null, fileName);
+    },
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não permitido. Use apenas PDF, DOC, DOCX, JPG ou PNG.'));
     }
   }
 });
@@ -1450,7 +1475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/credit-requests', authenticateToken, upload.array('documentos', 10), async (req: any, res) => {
+  app.post('/api/credit-requests', authenticateToken, uploadS3Documents.array('documentos', 10), async (req: any, res) => {
     try {
       const creditRequestData = insertCreditRequestSchema.parse(req.body);
       
@@ -1465,13 +1490,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Empresa deve estar aprovada para solicitar crédito' });
       }
 
-      // Handle uploaded files
-      const documentos = req.files ? req.files.map((file: any) => `/uploads/${file.filename}`) : [];
+      // Handle uploaded files from S3
+      const documentos = req.files ? req.files.map((file: any) => (file as any).location) : [];
       creditRequestData.documentos = documentos;
+      
+      console.log('Documents uploaded to S3:', documentos);
 
       const creditRequest = await storage.createCreditRequest(creditRequestData);
       res.status(201).json(creditRequest);
     } catch (error: any) {
+      console.error('Error creating credit request:', error);
       res.status(400).json({ message: error.message || 'Erro ao criar solicitação de crédito' });
     }
   });
