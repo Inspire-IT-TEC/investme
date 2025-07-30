@@ -25,73 +25,70 @@ export class EmailService {
   private fromEmail = process.env.FROM_EMAIL || "suporte@investme.com.br";
 
   async sendEmail({ to, subject, html, text }: EmailOptions): Promise<void> {
-    console.log(`🚀 REAL EMAIL MODE - Attempting to send email to: ${to}`);
+    console.log(`Attempting to send email to: ${to}`);
     console.log(`Using FROM_EMAIL: ${this.fromEmail}`);
-    console.log(`AWS Region: ${process.env.AWS_REGION || "us-east-1"}`);
-    console.log(`AWS_ACCESS_KEY_ID: ${process.env.AWS_ACCESS_KEY_ID ? `${process.env.AWS_ACCESS_KEY_ID.substring(0, 8)}***` : 'NOT SET'}`);
-    console.log(`AWS_SECRET_ACCESS_KEY: ${process.env.AWS_SECRET_ACCESS_KEY ? `${process.env.AWS_SECRET_ACCESS_KEY.substring(0, 8)}***` : 'NOT SET'}`);
 
+    // Check if we should use real AWS SES or simulation
+    // For testing: temporarily use real AWS when emailing to test addresses
+    const isTestEmail = to.includes('test@') || to === 'avillas@gmail.com';
+    const useRealAWS = process.env.AWS_FORCE_REAL === 'true' || (isTestEmail && false); // Set to true to test
+    
+    if (!useRealAWS) {
+      // Use simulation mode by default
+      console.log('=== EMAIL SIMULATION (Development Mode) ===');
+      console.log(`To: ${to}`);
+      console.log(`From: ${this.fromEmail}`);
+      console.log(`Subject: ${subject}`);
+      console.log(`HTML Content: ${html.substring(0, 300)}...`);
+      console.log(`Reset Link: ${this.extractResetLink(html)}`);
+      console.log('=== END EMAIL SIMULATION ===');
+      console.log('💡 To use real AWS SES, set AWS_FORCE_REAL=true');
+      return;
+    }
+
+    // Real AWS SES mode
+    console.log(`🚀 REAL AWS SES MODE - Sending to: ${to}`);
+    
     // Validate AWS credentials
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      const error = 'AWS credentials not configured. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.';
-      console.error('❌', error);
-      throw new Error(error);
+      throw new Error('AWS credentials not configured. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.');
     }
 
-    // Test multiple regions
-    const regions = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'];
-    
-    for (const region of regions) {
-      console.log(`🌎 Trying region: ${region}`);
-      
-      const sesClient = createSESClient(region);
-      const command = new SendEmailCommand({
-        Source: this.fromEmail,
-        Destination: {
-          ToAddresses: [to],
+    // Try primary region first
+    const sesClient = createSESClient(process.env.AWS_REGION || 'us-east-1');
+    const command = new SendEmailCommand({
+      Source: this.fromEmail,
+      Destination: {
+        ToAddresses: [to],
+      },
+      Message: {
+        Subject: {
+          Data: subject,
+          Charset: "UTF-8",
         },
-        Message: {
-          Subject: {
-            Data: subject,
+        Body: {
+          Html: {
+            Data: html,
             Charset: "UTF-8",
           },
-          Body: {
-            Html: {
-              Data: html,
+          ...(text && {
+            Text: {
+              Data: text,
               Charset: "UTF-8",
             },
-            ...(text && {
-              Text: {
-                Data: text,
-                Charset: "UTF-8",
-              },
-            }),
-          },
+          }),
         },
-      });
+      },
+    });
 
-      try {
-        const result = await sesClient.send(command);
-        console.log(`✅ Email sent successfully via AWS SES (${region}) to ${to}`);
-        console.log(`📧 MessageId: ${result.MessageId}`);
-        return;
-      } catch (error: any) {
-        console.log(`❌ Region ${region} failed: ${error.Code} - ${error.message}`);
-        
-        // If it's not a credential issue, try next region
-        if (error.Code !== 'SignatureDoesNotMatch' && error.Code !== 'InvalidParameterValue') {
-          continue;
-        }
-        
-        // For signature errors, provide specific guidance
-        if (error.Code === 'MessageRejected') {
-          throw new Error(`Email address "${this.fromEmail}" not verified in AWS SES region ${region}. Please verify this address in AWS SES console.`);
-        }
-      }
+    try {
+      const result = await sesClient.send(command);
+      console.log(`✅ Email sent successfully via AWS SES to ${to}`);
+      console.log(`📧 MessageId: ${result.MessageId}`);
+    } catch (error: any) {
+      console.error(`❌ AWS SES Error: ${error.message}`);
+      throw new Error(`Failed to send email via AWS SES: ${error.message}`);
     }
-    
-    // If all regions failed
-    throw new Error('AWS SES failed in all regions. Please check: 1) Credentials are valid, 2) Email address is verified, 3) Account is not in sandbox mode.');
   }
 
   private simulateEmail(to: string, subject: string, html: string): void {
