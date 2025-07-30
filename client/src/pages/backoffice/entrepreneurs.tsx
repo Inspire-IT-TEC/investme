@@ -495,11 +495,16 @@ export default function BackofficeEntrepreneurs() {
 
 // Component for displaying entrepreneur details with companies
 function EntrepreneurDetailView({ entrepreneur }: { entrepreneur: any }) {
+  console.log('Entrepreneur data received:', entrepreneur);
+  
   const { data: entrepreneurCompanies } = useQuery({
     queryKey: ["/api/companies", entrepreneur.id],
     queryFn: async () => {
+      console.log('Fetching companies for entrepreneur ID:', entrepreneur.id);
       const response = await apiRequest("GET", `/api/companies?entrepreneurId=${entrepreneur.id}`);
-      return response.json();
+      const data = await response.json();
+      console.log('Companies response:', data);
+      return data;
     }
   });
 

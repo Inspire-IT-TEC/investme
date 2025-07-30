@@ -1192,25 +1192,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/companies', authenticateToken, async (req: any, res) => {
     try {
       const { userId, entrepreneurId, status, search } = req.query;
+      console.log('Companies request params:', { userId, entrepreneurId, status, search });
       
       // If entrepreneurId is provided, use it directly
       if (entrepreneurId) {
+        console.log('Fetching companies for entrepreneurId:', entrepreneurId);
         const companies = await storage.getCompanies(parseInt(entrepreneurId as string), status as string, search as string);
+        console.log('Found companies for entrepreneurId:', companies.length);
         res.json(companies);
         return;
       }
       
       // If userId is provided, use it
       if (userId) {
+        console.log('Fetching companies for userId:', userId);
         const companies = await storage.getUserCompanies(parseInt(userId as string));
+        console.log('Found companies for userId:', companies.length);
         res.json(companies);
         return;
       }
       
       // Default: use authenticated user's companies
+      console.log('Fetching companies for authenticated user:', req.user.id);
       const companies = await storage.getUserCompanies(req.user.id);
+      console.log('Found companies for authenticated user:', companies.length);
       res.json(companies);
     } catch (error: any) {
+      console.error('Error fetching companies:', error);
       res.status(500).json({ message: error.message || 'Erro ao buscar empresas' });
     }
   });
