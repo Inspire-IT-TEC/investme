@@ -382,6 +382,7 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   analisadoPor: true,
   dataAnalise: true,
   observacoesInternas: true,
+  userId: true, // Omit userId from schema since we use entrepreneurId
 }).extend({
   dataFundacao: z.string().min(1, "Data de fundação é obrigatória").transform((str) => new Date(str)),
   faturamento: z.string().min(1, "Faturamento é obrigatório").transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
