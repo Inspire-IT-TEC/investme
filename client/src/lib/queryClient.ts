@@ -7,8 +7,16 @@ async function throwIfResNotOk(res: Response) {
       if (text) {
         try {
           const errorData = JSON.parse(text);
+          // For structured errors (like email confirmation), throw the entire object
+          if (errorData.requiresEmailConfirmation || typeof errorData === 'object') {
+            throw errorData;
+          }
           throw new Error(errorData.message || res.statusText);
-        } catch {
+        } catch (error) {
+          // If it's already a structured error object, re-throw it
+          if (typeof error === 'object' && error !== null && 'message' in error) {
+            throw error;
+          }
           throw new Error(text);
         }
       } else {
@@ -16,6 +24,10 @@ async function throwIfResNotOk(res: Response) {
       }
     } catch (error) {
       if (error instanceof Error) {
+        throw error;
+      }
+      // If it's a structured error object, throw it as is
+      if (typeof error === 'object' && error !== null) {
         throw error;
       }
       throw new Error(res.statusText);
