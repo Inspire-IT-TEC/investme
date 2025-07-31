@@ -4,6 +4,9 @@
 InvestMe is a comprehensive business platform connecting entrepreneurs with investors through three specialized portals: Entrepreneur Portal, Investor Portal, and Administrative Backoffice. The system facilitates company registration, credit requests, investment analysis, and business networking with complete mobile responsiveness.
 
 ## Recent Changes
+- **2025-01-31**: ✅ Fixed admin dashboard pending approvals count by correcting query endpoints 
+- **2025-01-31**: ✅ Corrected pendingEntrepreneurs query to use /api/admin/entrepreneurs instead of /api/admin/users
+- **2025-01-31**: ✅ Dashboard now accurately shows 3 entrepreneurs + 1 investor = 4 pending approvals
 - **2025-01-31**: ✅ Fixed critical crash in pending profile changes approval system with improved error handling
 - **2025-01-31**: ✅ Corrected tab filtering to show proper data separation (pending/approved/rejected changes)
 - **2025-01-31**: ✅ Added back button to dashboard navigation in pending changes page

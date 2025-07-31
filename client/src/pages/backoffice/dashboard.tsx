@@ -34,10 +34,28 @@ export default function BackofficeDashboard() {
 
   const { data: pendingInvestors } = useQuery({
     queryKey: ["/api/admin/investors", "pendente"],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/investors?status=pendente', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch pending investors');
+      return response.json();
+    },
   });
 
   const { data: pendingEntrepreneurs } = useQuery({
-    queryKey: ["/api/admin/users", "entrepreneur", "pendente"],
+    queryKey: ["/api/admin/entrepreneurs", "pendente"],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/entrepreneurs?status=pendente', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch pending entrepreneurs');
+      return response.json();
+    },
   });
 
   const formatCurrency = (value: number) => {
