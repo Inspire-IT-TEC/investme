@@ -2149,8 +2149,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Empreendedor não encontrado' });
       }
 
-      // For now, just return success - in a real implementation, 
-      // changes would be stored as pending for backoffice approval
+      // Check if there's already a pending change request
+      const existingChange = await storage.getPendingProfileChangeByUser(req.user.id, 'entrepreneur');
+      if (existingChange) {
+        return res.status(400).json({ message: 'Já existe uma solicitação de alteração pendente' });
+      }
+
+      // Create pending profile change
+      await storage.createPendingProfileChange({
+        userId: req.user.id,
+        userType: 'entrepreneur',
+        changedFields: req.body,
+        status: 'pending'
+      });
+
       res.json({ message: 'Alterações enviadas para aprovação' });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao atualizar perfil' });
@@ -2159,9 +2171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/entrepreneur/pending-profile-changes', authenticateToken, async (req: any, res) => {
     try {
-      // For now, return null - in a real implementation, 
-      // this would check for pending profile changes
-      res.json(null);
+      const pendingChange = await storage.getPendingProfileChangeByUser(req.user.id, 'entrepreneur');
+      res.json(pendingChange);
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao buscar alterações pendentes' });
     }
@@ -2174,6 +2185,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ count: 0 });
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao buscar mensagens não lidas' });
+    }
+  });
+
+  // Admin Routes for Pending Profile Changes
+  app.get('/api/admin/pending-profile-changes', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { userType, status } = req.query;
+      const pendingChanges = await storage.getPendingProfileChanges(userType, status);
+      
+      // Enrich with user information
+      const enrichedChanges = await Promise.all(pendingChanges.map(async (change) => {
+        let user = null;
+        if (change.userType === 'entrepreneur') {
+          user = await storage.getEntrepreneur(change.userId);
+        } else if (change.userType === 'investor') {
+          user = await storage.getInvestor(change.userId);
+        }
+        
+        return {
+          ...change,
+          user: user ? {
+            id: user.id,
+            nomeCompleto: user.nomeCompleto,
+            email: user.email,
+            cpf: user.cpf
+          } : null
+        };
+      }));
+      
+      res.json(enrichedChanges);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar mudanças pendentes' });
+    }
+  });
+
+  app.post('/api/admin/pending-profile-changes/:id/review', authenticateAdminToken, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { approved, comment } = req.body;
+      
+      const reviewedChange = await storage.reviewPendingProfileChange(
+        parseInt(id),
+        approved,
+        req.admin.id,
+        comment
+      );
+      
+      if (!reviewedChange) {
+        return res.status(404).json({ message: 'Mudança pendente não encontrada' });
+      }
+      
+      res.json({ 
+        message: `Mudança ${approved ? 'aprovada' : 'rejeitada'} com sucesso`,
+        change: reviewedChange
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao revisar mudança' });
     }
   });
 

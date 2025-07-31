@@ -29,6 +29,7 @@ import BackofficeEntrepreneurs from "@/pages/backoffice/entrepreneurs";
 import BackofficeNetwork from "@/pages/backoffice/network";
 import BackofficeApprovals from "@/pages/backoffice/approvals";
 import BackofficeNotifications from "@/pages/backoffice/notifications";
+import BackofficePendingChanges from "@/pages/backoffice-pending-changes";
 import CompanyEdit from "@/pages/company-edit";
 import CompanyDetail from "@/pages/company-detail";
 import ValuationPage from "@/pages/valuation";
@@ -96,6 +97,7 @@ function Router() {
       <Route path="/backoffice/audit" component={AuditPage} />
       <Route path="/backoffice/messages" component={BackofficeMessages} />
       <Route path="/backoffice/notifications" component={BackofficeNotifications} />
+      <Route path="/backoffice/pending-changes" component={BackofficePendingChanges} />
       <Route component={NotFound} />
     </Switch>
   );

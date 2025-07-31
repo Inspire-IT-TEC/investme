@@ -214,6 +214,19 @@ export const emailConfirmationTokens = pgTable("email_confirmation_tokens", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Pending profile changes for approval
+export const pendingProfileChanges = pgTable("pending_profile_changes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  userType: text("user_type").notNull(), // 'entrepreneur' or 'investor'
+  changedFields: jsonb("changed_fields").notNull(), // JSON object with field changes
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: integer("reviewed_by").references(() => adminUsers.id),
+  reviewComment: text("review_comment"),
+});
+
 // Messages/Chat table for communication between backoffice and companies
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -776,3 +789,13 @@ export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSc
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
 export type PasswordResetConfirm = z.infer<typeof passwordResetConfirmSchema>;
+
+// Pending profile changes types
+export const insertPendingProfileChangeSchema = createInsertSchema(pendingProfileChanges).omit({
+  id: true,
+  requestedAt: true,
+  reviewedAt: true,
+});
+
+export type InsertPendingProfileChange = z.infer<typeof insertPendingProfileChangeSchema>;
+export type PendingProfileChange = typeof pendingProfileChanges.$inferSelect;

@@ -14,7 +14,8 @@ import {
   X,
   Home,
   Briefcase,
-  UserCog
+  UserCog,
+  Clock
 } from "lucide-react";
 
 interface BackofficeSidebarProps {
@@ -61,6 +62,12 @@ export default function BackofficeSidebar({ onLogout }: BackofficeSidebarProps) 
       icon: UserCheck,
       href: "/backoffice/approvals",
       active: location === "/backoffice/approvals"
+    },
+    {
+      label: "Mudanças Pendentes",
+      icon: Clock,
+      href: "/backoffice/pending-changes",
+      active: location === "/backoffice/pending-changes"
     },
     {
       label: "Rede",

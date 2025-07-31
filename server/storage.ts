@@ -19,6 +19,7 @@ import {
   networkLikes,
   passwordResetTokens,
   emailConfirmationTokens,
+  pendingProfileChanges,
   type User, 
   type InsertUser,
   type Entrepreneur,
@@ -49,7 +50,9 @@ import {
   type PasswordResetToken,
   type InsertPasswordResetToken,
   type EmailConfirmationToken,
-  type InsertEmailConfirmationToken
+  type InsertEmailConfirmationToken,
+  type PendingProfileChange,
+  type InsertPendingProfileChange
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, like, ilike, sql, or, lt, ne, count, asc, isNull, isNotNull, gte, lte } from "drizzle-orm";
@@ -198,6 +201,13 @@ export interface IStorage {
   deleteEmailConfirmationToken(id: number): Promise<void>;
   deleteEmailConfirmationTokensByEmail(email: string): Promise<void>;
   confirmUserEmail(email: string, userType: string): Promise<void>;
+
+  // Pending profile changes methods
+  createPendingProfileChange(changeData: InsertPendingProfileChange): Promise<PendingProfileChange>;
+  getPendingProfileChanges(userType?: string, status?: string): Promise<PendingProfileChange[]>;
+  getPendingProfileChangeByUser(userId: number, userType: string): Promise<PendingProfileChange | undefined>;
+  reviewPendingProfileChange(id: number, approved: boolean, reviewedBy: number, comment?: string): Promise<PendingProfileChange | undefined>;
+  deletePendingProfileChange(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1750,6 +1760,82 @@ export class DatabaseStorage implements IStorage {
         .set({ emailConfirmado: true })
         .where(eq(users.email, email));
     }
+  }
+
+  // Pending profile changes methods
+  async createPendingProfileChange(changeData: InsertPendingProfileChange): Promise<PendingProfileChange> {
+    const [change] = await db
+      .insert(pendingProfileChanges)
+      .values(changeData)
+      .returning();
+    return change;
+  }
+
+  async getPendingProfileChanges(userType?: string, status?: string): Promise<PendingProfileChange[]> {
+    let query = db.select().from(pendingProfileChanges);
+    
+    const conditions = [];
+    if (userType) {
+      conditions.push(eq(pendingProfileChanges.userType, userType));
+    }
+    if (status) {
+      conditions.push(eq(pendingProfileChanges.status, status));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(pendingProfileChanges.requestedAt));
+  }
+
+  async getPendingProfileChangeByUser(userId: number, userType: string): Promise<PendingProfileChange | undefined> {
+    const [change] = await db
+      .select()
+      .from(pendingProfileChanges)
+      .where(and(
+        eq(pendingProfileChanges.userId, userId),
+        eq(pendingProfileChanges.userType, userType),
+        eq(pendingProfileChanges.status, 'pending')
+      ))
+      .limit(1);
+    return change;
+  }
+
+  async reviewPendingProfileChange(id: number, approved: boolean, reviewedBy: number, comment?: string): Promise<PendingProfileChange | undefined> {
+    const [change] = await db
+      .update(pendingProfileChanges)
+      .set({
+        status: approved ? 'approved' : 'rejected',
+        reviewedAt: new Date(),
+        reviewedBy,
+        reviewComment: comment
+      })
+      .where(eq(pendingProfileChanges.id, id))
+      .returning();
+    
+    // If approved, apply the changes to the actual user profile
+    if (approved && change) {
+      if (change.userType === 'entrepreneur') {
+        await db
+          .update(entrepreneurs)
+          .set(change.changedFields as any)
+          .where(eq(entrepreneurs.id, change.userId));
+      } else if (change.userType === 'investor') {
+        await db
+          .update(investors)
+          .set(change.changedFields as any)
+          .where(eq(investors.id, change.userId));
+      }
+    }
+    
+    return change;
+  }
+
+  async deletePendingProfileChange(id: number): Promise<void> {
+    await db
+      .delete(pendingProfileChanges)
+      .where(eq(pendingProfileChanges.id, id));
   }
 }
 
