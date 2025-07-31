@@ -43,10 +43,8 @@ export default function BackofficePendingChanges() {
 
   const reviewMutation = useMutation({
     mutationFn: async ({ id, approved, comment }: { id: number; approved: boolean; comment?: string }) => {
-      return await apiRequest(`/api/admin/pending-profile-changes/${id}/review`, {
-        method: 'POST',
-        body: { approved, comment },
-      });
+      const response = await apiRequest('POST', `/api/admin/pending-profile-changes/${id}/review`, { approved, comment });
+      return await response.json();
     },
     onSuccess: (data: any) => {
       toast({
