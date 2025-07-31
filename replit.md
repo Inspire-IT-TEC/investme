@@ -4,6 +4,12 @@
 InvestMe is a comprehensive business platform connecting entrepreneurs with investors through three specialized portals: Entrepreneur Portal, Investor Portal, and Administrative Backoffice. The system facilitates company registration, credit requests, investment analysis, and business networking with complete mobile responsiveness.
 
 ## Recent Changes
+- **2025-01-31**: ✅ Implemented credit request editing functionality with document management
+- **2025-01-31**: ✅ Added PUT /api/credit-requests/:id endpoint for editing solicitações
+- **2025-01-31**: ✅ Added DELETE /api/credit-requests/:id/documents endpoint for removing documents
+- **2025-01-31**: ✅ Created comprehensive edit modal with form validation and file upload/removal
+- **2025-01-31**: ✅ Editing only allowed for requests with status 'na_rede' (not yet in analysis)
+- **2025-01-31**: ✅ Full document management: view, download, remove existing, upload new files
 - **2025-01-31**: ✅ Implemented automatic data refresh system for entrepreneur portal navigation
 - **2025-01-31**: ✅ Created useEntrepreneurNavigation hook to invalidate TanStack Query caches when navigating
 - **2025-01-31**: ✅ All entrepreneur portal pages now automatically reload data when accessed from sidebar

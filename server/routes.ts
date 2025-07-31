@@ -1466,6 +1466,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Edit Credit Request Route
+  app.put('/api/credit-requests/:id', authenticateToken, uploadS3Documents.array('novosDocumentos', 10), async (req: any, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      
+      // Get current credit request
+      const currentRequest = await storage.getCreditRequest(requestId);
+      if (!currentRequest) {
+        return res.status(404).json({ message: 'Solicitação não encontrada' });
+      }
+
+      // Verify company ownership
+      const company = await storage.getCompany(currentRequest.companyId);
+      if (!company || company.entrepreneurId !== req.user.id) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      // Only allow editing if status is 'na_rede' (not yet in analysis)
+      if (currentRequest.status !== 'na_rede') {
+        return res.status(400).json({ message: 'Solicitação só pode ser editada enquanto está na rede' });
+      }
+
+      // Parse the request body
+      const { valorSolicitado, prazoMeses, finalidade, documentosExistentes } = req.body;
+      
+      // Handle new uploaded files from S3
+      const novosDocumentos = req.files ? req.files.map((file: any) => (file as any).location) : [];
+      
+      // Combine existing documents with new documents
+      const documentosExistentesList = documentosExistentes ? 
+        (Array.isArray(documentosExistentes) ? documentosExistentes : [documentosExistentes]) : [];
+      const todosDocumentos = [...documentosExistentesList, ...novosDocumentos];
+      
+      console.log('Updating credit request with documents:', todosDocumentos);
+
+      const updateData = {
+        valorSolicitado: parseFloat(valorSolicitado),
+        prazoMeses: parseInt(prazoMeses),
+        finalidade,
+        documentos: todosDocumentos
+      };
+
+      const updatedRequest = await storage.updateCreditRequest(requestId, updateData);
+      
+      if (!updatedRequest) {
+        return res.status(404).json({ message: 'Erro ao atualizar solicitação' });
+      }
+
+      res.json(updatedRequest);
+    } catch (error: any) {
+      console.error('Error updating credit request:', error);
+      res.status(400).json({ message: error.message || 'Erro ao editar solicitação de crédito' });
+    }
+  });
+
+  // Delete document from credit request
+  app.delete('/api/credit-requests/:id/documents', authenticateToken, async (req: any, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      const { documentoUrl } = req.body;
+      
+      // Get current credit request
+      const currentRequest = await storage.getCreditRequest(requestId);
+      if (!currentRequest) {
+        return res.status(404).json({ message: 'Solicitação não encontrada' });
+      }
+
+      // Verify company ownership
+      const company = await storage.getCompany(currentRequest.companyId);
+      if (!company || company.entrepreneurId !== req.user.id) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      // Only allow editing if status is 'na_rede'
+      if (currentRequest.status !== 'na_rede') {
+        return res.status(400).json({ message: 'Documentos só podem ser removidos enquanto a solicitação está na rede' });
+      }
+
+      // Remove document from array
+      const documentosAtualizados = currentRequest.documentos?.filter(doc => doc !== documentoUrl) || [];
+      
+      const updatedRequest = await storage.updateCreditRequest(requestId, {
+        documentos: documentosAtualizados
+      });
+
+      res.json(updatedRequest);
+    } catch (error: any) {
+      console.error('Error removing document:', error);
+      res.status(400).json({ message: error.message || 'Erro ao remover documento' });
+    }
+  });
+
   // Admin Routes
   app.get('/api/admin/companies', authenticateAdminToken, async (req: any, res) => {
     try {

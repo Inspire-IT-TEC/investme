@@ -1,15 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { Link } from "wouter";
-import { CreditCard, Plus, Eye, Calendar, Building2, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, FileText, Download } from "lucide-react";
+import { CreditCard, Plus, Eye, Calendar, Building2, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, FileText, Download, Edit, Upload, Trash2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function CreditRequests() {
+  const { toast } = useToast();
+  const [editingRequest, setEditingRequest] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [editFormData, setEditFormData] = useState({
+    valorSolicitado: '',
+    prazoMeses: '',
+    finalidade: '',
+    documentosExistentes: [] as string[]
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const { data: creditRequests, isLoading } = useQuery({
     queryKey: ["/api/credit-requests"],
     queryFn: () => {
@@ -91,6 +108,147 @@ export default function CreditRequests() {
     if (!companies) return 'Carregando...';
     const company = companies.find((c: any) => c.id === companyId);
     return company?.razaoSocial || 'Empresa não encontrada';
+  };
+
+  const editCreditRequestMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const formData = new FormData();
+      formData.append('valorSolicitado', data.valorSolicitado);
+      formData.append('prazoMeses', data.prazoMeses);
+      formData.append('finalidade', data.finalidade);
+      
+      // Add existing documents
+      data.documentosExistentes.forEach((doc: string) => {
+        formData.append('documentosExistentes', doc);
+      });
+      
+      // Add new uploaded files
+      data.novosDocumentos.forEach((file: File) => {
+        formData.append('novosDocumentos', file);
+      });
+
+      const response = await fetch(`/api/credit-requests/${data.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao editar solicitação');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/credit-requests"] });
+      setIsEditModalOpen(false);
+      setEditingRequest(null);
+      setUploadedFiles([]);
+      toast({
+        title: "Sucesso",
+        description: "Solicitação editada com sucesso!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao editar solicitação",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeDocumentMutation = useMutation({
+    mutationFn: async ({ requestId, documentoUrl }: { requestId: number; documentoUrl: string }) => {
+      const response = await fetch(`/api/credit-requests/${requestId}/documents`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ documentoUrl }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao remover documento');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/credit-requests"] });
+      toast({
+        title: "Sucesso",
+        description: "Documento removido com sucesso!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao remover documento",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const openEditModal = (request: any) => {
+    setEditingRequest(request);
+    setEditFormData({
+      valorSolicitado: request.valorSolicitado.toString(),
+      prazoMeses: request.prazoMeses.toString(),
+      finalidade: request.finalidade || '',
+      documentosExistentes: request.documentos || []
+    });
+    setUploadedFiles([]);
+    setIsEditModalOpen(true);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setUploadedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeUploadedFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingDocument = async (documentoUrl: string) => {
+    if (editingRequest) {
+      await removeDocumentMutation.mutateAsync({
+        requestId: editingRequest.id,
+        documentoUrl
+      });
+      
+      setEditFormData(prev => ({
+        ...prev,
+        documentosExistentes: prev.documentosExistentes.filter(doc => doc !== documentoUrl)
+      }));
+    }
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingRequest) return;
+
+    editCreditRequestMutation.mutate({
+      id: editingRequest.id,
+      valorSolicitado: editFormData.valorSolicitado,
+      prazoMeses: editFormData.prazoMeses,
+      finalidade: editFormData.finalidade,
+      documentosExistentes: editFormData.documentosExistentes,
+      novosDocumentos: uploadedFiles
+    });
+  };
+
+  const canEditRequest = (request: any) => {
+    return request.status === 'na_rede' || request.status === 'pending';
   };
 
   if (isLoading) {
@@ -235,7 +393,7 @@ export default function CreditRequests() {
                       </div>
                     </div>
 
-                    <div className="pt-2">
+                    <div className="pt-2 space-y-2">
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm" className="w-full">
@@ -377,6 +535,18 @@ export default function CreditRequests() {
                           </div>
                         </DialogContent>
                       </Dialog>
+                      
+                      {canEditRequest(request) && (
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          onClick={() => openEditModal(request)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar Solicitação
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -385,6 +555,191 @@ export default function CreditRequests() {
           </div>
         )}
       </div>
+
+      {/* Modal de Edição */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              Editar Solicitação #{editingRequest?.id}
+            </DialogTitle>
+            <DialogDescription>
+              Modifique os dados da solicitação e gerencie documentos
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleEditSubmit} className="space-y-6">
+            {/* Informações Básicas */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Informações Básicas</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="valorSolicitado">Valor Solicitado (R$)</Label>
+                  <Input
+                    id="valorSolicitado"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editFormData.valorSolicitado}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, valorSolicitado: e.target.value }))}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="prazoMeses">Prazo (meses)</Label>
+                  <Input
+                    id="prazoMeses"
+                    type="number"
+                    min="1"
+                    max="120"
+                    value={editFormData.prazoMeses}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, prazoMeses: e.target.value }))}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="finalidade">Finalidade do Crédito</Label>
+                <Textarea
+                  id="finalidade"
+                  value={editFormData.finalidade}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, finalidade: e.target.value }))}
+                  placeholder="Descreva a finalidade do crédito..."
+                  rows={3}
+                  required
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Gerenciamento de Documentos */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Documentos
+              </h3>
+              
+              {/* Documentos Existentes */}
+              {editFormData.documentosExistentes.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Documentos Atuais</Label>
+                  <div className="grid gap-2">
+                    {editFormData.documentosExistentes.map((documento: string, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-muted">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">Documento {index + 1}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.open(documento, '_blank')}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Ver
+                          </Button>
+                          <Button 
+                            type="button"
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => removeExistingDocument(documento)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Upload de Novos Documentos */}
+              <div className="space-y-2">
+                <Label>Adicionar Novos Documentos</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Selecionar Arquivos
+                  </Button>
+                </div>
+                
+                {/* Lista de Arquivos para Upload */}
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Arquivos Selecionados</Label>
+                    <div className="grid gap-2">
+                      {uploadedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-green-600" />
+                            <span className="text-sm">{file.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => removeUploadedFile(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Botões de Ação */}
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                className="bg-green-600 hover:bg-green-700"
+                disabled={editCreditRequestMutation.isPending}
+              >
+                {editCreditRequestMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Salvar Alterações
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </ModernSidebarLayout>
   );
 }
