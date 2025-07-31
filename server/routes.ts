@@ -1156,39 +1156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Investor profile routes
-  app.get('/api/investor/profile', authenticateToken, async (req: any, res) => {
-    try {
-      const investorProfile = await storage.getInvestors().then(investors => 
-        investors.find(inv => inv.email === req.user.email)
-      );
-      
-      if (!investorProfile) {
-        return res.status(404).json({ message: 'Perfil de investidor não encontrado' });
-      }
-      
-      res.json(investorProfile);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Erro ao buscar perfil' });
-    }
-  });
 
-  app.put('/api/investor/profile', authenticateToken, async (req: any, res) => {
-    try {
-      const investorProfile = await storage.getInvestors().then(investors => 
-        investors.find(inv => inv.email === req.user.email)
-      );
-      
-      if (!investorProfile) {
-        return res.status(404).json({ message: 'Perfil de investidor não encontrado' });
-      }
-      
-      const updatedProfile = await storage.updateInvestor(investorProfile.id, req.body);
-      res.json(updatedProfile);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Erro ao atualizar perfil' });
-    }
-  });
 
   // Change password route
   app.put('/api/auth/change-password', authenticateToken, async (req: any, res) => {
@@ -2059,15 +2027,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/investor/profile', authenticateToken, async (req: any, res) => {
     try {
-      const investor = await storage.getInvestor(req.user.id);
+      // Find investor by email from token
+      let investor = await storage.getInvestorByEmail(req.user.email);
+      
+      if (!investor) {
+        // Try alternative approach - find investor by CPF if available
+        const user = await storage.getUser(req.user.id);
+        if (user?.cpf) {
+          investor = await storage.getInvestorByCpf(user.cpf);
+        }
+      }
+
       if (!investor) {
         return res.status(404).json({ message: 'Investidor não encontrado' });
       }
 
-      // For now, just return success - in a real implementation, 
-      // changes would be stored as pending for backoffice approval
-      res.json({ message: 'Alterações enviadas para aprovação' });
+      // Update the investor profile with the provided data
+      const updatedProfile = await storage.updateInvestor(investor.id, req.body);
+      res.json(updatedProfile);
     } catch (error: any) {
+      console.error('Error updating investor profile:', error);
       res.status(500).json({ message: error.message || 'Erro ao atualizar perfil' });
     }
   });
