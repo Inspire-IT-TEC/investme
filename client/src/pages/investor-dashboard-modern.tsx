@@ -115,21 +115,21 @@ export default function InvestorDashboard() {
 
         {/* Company Status Alert */}
         {companyStatus && !(companyStatus as any)?.hasApprovedCompany && (
-          <div className="border-warning bg-warning/5 p-4 rounded-lg border">
+          <div className="border-amber-300 bg-amber-50/80 p-4 rounded-lg border">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <AlertCircle className="h-5 w-5 text-warning" />
+                <AlertCircle className="h-5 w-5 text-amber-600" />
                 <div>
-                  <p className="text-warning-foreground font-medium">
+                  <p className="text-amber-900 font-semibold">
                     Cadastro de empresa necessário
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-amber-800">
                     Para analisar solicitações, você precisa ter uma empresa aprovada na plataforma.
                   </p>
                 </div>
               </div>
               <Link href="/investor-company-registration">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="text-amber-700 border-amber-400 hover:bg-amber-100 bg-white">
                   Cadastrar Empresa
                 </Button>
               </Link>

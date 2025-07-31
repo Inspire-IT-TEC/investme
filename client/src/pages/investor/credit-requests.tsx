@@ -719,22 +719,22 @@ export default function InvestorCreditRequests() {
 
         {/* Company Status Alert */}
         {companyStatus && !companyStatus.hasApprovedCompany && (
-          <Card className="border-yellow-200 bg-yellow-50">
+          <Card className="border-amber-300 bg-amber-50/80">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                <AlertCircle className="h-5 w-5 text-amber-600" />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-yellow-800">
+                  <h3 className="font-semibold text-amber-900">
                     {!companyStatus.hasCompany ? 'Cadastro de empresa necessário' : 'Empresa pendente de aprovação'}
                   </h3>
-                  <p className="text-yellow-700 text-sm mt-1">
+                  <p className="text-amber-800 text-sm mt-1">
                     {!companyStatus.hasCompany 
                       ? 'Para aceitar e analisar solicitações de crédito, você precisa ter uma empresa cadastrada na plataforma.'
                       : 'Sua empresa está sendo analisada pela nossa equipe. Após a aprovação, você poderá aceitar solicitações de crédito.'
                     }
                   </p>
                 </div>
-                <Button variant="outline" size="sm" className="text-yellow-700 border-yellow-300 hover:bg-yellow-100">
+                <Button variant="outline" size="sm" className="text-amber-700 border-amber-400 hover:bg-amber-100 bg-white">
                   {!companyStatus.hasCompany ? 'Cadastrar Empresa' : 'Ver Status'}
                 </Button>
               </div>

@@ -284,19 +284,20 @@ export default function InvestorDashboard() {
           isCompanyApproved={false}
         />
         <div className="max-w-4xl mx-auto p-6">
-          <Alert className="mb-6 border-green-200 bg-green-50">
-            <AlertCircle className="h-4 w-4" />
+          <Alert className="mb-6 border-amber-300 bg-amber-50/80">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
             <AlertDescription>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Cadastre sua empresa para acessar a rede</p>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="font-semibold text-amber-900">Cadastre sua empresa para acessar a rede</p>
+                  <p className="text-sm text-amber-800 mt-1">
                     Para participar da rede de investimentos, você precisa cadastrar uma empresa.
                   </p>
                 </div>
                 <Button 
                   onClick={() => setLocation("/investor-company-registration")}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="text-amber-700 border-amber-400 hover:bg-amber-100 bg-white"
+                  variant="outline"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Cadastrar Empresa
