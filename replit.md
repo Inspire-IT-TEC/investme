@@ -8,6 +8,9 @@ InvestMe is a comprehensive business platform connecting entrepreneurs with inve
 - **2025-01-31**: ✅ Added backend validation in accept endpoint to check for approved company status
 - **2025-01-31**: ✅ Enhanced frontend with visual alerts when investors lack required company approval
 - **2025-01-31**: ✅ Disabled accept buttons with tooltips when company requirements not met
+- **2025-01-31**: ✅ Improved company status alert design with better color contrast (amber palette)
+- **2025-01-31**: ✅ Fixed dashboard click behavior: credit requests now open modals instead of redirecting to network page
+- **2025-01-31**: ✅ Updated "Ver Todas" button to redirect to correct credit requests page (/investor/credit-requests)
 - **2025-01-31**: ✅ Fixed investor profile edit page data loading and save errors with proper numeric field handling
 - **2025-01-31**: ✅ Removed duplicate endpoints causing conflicts in investor profile management
 - **2025-01-31**: ✅ Implemented proper validation for decimal fields (rendaMensal) to prevent SQL errors

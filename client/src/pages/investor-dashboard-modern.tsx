@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ModernCard, ModernCardContent, ModernCardHeader } from "@/components/ui/modern-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency } from "@/lib/utils";
 import { 
@@ -17,13 +19,15 @@ import {
   AlertCircle,
   Building2,
   Users,
-  BarChart3
+  BarChart3,
+  Eye
 } from "lucide-react";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { Link } from "wouter";
 
 export default function InvestorDashboard() {
   const { user } = useAuth();
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
 
   // Fetch investor stats
   const { data: stats } = useQuery({
@@ -316,7 +320,7 @@ export default function InvestorDashboard() {
                   <h3 className="text-lg font-semibold">Solicitações Disponíveis</h3>
                   <p className="text-sm text-muted-foreground">Oportunidades de investimento</p>
                 </div>
-                <Link href="/investor/network">
+                <Link href="/investor/credit-requests">
                   <Button variant="outline" size="sm">
                     Ver Todas
                     <ArrowUpRight className="w-4 h-4 ml-1" />
@@ -337,11 +341,58 @@ export default function InvestorDashboard() {
                     </div>
                     <div className="flex items-center space-x-2">
                       {getStatusBadge(request.status)}
-                      <Link href={`/investor/network`}>
-                        <Button variant="ghost" size="sm">
-                          <ArrowUpRight className="w-4 h-4" />
-                        </Button>
-                      </Link>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setSelectedRequest(request)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>Detalhes da Solicitação</DialogTitle>
+                            <DialogDescription>
+                              Informações completas sobre a solicitação de crédito
+                            </DialogDescription>
+                          </DialogHeader>
+                          {selectedRequest && (
+                            <div className="space-y-6">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                  <div>
+                                    <h4 className="font-semibold text-lg mb-2">Informações da Empresa</h4>
+                                    <div className="space-y-2 text-sm">
+                                      <p><strong>Razão Social:</strong> {selectedRequest.companyRazaoSocial || 'N/A'}</p>
+                                      <p><strong>CNPJ:</strong> {selectedRequest.companyCnpj || 'N/A'}</p>
+                                      <p><strong>Setor:</strong> {selectedRequest.companySector || 'N/A'}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="space-y-4">
+                                  <div>
+                                    <h4 className="font-semibold text-lg mb-2">Detalhes da Solicitação</h4>
+                                    <div className="space-y-2 text-sm">
+                                      <p><strong>Valor Solicitado:</strong> {formatCurrency(selectedRequest.valorSolicitado)}</p>
+                                      <p><strong>Prazo:</strong> {selectedRequest.prazoMeses || 'N/A'} meses</p>
+                                      <p><strong>Finalidade:</strong> {selectedRequest.finalidade || 'N/A'}</p>
+                                      <p><strong>Status:</strong> {getStatusBadge(selectedRequest.status)}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              {selectedRequest.justificativa && (
+                                <div>
+                                  <h4 className="font-semibold text-lg mb-2">Justificativa</h4>
+                                  <p className="text-sm bg-muted p-4 rounded-lg">{selectedRequest.justificativa}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 ))}
