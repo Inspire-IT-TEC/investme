@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import { useEntrepreneurNavigation } from "@/hooks/use-entrepreneur-navigation";
 import { 
   Building2, 
   Users, 
@@ -55,6 +56,7 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { theme: currentTheme, setTheme } = useTheme();
+  const { refreshData } = useEntrepreneurNavigation();
 
   // Get user notifications
   const { data: notifications } = useQuery({
@@ -234,8 +236,16 @@ export function ModernSidebarLayout({ children, title, userType = 'user', theme 
             const Icon = item.icon;
             const active = isActive(item.href);
             
+            const handleNavigation = () => {
+              closeSidebar();
+              // Auto-refresh data for entrepreneurs when navigating
+              if (userType === 'user') {
+                refreshData();
+              }
+            };
+
             return (
-              <Link key={item.href} href={item.href} onClick={closeSidebar}>
+              <Link key={item.href} href={item.href} onClick={handleNavigation}>
                 <div className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 hover:bg-white/10 hover:text-white ${
                   active ? themeClasses.activeItem : ''
                 }`}>
