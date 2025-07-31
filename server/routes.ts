@@ -354,7 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       res.json({ 
-        user: { ...investor, senha: undefined, role: 'investor' }, 
+        user: { ...investor, senha: undefined, role: 'investor', tipo: 'investor' }, 
         token,
         userType: 'investor'
       });
@@ -409,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       res.json({ 
-        user: { ...entrepreneur, senha: undefined, role: 'entrepreneur' }, 
+        user: { ...entrepreneur, senha: undefined, role: 'entrepreneur', tipo: 'entrepreneur' }, 
         token,
         userType: 'entrepreneur'
       });
