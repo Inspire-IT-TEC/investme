@@ -2042,8 +2042,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Investidor não encontrado' });
       }
 
-      // Update the investor profile with the provided data
-      const updatedProfile = await storage.updateInvestor(investor.id, req.body);
+      // Clean and validate the data before update
+      const updateData = { ...req.body };
+      
+      // Handle numeric field: rendaMensal
+      if (updateData.rendaMensal !== undefined) {
+        if (updateData.rendaMensal === '' || updateData.rendaMensal === null) {
+          updateData.rendaMensal = null;
+        } else {
+          const rendaValue = parseFloat(updateData.rendaMensal);
+          updateData.rendaMensal = isNaN(rendaValue) ? null : rendaValue;
+        }
+      }
+
+      // Update the investor profile with the cleaned data
+      const updatedProfile = await storage.updateInvestor(investor.id, updateData);
       res.json(updatedProfile);
     } catch (error: any) {
       console.error('Error updating investor profile:', error);
