@@ -2,9 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { Link } from "wouter";
-import { CreditCard, Plus, Eye, Calendar, Building2, DollarSign, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { CreditCard, Plus, Eye, Calendar, Building2, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, FileText, Download } from "lucide-react";
 
 export default function CreditRequests() {
   const { data: creditRequests, isLoading } = useQuery({
@@ -75,7 +78,13 @@ export default function CreditRequests() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const getCompanyName = (companyId: number) => {
@@ -227,10 +236,147 @@ export default function CreditRequests() {
                     </div>
 
                     <div className="pt-2">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver Detalhes
-                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="w-full">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver Detalhes
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <Building2 className="h-5 w-5" />
+                              Detalhes da Solicitação #{request.id}
+                            </DialogTitle>
+                            <DialogDescription>
+                              Informações completas da solicitação de crédito
+                            </DialogDescription>
+                          </DialogHeader>
+                          
+                          <div className="grid gap-6">
+                            {/* Status e Informações Básicas */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={status.variant} className="flex items-center gap-1">
+                                    <StatusIcon className="h-3 w-3" />
+                                    {status.label}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-muted-foreground">Empresa</Label>
+                                <p className="font-medium">{getCompanyName(request.companyId)}</p>
+                              </div>
+                            </div>
+
+                            <Separator />
+
+                            {/* Informações Financeiras */}
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-semibold flex items-center gap-2">
+                                <DollarSign className="h-5 w-5" />
+                                Informações Financeiras
+                              </h3>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-muted-foreground">Valor Solicitado</Label>
+                                  <p className="text-2xl font-bold text-green-600">{formatCurrency(request.valorSolicitado)}</p>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-muted-foreground">Prazo</Label>
+                                  <p className="text-lg font-semibold">{request.prazoMeses} meses</p>
+                                </div>
+                                {request.taxaJuros && (
+                                  <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-muted-foreground">Taxa de Juros</Label>
+                                    <p className="text-lg font-semibold">{request.taxaJuros}% a.m.</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <Separator />
+
+                            {/* Finalidade */}
+                            {request.finalidade && (
+                              <>
+                                <div className="space-y-4">
+                                  <h3 className="text-lg font-semibold">Finalidade do Crédito</h3>
+                                  <p className="text-muted-foreground bg-muted p-3 rounded-lg">{request.finalidade}</p>
+                                </div>
+                                <Separator />
+                              </>
+                            )}
+
+                            {/* Documentos */}
+                            {request.documentos && request.documentos.length > 0 && (
+                              <>
+                                <div className="space-y-4">
+                                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                                    <FileText className="h-5 w-5" />
+                                    Documentos Anexados ({request.documentos.length})
+                                  </h3>
+                                  <div className="grid grid-cols-1 gap-2">
+                                    {request.documentos.map((documento: string, index: number) => (
+                                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                                        <div className="flex items-center gap-2">
+                                          <FileText className="h-4 w-4 text-muted-foreground" />
+                                          <span className="text-sm">Documento {index + 1}</span>
+                                        </div>
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm"
+                                          onClick={() => window.open(documento, '_blank')}
+                                        >
+                                          <Download className="h-4 w-4 mr-2" />
+                                          Baixar
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                                <Separator />
+                              </>
+                            )}
+
+                            {/* Datas e Timeline */}
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-semibold flex items-center gap-2">
+                                <Calendar className="h-5 w-5" />
+                                Timeline
+                              </h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-muted-foreground">Data da Solicitação</Label>
+                                  <p className="font-medium">{formatDate(request.createdAt)}</p>
+                                </div>
+                                {request.updatedAt && request.updatedAt !== request.createdAt && (
+                                  <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-muted-foreground">Última Atualização</Label>
+                                    <p className="font-medium">{formatDate(request.updatedAt)}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Observações do Backoffice */}
+                            {request.observacoes && (
+                              <>
+                                <Separator />
+                                <div className="space-y-4">
+                                  <h3 className="text-lg font-semibold">Observações do Backoffice</h3>
+                                  <div className="bg-muted p-4 rounded-lg">
+                                    <p className="text-sm">{request.observacoes}</p>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </CardContent>
                 </Card>
