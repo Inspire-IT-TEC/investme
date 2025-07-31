@@ -230,6 +230,55 @@ function DetailedAnalysisDialog({ request, showAcceptButton, onAccept, acceptPen
               </div>
             )}
 
+            {/* Credit Request Documents */}
+            {request.documentos && request.documentos.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Documentos da Solicitação
+                </h4>
+                <div className="space-y-2">
+                  {request.documentos.map((docUrl: string, index: number) => {
+                    const fileName = docUrl.split('/').pop() || `Documento ${index + 1}`;
+                    const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+                    
+                    const getFileIcon = (ext: string) => {
+                      if (['pdf'].includes(ext)) return '📄';
+                      if (['doc', 'docx'].includes(ext)) return '📝';
+                      if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return '🖼️';
+                      return '📎';
+                    };
+
+                    return (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+                        <span className="text-lg">{getFileIcon(fileExtension)}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{fileName}</p>
+                          <p className="text-xs text-muted-foreground">{fileExtension.toUpperCase()}</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          asChild
+                          className="hover:bg-blue-50"
+                        >
+                          <a 
+                            href={docUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span className="text-xs">Baixar</span>
+                          </a>
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <Separator />
 
             {/* Company Details */}

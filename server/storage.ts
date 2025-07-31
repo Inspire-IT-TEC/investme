@@ -950,6 +950,7 @@ export class DatabaseStorage implements IStorage {
         valorSolicitado: creditRequests.valorSolicitado,
         prazoMeses: creditRequests.prazoMeses,
         finalidade: creditRequests.finalidade,
+        documentos: creditRequests.documentos,
         status: creditRequests.status,
         dataAceite: creditRequests.dataAceite,
         dataLimiteAnalise: creditRequests.dataLimiteAnalise,
