@@ -884,8 +884,13 @@ export class DatabaseStorage implements IStorage {
         id: creditRequests.id,
         companyId: creditRequests.companyId,
         valorSolicitado: creditRequests.valorSolicitado,
+        prazoMeses: creditRequests.prazoMeses,
+        finalidade: creditRequests.finalidade,
+        documentos: creditRequests.documentos,
+        observacoes: creditRequests.observacoes,
         status: creditRequests.status,
         createdAt: creditRequests.createdAt,
+        updatedAt: creditRequests.updatedAt,
         companyRazaoSocial: companies.razaoSocial,
       })
       .from(creditRequests)
