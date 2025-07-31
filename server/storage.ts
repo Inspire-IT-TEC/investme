@@ -1803,33 +1803,77 @@ export class DatabaseStorage implements IStorage {
   }
 
   async reviewPendingProfileChange(id: number, approved: boolean, reviewedBy: number, comment?: string): Promise<PendingProfileChange | undefined> {
-    const [change] = await db
-      .update(pendingProfileChanges)
-      .set({
-        status: approved ? 'approved' : 'rejected',
-        reviewedAt: new Date(),
-        reviewedBy,
-        reviewComment: comment
-      })
-      .where(eq(pendingProfileChanges.id, id))
-      .returning();
-    
-    // If approved, apply the changes to the actual user profile
-    if (approved && change) {
-      if (change.userType === 'entrepreneur') {
-        await db
-          .update(entrepreneurs)
-          .set(change.changedFields as any)
-          .where(eq(entrepreneurs.id, change.userId));
-      } else if (change.userType === 'investor') {
-        await db
-          .update(investors)
-          .set(change.changedFields as any)
-          .where(eq(investors.id, change.userId));
+    try {
+      const [change] = await db
+        .update(pendingProfileChanges)
+        .set({
+          status: approved ? 'approved' : 'rejected',
+          reviewedAt: new Date(),
+          reviewedBy,
+          reviewComment: comment
+        })
+        .where(eq(pendingProfileChanges.id, id))
+        .returning();
+      
+      // If approved, apply the changes to the actual user profile
+      if (approved && change && change.changedFields) {
+        console.log('Applying changes for user type:', change.userType);
+        console.log('Changed fields:', change.changedFields);
+        
+        const fieldsToUpdate = change.changedFields as Record<string, any>;
+        
+        if (change.userType === 'entrepreneur') {
+          const updateData: Partial<Entrepreneur> = {};
+          
+          // Only include valid entrepreneur fields
+          const validFields = ['nomeCompleto', 'email', 'cpf', 'rg', 'telefone', 'cep', 'rua', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'dataNascimento', 'profissao', 'rendaMensal'];
+          
+          for (const [key, value] of Object.entries(fieldsToUpdate)) {
+            if (validFields.includes(key)) {
+              (updateData as any)[key] = value;
+            }
+          }
+          
+          if (Object.keys(updateData).length > 0) {
+            updateData.updatedAt = new Date();
+            
+            await db
+              .update(entrepreneurs)
+              .set(updateData)
+              .where(eq(entrepreneurs.id, change.userId));
+              
+            console.log('Entrepreneur updated successfully');
+          }
+        } else if (change.userType === 'investor') {
+          const updateData: Partial<Investor> = {};
+          
+          // Only include valid investor fields
+          const validFields = ['nomeCompleto', 'email', 'cpf', 'rg', 'telefone', 'cep', 'rua', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'dataNascimento', 'profissao', 'rendaMensal', 'patrimonioLiquido', 'rendaAnual', 'objetivosInvestimento'];
+          
+          for (const [key, value] of Object.entries(fieldsToUpdate)) {
+            if (validFields.includes(key)) {
+              (updateData as any)[key] = value;
+            }
+          }
+          
+          if (Object.keys(updateData).length > 0) {
+            updateData.updatedAt = new Date();
+            
+            await db
+              .update(investors)
+              .set(updateData)
+              .where(eq(investors.id, change.userId));
+              
+            console.log('Investor updated successfully');
+          }
+        }
       }
+      
+      return change;
+    } catch (error) {
+      console.error('Error in reviewPendingProfileChange:', error);
+      throw error;
     }
-    
-    return change;
   }
 
   async deletePendingProfileChange(id: number): Promise<void> {
