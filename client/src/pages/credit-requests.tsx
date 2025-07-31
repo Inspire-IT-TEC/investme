@@ -153,7 +153,7 @@ export default function CreditRequests() {
           </Card>
         )}
 
-        {!creditRequests || creditRequests.length === 0 ? (
+        {!creditRequests || !Array.isArray(creditRequests) || creditRequests.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
               <CreditCard className="h-16 w-16 text-muted-foreground mb-4" />
@@ -178,7 +178,7 @@ export default function CreditRequests() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {creditRequests.map((request: any) => {
+            {Array.isArray(creditRequests) && creditRequests.map((request: any) => {
               const status = getStatusBadge(request.status || 'pending');
               const StatusIcon = status.icon;
               

@@ -887,7 +887,7 @@ export class DatabaseStorage implements IStorage {
         prazoMeses: creditRequests.prazoMeses,
         finalidade: creditRequests.finalidade,
         documentos: creditRequests.documentos,
-        observacoes: creditRequests.observacoes,
+        observacoesAnalise: creditRequests.observacoesAnalise,
         status: creditRequests.status,
         createdAt: creditRequests.createdAt,
         updatedAt: creditRequests.updatedAt,
@@ -1088,20 +1088,7 @@ export class DatabaseStorage implements IStorage {
     return entrepreneurResults;
   }
 
-  async getEntrepreneur(id: number): Promise<Entrepreneur | undefined> {
-    const [entrepreneur] = await db.select().from(entrepreneurs).where(eq(entrepreneurs.id, id));
-    return entrepreneur || undefined;
-  }
 
-  async updateEntrepreneur(id: number, updateData: Partial<InsertEntrepreneur>): Promise<Entrepreneur | undefined> {
-    const [updatedEntrepreneur] = await db
-      .update(entrepreneurs)
-      .set(updateData)
-      .where(eq(entrepreneurs.id, id))
-      .returning();
-
-    return updatedEntrepreneur || undefined;
-  }
 
   async approveEntrepreneur(entrepreneurId: number): Promise<Entrepreneur | undefined> {
     const [updatedEntrepreneur] = await db
