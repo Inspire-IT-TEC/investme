@@ -730,6 +730,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requestId = parseInt(req.params.id);
       const investorId = req.user.id;
       
+      // First, verify that the investor has an approved company
+      let investor = await storage.getInvestorByEmail(req.user.email);
+      
+      if (!investor) {
+        // Try alternative approach - find investor by CPF if available
+        const user = await storage.getUser(req.user.id);
+        if (user?.cpf) {
+          investor = await storage.getInvestorByCpf(user.cpf);
+        }
+      }
+
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
+      }
+
+      // Check if investor has an approved company
+      const companies = await storage.getCompanies(undefined, undefined, undefined);
+      const investorCompany = companies.find(c => c.investorId === investor.id && c.tipoProprietario === 'investidor');
+
+      if (!investorCompany) {
+        return res.status(403).json({ 
+          message: 'Para analisar solicitações de crédito, você precisa ter uma empresa cadastrada na plataforma.' 
+        });
+      }
+
+      if (investorCompany.status !== 'aprovada') {
+        return res.status(403).json({ 
+          message: 'Para analisar solicitações de crédito, sua empresa precisa estar aprovada pela nossa equipe.' 
+        });
+      }
+      
       // Calculate 24 hours from now
       const dataLimiteAnalise = new Date();
       dataLimiteAnalise.setHours(dataLimiteAnalise.getHours() + 24);

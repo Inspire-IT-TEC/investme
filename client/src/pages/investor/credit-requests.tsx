@@ -36,15 +36,17 @@ import {
   Mail,
   Phone,
   Globe,
-  Shield
+  Shield,
+  AlertCircle
 } from "lucide-react";
 
 // Detailed Analysis Dialog Component
-function DetailedAnalysisDialog({ request, showAcceptButton, onAccept, acceptPending }: {
+function DetailedAnalysisDialog({ request, showAcceptButton, onAccept, acceptPending, companyStatus }: {
   request: any;
   showAcceptButton: boolean;
   onAccept: () => void;
   acceptPending: boolean;
+  companyStatus: any;
 }) {
   const [messageText, setMessageText] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -460,8 +462,9 @@ function DetailedAnalysisDialog({ request, showAcceptButton, onAccept, acceptPen
                 <div className="flex justify-center">
                   <Button 
                     onClick={onAccept}
-                    disabled={acceptPending}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={acceptPending || !companyStatus?.hasApprovedCompany}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                    title={!companyStatus?.hasApprovedCompany ? 'Você precisa ter uma empresa aprovada para aceitar análises' : ''}
                   >
                     <TrendingUp className="w-4 h-4 mr-2" />
                     Aceitar para Análise
@@ -481,6 +484,19 @@ export default function InvestorCreditRequests() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
+
+  // Fetch company status
+  const { data: companyStatus } = useQuery({
+    queryKey: ['/api/investor/company-status'],
+    queryFn: () => {
+      return fetch('/api/investor/company-status', {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }).then(res => res.json());
+    },
+  });
 
   // Fetch available credit requests
   const { data: availableRequests, isLoading: loadingAvailable } = useQuery({
@@ -665,14 +681,16 @@ export default function InvestorCreditRequests() {
               showAcceptButton={showAcceptButton}
               onAccept={() => acceptRequestMutation.mutate(request.id)}
               acceptPending={acceptRequestMutation.isPending}
+              companyStatus={companyStatus}
             />
             
             {showAcceptButton && request.status === 'na_rede' && (
               <Button 
                 size="sm" 
                 onClick={() => acceptRequestMutation.mutate(request.id)}
-                disabled={acceptRequestMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700"
+                disabled={acceptRequestMutation.isPending || !companyStatus?.hasApprovedCompany}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                title={!companyStatus?.hasApprovedCompany ? 'Você precisa ter uma empresa aprovada para aceitar análises' : ''}
               >
                 <TrendingUp className="w-4 h-4 mr-1" />
                 Aceitar Análise
@@ -698,6 +716,31 @@ export default function InvestorCreditRequests() {
             </p>
           </div>
         </div>
+
+        {/* Company Status Alert */}
+        {companyStatus && !companyStatus.hasApprovedCompany && (
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-yellow-800">
+                    {!companyStatus.hasCompany ? 'Cadastro de empresa necessário' : 'Empresa pendente de aprovação'}
+                  </h3>
+                  <p className="text-yellow-700 text-sm mt-1">
+                    {!companyStatus.hasCompany 
+                      ? 'Para aceitar e analisar solicitações de crédito, você precisa ter uma empresa cadastrada na plataforma.'
+                      : 'Sua empresa está sendo analisada pela nossa equipe. Após a aprovação, você poderá aceitar solicitações de crédito.'
+                    }
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" className="text-yellow-700 border-yellow-300 hover:bg-yellow-100">
+                  {!companyStatus.hasCompany ? 'Cadastrar Empresa' : 'Ver Status'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Filters */}
         <Card>
