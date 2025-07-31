@@ -241,7 +241,7 @@ export default function InvestorDashboard() {
                     </Button>
                   </Link>
                 )}
-                <Link href="/messages">
+                <Link href="/investor/messages">
                   <Button className="w-full justify-start" variant="outline">
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Ver Mensagens
