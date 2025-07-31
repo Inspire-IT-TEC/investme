@@ -9,8 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Eye, Clock, User, Calendar } from "lucide-react";
+import { Check, X, Eye, Clock, User, Calendar, ArrowLeft } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { Link } from "wouter";
 
 interface PendingChange {
   id: number;
@@ -38,7 +39,17 @@ export default function BackofficePendingChanges() {
   const [activeTab, setActiveTab] = useState("pending");
 
   const { data: pendingChanges = [], isLoading } = useQuery({
-    queryKey: ['/api/admin/pending-profile-changes', { status: activeTab === "all" ? undefined : activeTab }],
+    queryKey: ['/api/admin/pending-profile-changes', activeTab],
+    queryFn: async () => {
+      const statusParam = activeTab === "all" ? "" : `?status=${activeTab}`;
+      const response = await fetch(`/api/admin/pending-profile-changes${statusParam}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch pending changes');
+      return response.json();
+    },
   });
 
   const reviewMutation = useMutation({
@@ -51,6 +62,7 @@ export default function BackofficePendingChanges() {
         title: "Sucesso",
         description: data.message,
       });
+      // Invalidate all tabs
       queryClient.invalidateQueries({ queryKey: ['/api/admin/pending-profile-changes'] });
       setSelectedChange(null);
       setReviewComment("");
@@ -132,6 +144,14 @@ export default function BackofficePendingChanges() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
+          <div className="flex items-center gap-3 mb-2">
+            <Link href="/backoffice">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Voltar ao Dashboard
+              </Button>
+            </Link>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">Mudanças de Perfil Pendentes</h1>
           <p className="text-gray-600 mt-2">Gerencie solicitações de alteração de perfil de usuários</p>
         </div>
