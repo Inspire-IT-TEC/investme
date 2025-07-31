@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
 import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
-import { Search, Eye, Check, X, CreditCard, FileText } from "lucide-react";
+import { Search, Eye, Check, X, CreditCard, FileText, Download, Calendar, DollarSign, Building } from "lucide-react";
 
 export default function BackofficeCreditRequests() {
   const { toast } = useToast();
@@ -179,33 +179,161 @@ export default function BackofficeCreditRequests() {
                                         Ver
                                       </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-2xl">
+                                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                                       <DialogHeader>
-                                        <DialogTitle>Detalhes da Solicitação</DialogTitle>
+                                        <DialogTitle className="flex items-center">
+                                          <FileText className="w-5 h-5 mr-2" />
+                                          Detalhes da Solicitação de Crédito
+                                        </DialogTitle>
                                         <DialogDescription>
-                                          Informações completas da solicitação de crédito
+                                          Informações completas da solicitação de crédito e documentos anexados
                                         </DialogDescription>
                                       </DialogHeader>
                                       {selectedRequest && (
-                                        <div className="space-y-4">
-                                          <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                              <Label className="text-sm font-medium text-gray-500">Empresa</Label>
-                                              <p className="mt-1">{selectedRequest.companyRazaoSocial}</p>
-                                            </div>
-                                            <div>
-                                              <Label className="text-sm font-medium text-gray-500">Valor</Label>
-                                              <p className="mt-1">{formatCurrency(selectedRequest.valorSolicitado)}</p>
-                                            </div>
-                                            <div>
-                                              <Label className="text-sm font-medium text-gray-500">Status</Label>
-                                              <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
-                                            </div>
-                                            <div>
-                                              <Label className="text-sm font-medium text-gray-500">Data</Label>
-                                              <p className="mt-1">{new Date(selectedRequest.createdAt).toLocaleDateString('pt-BR')}</p>
-                                            </div>
-                                          </div>
+                                        <div className="space-y-6">
+                                          {/* Informações da Empresa */}
+                                          <Card>
+                                            <CardHeader>
+                                              <CardTitle className="flex items-center text-lg">
+                                                <Building className="w-5 h-5 mr-2" />
+                                                Informações da Empresa
+                                              </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                              <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                  <Label className="text-sm font-medium text-gray-500">Razão Social</Label>
+                                                  <p className="mt-1 font-medium">{selectedRequest.companyRazaoSocial}</p>
+                                                </div>
+                                                <div>
+                                                  <Label className="text-sm font-medium text-gray-500">CNPJ</Label>
+                                                  <p className="mt-1">{selectedRequest.companyCnpj || 'Não informado'}</p>
+                                                </div>
+                                              </div>
+                                            </CardContent>
+                                          </Card>
+
+                                          {/* Detalhes da Solicitação */}
+                                          <Card>
+                                            <CardHeader>
+                                              <CardTitle className="flex items-center text-lg">
+                                                <DollarSign className="w-5 h-5 mr-2" />
+                                                Detalhes da Solicitação
+                                              </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                              <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                  <Label className="text-sm font-medium text-gray-500">Valor Solicitado</Label>
+                                                  <p className="mt-1 text-lg font-bold text-green-600">
+                                                    {formatCurrency(selectedRequest.valorSolicitado)}
+                                                  </p>
+                                                </div>
+                                                <div>
+                                                  <Label className="text-sm font-medium text-gray-500">Prazo</Label>
+                                                  <p className="mt-1">{selectedRequest.prazoMeses} meses</p>
+                                                </div>
+                                                <div>
+                                                  <Label className="text-sm font-medium text-gray-500">Status</Label>
+                                                  <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
+                                                </div>
+                                                <div>
+                                                  <Label className="text-sm font-medium text-gray-500">Data da Solicitação</Label>
+                                                  <p className="mt-1 flex items-center">
+                                                    <Calendar className="w-4 h-4 mr-1" />
+                                                    {new Date(selectedRequest.createdAt).toLocaleDateString('pt-BR', {
+                                                      day: '2-digit',
+                                                      month: '2-digit',
+                                                      year: 'numeric',
+                                                      hour: '2-digit',
+                                                      minute: '2-digit'
+                                                    })}
+                                                  </p>
+                                                </div>
+                                              </div>
+                                              
+                                              {selectedRequest.finalidade && (
+                                                <div className="mt-4">
+                                                  <Label className="text-sm font-medium text-gray-500">Finalidade</Label>
+                                                  <p className="mt-1 p-3 bg-gray-50 rounded-lg border">
+                                                    {selectedRequest.finalidade}
+                                                  </p>
+                                                </div>
+                                              )}
+
+                                              {selectedRequest.observacoesAnalise && (
+                                                <div className="mt-4">
+                                                  <Label className="text-sm font-medium text-gray-500">Observações da Análise</Label>
+                                                  <p className="mt-1 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                                    {selectedRequest.observacoesAnalise}
+                                                  </p>
+                                                </div>
+                                              )}
+                                            </CardContent>
+                                          </Card>
+
+                                          {/* Documentos Anexados */}
+                                          {selectedRequest.documentos && selectedRequest.documentos.length > 0 && (
+                                            <Card>
+                                              <CardHeader>
+                                                <CardTitle className="flex items-center text-lg">
+                                                  <FileText className="w-5 h-5 mr-2" />
+                                                  Documentos Anexados ({selectedRequest.documentos.length})
+                                                </CardTitle>
+                                              </CardHeader>
+                                              <CardContent>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                  {selectedRequest.documentos.map((doc: string, index: number) => {
+                                                    const fileName = doc.split('/').pop() || `Documento ${index + 1}`;
+                                                    const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+                                                    
+                                                    return (
+                                                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                                                        <div className="flex items-center">
+                                                          <FileText className="w-4 h-4 mr-2 text-blue-500" />
+                                                          <div>
+                                                            <p className="text-sm font-medium truncate max-w-48">
+                                                              {fileName}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500 uppercase">
+                                                              {fileExtension}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <Button
+                                                          variant="outline"
+                                                          size="sm"
+                                                          onClick={() => window.open(doc, '_blank')}
+                                                          className="ml-2 flex-shrink-0"
+                                                        >
+                                                          <Download className="w-4 h-4 mr-1" />
+                                                          Baixar
+                                                        </Button>
+                                                      </div>
+                                                    );
+                                                  })}
+                                                </div>
+                                              </CardContent>
+                                            </Card>
+                                          )}
+
+                                          {/* Mensagem quando não há documentos */}
+                                          {(!selectedRequest.documentos || selectedRequest.documentos.length === 0) && (
+                                            <Card>
+                                              <CardHeader>
+                                                <CardTitle className="flex items-center text-lg">
+                                                  <FileText className="w-5 h-5 mr-2" />
+                                                  Documentos Anexados
+                                                </CardTitle>
+                                              </CardHeader>
+                                              <CardContent>
+                                                <div className="text-center py-8">
+                                                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                                  <p className="text-gray-500">Nenhum documento anexado</p>
+                                                </div>
+                                              </CardContent>
+                                            </Card>
+                                          )}
                                         </div>
                                       )}
                                     </DialogContent>
