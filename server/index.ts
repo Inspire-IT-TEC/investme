@@ -9,6 +9,18 @@ app.use(express.urlencoded({ extended: false }));
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));
 
+// Serve service worker and manifest for PWA
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.sendFile('client/public/sw.js', { root: process.cwd() });
+});
+
+app.get('/manifest.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile('manifest.json', { root: process.cwd() });
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

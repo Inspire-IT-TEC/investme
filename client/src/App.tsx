@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { InstallPWAButton } from "@/components/install-pwa-button";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -110,6 +111,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <InstallPWAButton />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
