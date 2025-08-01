@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Building2, Save, AlertCircle, Upload, Trash2, Loader2 } from "lucide-react";
+import { formatCurrency } from "@/lib/validations";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { useLocation } from "wouter";
 
@@ -653,7 +654,15 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Faturamento Anual (R$) *</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="1.000.000,00" />
+                            <Input 
+                              {...field} 
+                              placeholder="R$ 1.000.000,00"
+                              value={field.value ? formatCurrency(field.value) : ''}
+                              onChange={(e) => {
+                                const formatted = formatCurrency(e.target.value);
+                                field.onChange(formatted);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -667,7 +676,15 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>EBITDA (R$) *</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="200.000,00" />
+                            <Input 
+                              {...field} 
+                              placeholder="R$ 200.000,00"
+                              value={field.value ? formatCurrency(field.value) : ''}
+                              onChange={(e) => {
+                                const formatted = formatCurrency(e.target.value);
+                                field.onChange(formatted);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -681,7 +698,15 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Dívida Líquida (R$) *</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="50.000,00" />
+                            <Input 
+                              {...field} 
+                              placeholder="R$ 50.000,00"
+                              value={field.value ? formatCurrency(field.value) : ''}
+                              onChange={(e) => {
+                                const formatted = formatCurrency(e.target.value);
+                                field.onChange(formatted);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

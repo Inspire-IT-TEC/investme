@@ -8,7 +8,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { TrendingUp, ArrowLeft, Loader2 } from "lucide-react";
-import { formatCpf, formatCep, formatPhone, validateCpf, validateEmail, validatePassword } from "@/lib/validations";
+import { formatCpf, formatCep, formatPhone, formatCurrency, validateCpf, validateEmail, validatePassword } from "@/lib/validations";
 
 export default function RegisterInvestor() {
   const [, setLocation] = useLocation();
@@ -433,8 +433,8 @@ export default function RegisterInvestor() {
                     <Label htmlFor="limiteInvestimento">Limite de Investimento</Label>
                     <Input
                       id="limiteInvestimento"
-                      value={formData.limiteInvestimento}
-                      onChange={(e) => handleInputChange("limiteInvestimento", e.target.value)}
+                      value={formData.limiteInvestimento ? formatCurrency(formData.limiteInvestimento) : ''}
+                      onChange={(e) => handleInputChange("limiteInvestimento", formatCurrency(e.target.value))}
                       placeholder="R$ 100.000,00"
                     />
                   </div>

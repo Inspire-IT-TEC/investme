@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { editCompanySchema } from "@shared/schema";
 import { z } from "zod";
 import { ArrowLeft, Save, Upload, Trash2 } from "lucide-react";
+import { formatCurrency } from "@/lib/validations";
 import { queryClient } from "@/lib/queryClient";
 
 type EditCompanyForm = z.infer<typeof editCompanySchema>;
@@ -326,7 +327,14 @@ export default function InvestorCompanyEdit() {
                       <FormItem>
                         <FormLabel>Faturamento Anual *</FormLabel>
                         <FormControl>
-                          <Input placeholder="R$ 0,00" {...field} value={field.value || ""} />
+                          <Input 
+                            placeholder="R$ 0,00" 
+                            value={field.value ? formatCurrency(field.value) : ''}
+                            onChange={(e) => {
+                              const formatted = formatCurrency(e.target.value);
+                              field.onChange(formatted);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
