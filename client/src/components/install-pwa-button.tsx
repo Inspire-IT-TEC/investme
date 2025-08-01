@@ -25,6 +25,7 @@ export function InstallPWAButton() {
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('beforeinstallprompt event fired');
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
       // Stash the event so it can be triggered later
@@ -39,14 +40,22 @@ export function InstallPWAButton() {
       setDeferredPrompt(null);
     };
 
+    // Always show the banner initially (with timeout to ensure page is loaded)
+    const timeoutId = setTimeout(() => {
+      if (!isInstalled) {
+        setShowInstallBanner(true);
+      }
+    }, 3000);
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [isInstalled]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
@@ -75,18 +84,89 @@ export function InstallPWAButton() {
   const showManualInstallInstructions = () => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
+    const isChrome = /Chrome/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    const isEdge = /Edge/.test(navigator.userAgent);
     
     let instructions = '';
     
     if (isIOS) {
-      instructions = 'Para instalar este app no seu iPhone/iPad:\n\n1. Toque no ícone de compartilhar (□↗)\n2. Role para baixo e toque em "Adicionar à Tela de Início"\n3. Toque em "Adicionar"';
+      if (isSafari) {
+        instructions = 'Para instalar o app:\n\n1. Toque no ícone de compartilhar (□↗) na parte inferior\n2. Role para baixo e toque em "Adicionar à Tela de Início"\n3. Toque em "Adicionar"';
+      } else {
+        instructions = 'Para instalar o app:\n\n1. Abra este site no Safari\n2. Toque no ícone de compartilhar\n3. Selecione "Adicionar à Tela de Início"';
+      }
     } else if (isAndroid) {
-      instructions = 'Para instalar este app no seu Android:\n\n1. Toque no menu (⋮) do navegador\n2. Selecione "Adicionar à tela inicial" ou "Instalar app"\n3. Confirme a instalação';
+      if (isChrome) {
+        instructions = 'Para instalar o app:\n\n1. Toque no menu (⋮) no canto superior direito\n2. Selecione "Adicionar à tela inicial"\n3. Confirme tocando em "Adicionar"';
+      } else {
+        instructions = 'Para instalar o app:\n\n1. Abra este site no Chrome do Android\n2. Toque no menu (⋮)\n3. Selecione "Adicionar à tela inicial"';
+      }
     } else {
-      instructions = 'Para instalar este app:\n\n1. No Chrome: Clique no ícone de instalação na barra de endereço\n2. No Firefox: Vá em Menu > Instalar\n3. No Edge: Clique no ícone de instalação na barra de endereço';
+      if (isChrome) {
+        instructions = 'Para instalar o app:\n\n1. No Chrome: Menu > "Adicionar à tela inicial"\n2. No Safari: Compartilhar > "Adicionar à Tela de Início"\n3. No Edge: Menu > "Aplicativos" > "Instalar este site como aplicativo"';
+      } else {
+        instructions = 'Para melhor experiência:\n\n1. No Chrome mobile: Menu > "Adicionar à tela inicial"\n2. No Safari: Compartilhar > "Adicionar à Tela de Início"\n3. No Edge: Menu > "Aplicativos" > "Instalar este site como aplicativo"';
+      }
     }
     
-    alert(instructions);
+    // Create a custom modal instead of alert
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 20px;
+    `;
+    
+    const content = document.createElement('div');
+    content.style.cssText = `
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: left;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    `;
+    
+    content.innerHTML = `
+      <h3 style="margin: 0 0 16px 0; font-weight: 600; font-size: 18px; color: #1f2937;">
+        Para instalar o app:
+      </h3>
+      <div style="white-space: pre-line; line-height: 1.6; color: #4b5563; margin-bottom: 20px;">
+        ${instructions}
+      </div>
+      <button onclick="this.closest('div').remove()" style="
+        background: #16a34a;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+      ">
+        OK
+      </button>
+    `;
+    
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+    
+    // Remove modal when clicking outside
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
   };
 
   const handleDismiss = () => {
@@ -95,14 +175,14 @@ export function InstallPWAButton() {
     sessionStorage.setItem('installBannerDismissed', 'true');
   };
 
-  // Don't show if already installed or dismissed this session
-  if (isInstalled || 
-      sessionStorage.getItem('installBannerDismissed') === 'true') {
+  // Don't show if already installed
+  if (isInstalled) {
     return null;
   }
 
-  // Show install banner
-  if (showInstallBanner || deferredPrompt) {
+  // Show install banner if not dismissed this session
+  if ((showInstallBanner || deferredPrompt) && 
+      sessionStorage.getItem('installBannerDismissed') !== 'true') {
     return (
       <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4">
