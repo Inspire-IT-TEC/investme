@@ -110,10 +110,32 @@ export class EmailService {
 
 
   async sendPasswordResetEmail(email: string, resetToken: string, userType: string): Promise<void> {
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
-      : (process.env.CLIENT_URL || 'http://localhost:5000');
+    // Build reset URL based on environment
+    let baseUrl: string;
+    
+    console.log('🌐 Environment detection for password reset URL:');
+    console.log(`REPLIT_DOMAINS: ${process.env.REPLIT_DOMAINS || 'undefined'}`);
+    console.log(`REPLIT_DEV_DOMAIN: ${process.env.REPLIT_DEV_DOMAIN || 'undefined'}`);
+    console.log(`NODE_ENV: ${process.env.NODE_ENV || 'undefined'}`);
+    
+    if (process.env.REPLIT_DOMAINS) {
+      // Production environment - use the first domain from REPLIT_DOMAINS
+      const domains = process.env.REPLIT_DOMAINS.split(',');
+      baseUrl = `https://${domains[0].trim()}`;
+      console.log(`✅ Using production domain: ${baseUrl}`);
+    } else if (process.env.REPLIT_DEV_DOMAIN) {
+      // Development environment on Replit
+      baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+      console.log(`🔧 Using development domain: ${baseUrl}`);
+    } else {
+      // Local development
+      baseUrl = process.env.CLIENT_URL || 'http://localhost:5000';
+      console.log(`💻 Using local domain: ${baseUrl}`);
+    }
+    
     const resetUrl = `${baseUrl}/reset-password?token=${resetToken}&type=${userType}`;
+    
+    console.log(`🔗 Final password reset URL: ${resetUrl}`);
     
     const userTypeLabel = {
       entrepreneur: 'Empreendedor',
@@ -252,13 +274,31 @@ export class EmailService {
     const userTypeLabel = userType === 'entrepreneur' ? 'Empreendedor' : 'Investidor';
     
     // Build confirmation URL based on environment
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
-      : (process.env.NODE_ENV === 'production' 
-          ? 'https://your-domain.com' 
-          : 'http://localhost:5000');
+    let baseUrl: string;
+    
+    console.log('🌐 Environment detection for email confirmation URL:');
+    console.log(`REPLIT_DOMAINS: ${process.env.REPLIT_DOMAINS || 'undefined'}`);
+    console.log(`REPLIT_DEV_DOMAIN: ${process.env.REPLIT_DEV_DOMAIN || 'undefined'}`);
+    console.log(`NODE_ENV: ${process.env.NODE_ENV || 'undefined'}`);
+    
+    if (process.env.REPLIT_DOMAINS) {
+      // Production environment - use the first domain from REPLIT_DOMAINS
+      const domains = process.env.REPLIT_DOMAINS.split(',');
+      baseUrl = `https://${domains[0].trim()}`;
+      console.log(`✅ Using production domain: ${baseUrl}`);
+    } else if (process.env.REPLIT_DEV_DOMAIN) {
+      // Development environment on Replit
+      baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+      console.log(`🔧 Using development domain: ${baseUrl}`);
+    } else {
+      // Local development
+      baseUrl = 'http://localhost:5000';
+      console.log(`💻 Using local domain: ${baseUrl}`);
+    }
     
     const confirmationUrl = `${baseUrl}/confirm-email?token=${confirmationToken}&type=${userType}`;
+    
+    console.log(`🔗 Final email confirmation URL: ${confirmationUrl}`);
 
     const html = `
       <!DOCTYPE html>
