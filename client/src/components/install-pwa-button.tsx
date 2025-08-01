@@ -43,9 +43,18 @@ export function InstallPWAButton() {
     // Always show the banner initially (with timeout to ensure page is loaded)
     const timeoutId = setTimeout(() => {
       if (!isInstalled) {
+        console.log('Force showing install banner after timeout');
         setShowInstallBanner(true);
+        
+        // Try to trigger beforeinstallprompt detection
+        const checkInstallability = () => {
+          if ('serviceWorker' in navigator && 'PushManager' in window) {
+            console.log('PWA requirements detected, app should be installable');
+          }
+        };
+        checkInstallability();
       }
-    }, 3000);
+    }, 2000);
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -58,27 +67,77 @@ export function InstallPWAButton() {
   }, [isInstalled]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      // Fallback for browsers that don't support beforeinstallprompt
-      // Show manual instructions
-      showManualInstallInstructions();
-      return;
+    console.log('Install button clicked, deferredPrompt available:', !!deferredPrompt);
+    
+    // First, try to use the native install prompt if available
+    if (deferredPrompt) {
+      try {
+        console.log('Using deferred prompt for installation');
+        // Show the install prompt
+        await deferredPrompt.prompt();
+        
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+          setIsInstalled(true);
+        } else {
+          console.log('User dismissed the install prompt');
+        }
+        
+        setDeferredPrompt(null);
+        setShowInstallBanner(false);
+        return;
+      } catch (error) {
+        console.log('Error showing install prompt:', error);
+      }
     }
 
-    // Show the install prompt
-    deferredPrompt.prompt();
+    // Try to detect if running in a supported browser and trigger native install
+    const isChrome = /Chrome/.test(navigator.userAgent);
+    const isEdge = /Edge/.test(navigator.userAgent);
+    const isSamsung = /SamsungBrowser/.test(navigator.userAgent);
     
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
+    if (isChrome || isEdge || isSamsung) {
+      console.log('Supported browser detected, should show native install prompt');
+      
+      // For Chrome/Edge, the beforeinstallprompt should have fired
+      // If it didn't, it might be because the app is already installed or doesn't meet criteria
+      if ('getInstalledRelatedApps' in navigator) {
+        try {
+          const relatedApps = await (navigator as any).getInstalledRelatedApps();
+          if (relatedApps.length > 0) {
+            alert('O aplicativo já parece estar instalado no seu dispositivo.');
+            return;
+          }
+        } catch (error) {
+          console.log('getInstalledRelatedApps not supported');
+        }
+      }
+      
+      // Try to manually trigger the install prompt by dispatching the event
+      try {
+        const beforeInstallPromptEvent = new Event('beforeinstallprompt');
+        window.dispatchEvent(beforeInstallPromptEvent);
+        console.log('Manually dispatched beforeinstallprompt event');
+        
+        // Wait a bit and check if prompt was captured
+        setTimeout(() => {
+          if (!deferredPrompt) {
+            console.log('Native install not available, showing manual instructions');
+            showManualInstallInstructions();
+          }
+        }, 500);
+        return;
+      } catch (error) {
+        console.log('Could not dispatch beforeinstallprompt event');
+      }
     }
-    
-    setDeferredPrompt(null);
-    setShowInstallBanner(false);
+
+    // Final fallback: Show manual instructions
+    console.log('Showing manual install instructions as fallback');
+    showManualInstallInstructions();
   };
 
   const showManualInstallInstructions = () => {
