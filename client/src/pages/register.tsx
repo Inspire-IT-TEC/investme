@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -273,9 +274,8 @@ export default function Register() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="senha">Senha *</Label>
-                    <Input
+                    <PasswordInput
                       id="senha"
-                      type="password"
                       value={formData.senha}
                       onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
                       placeholder="Mínimo 8 caracteres"
@@ -288,9 +288,8 @@ export default function Register() {
 
                   <div>
                     <Label htmlFor="confirmSenha">Confirmar Senha *</Label>
-                    <Input
+                    <PasswordInput
                       id="confirmSenha"
-                      type="password"
                       value={formData.confirmSenha}
                       onChange={(e) => setFormData({ ...formData, confirmSenha: e.target.value })}
                       placeholder="Confirme sua senha"

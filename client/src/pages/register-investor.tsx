@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { TrendingUp, ArrowLeft, Loader2 } from "lucide-react";
@@ -389,9 +390,8 @@ export default function RegisterInvestor() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="senha">Senha *</Label>
-                    <Input
+                    <PasswordInput
                       id="senha"
-                      type="password"
                       value={formData.senha}
                       onChange={(e) => handleInputChange("senha", e.target.value)}
                       className={errors.senha ? "border-red-500" : ""}
@@ -403,9 +403,8 @@ export default function RegisterInvestor() {
 
                   <div>
                     <Label htmlFor="confirmarSenha">Confirmar Senha *</Label>
-                    <Input
+                    <PasswordInput
                       id="confirmarSenha"
-                      type="password"
                       value={formData.confirmarSenha}
                       onChange={(e) => handleInputChange("confirmarSenha", e.target.value)}
                       className={errors.confirmarSenha ? "border-red-500" : ""}

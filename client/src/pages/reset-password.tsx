@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -193,9 +194,8 @@ export default function ResetPassword() {
                   <Label htmlFor="newPassword" className={`font-medium ${isAdmin ? 'text-white' : 'text-white'}`}>
                     Nova Senha
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="newPassword"
-                    type="password"
                     value={formData.newPassword}
                     onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                     placeholder="Digite sua nova senha"
@@ -213,9 +213,8 @@ export default function ResetPassword() {
                   <Label htmlFor="confirmPassword" className={`font-medium ${isAdmin ? 'text-white' : 'text-white'}`}>
                     Confirmar Nova Senha
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="confirmPassword"
-                    type="password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     placeholder="Confirme sua nova senha"

@@ -4,6 +4,10 @@
 InvestMe is a comprehensive business platform connecting entrepreneurs with investors through three specialized portals: Entrepreneur Portal, Investor Portal, and Administrative Backoffice. The system facilitates company registration, credit requests, investment analysis, and business networking with complete mobile responsiveness.
 
 ## Recent Changes
+- **2025-02-01**: ✅ Implemented password visibility toggle functionality across all login and registration forms
+- **2025-02-01**: ✅ Created reusable PasswordInput component with eye icon toggle for show/hide password
+- **2025-02-01**: ✅ Applied PasswordInput to all authentication pages: login, register, backoffice login, reset password
+- **2025-02-01**: ✅ Enhanced user experience with consistent password field behavior across the platform
 - **2025-01-31**: ✅ Implemented business logic validation: investors must have approved companies to analyze credit requests
 - **2025-01-31**: ✅ Added backend validation in accept endpoint to check for approved company status
 - **2025-01-31**: ✅ Enhanced frontend with visual alerts when investors lack required company approval
