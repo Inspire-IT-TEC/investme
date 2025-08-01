@@ -268,6 +268,14 @@ export default function Login() {
                   Esqueceu sua senha?
                 </Link>
               </p>
+              <p className="text-sm text-white/80">
+                <Link 
+                  href="/" 
+                  className="font-medium text-white/60 hover:text-white/80 hover:underline transition-colors"
+                >
+                  ← Voltar ao site principal
+                </Link>
+              </p>
             </div>
 
 
