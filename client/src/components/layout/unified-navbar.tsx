@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +9,7 @@ import {
   TrendingUp, 
   Users, 
   Settings,
-  User,
-  Download,
-  Smartphone
+  User
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
@@ -25,27 +23,6 @@ interface UnifiedNavbarProps {
 export default function UnifiedNavbar({ userType, userName, isCompanyApproved = true }: UnifiedNavbarProps) {
   const [, setLocation] = useLocation();
   const { logout } = useAuth();
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallButton, setShowInstallButton] = useState(false);
-
-  useEffect(() => {
-    const handler = (e: any) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Save the event so it can be triggered later
-      setDeferredPrompt(e);
-      setShowInstallButton(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setShowInstallButton(false);
-    }
-
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
 
   // Fetch unread messages count
   const { data: unreadCount } = useQuery({
@@ -68,28 +45,19 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
     setLocation("/");
   };
 
-  const handleInstallApp = async () => {
-    if (!deferredPrompt) return;
-
-    // Show the install prompt
-    deferredPrompt.prompt();
-    
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setShowInstallButton(false);
-    }
-    
-    // Clear the deferredPrompt
-    setDeferredPrompt(null);
-  };
-
   const getNavItems = () => {
     if (userType === "investor") {
-      return [];
+      return [
+        { key: "dashboard", label: "Dashboard", path: "/investor/dashboard", icon: TrendingUp },
+        { key: "network", label: "Rede", path: "/investor/network", icon: Users },
+        { key: "messages", label: "Mensagens", path: "/investor/messages", icon: MessageCircle, badge: unreadCount > 0 ? unreadCount : undefined }
+      ];
     } else {
-      return [];
+      return [
+        { key: "dashboard", label: "Dashboard", path: "/dashboard", icon: Building2 },
+        { key: "network", label: "Rede", path: "/network", icon: Users },
+        { key: "messages", label: "Mensagens", path: "/messages", icon: MessageCircle, badge: unreadCount > 0 ? unreadCount : undefined }
+      ];
     }
   };
 
@@ -140,18 +108,6 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
 
           {/* User Info and Actions */}
           <div className="flex items-center space-x-3">
-            {showInstallButton && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20 hidden sm:flex"
-                onClick={handleInstallApp}
-                title="Adicionar à tela inicial"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                <span className="hidden md:inline">Instalar App</span>
-              </Button>
-            )}
             <span className="text-sm opacity-90">Olá, {userName}</span>
             <Button
               variant="ghost"

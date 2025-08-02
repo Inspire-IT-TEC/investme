@@ -131,7 +131,6 @@ export default function UserTypeSelection() {
                   <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                     {[
                       { icon: BarChart3, text: "Ver análises de crédito" },
-                      { icon: Shield, text: "Investimentos seguros" },
                       { icon: Star, text: "Avaliar empresas" },
                       { icon: Users, text: "Rede de oportunidades" }
                     ].map((item, index) => (
