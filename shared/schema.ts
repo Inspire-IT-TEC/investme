@@ -66,7 +66,7 @@ export const investors = pgTable("investors", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Users table (mantido para compatibilidade - será removido depois)
+// Users table - TABELA PRINCIPAL UNIFICADA
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   cpf: text("cpf").notNull().unique(),
@@ -74,6 +74,8 @@ export const users = pgTable("users", {
   nomeCompleto: text("nome_completo").notNull(),
   email: text("email").notNull().unique(),
   senha: text("senha").notNull(),
+  telefone: text("telefone"),
+  dataNascimento: text("data_nascimento"),
   cep: text("cep").notNull(),
   rua: text("rua").notNull(),
   numero: text("numero").notNull(),
@@ -81,13 +83,30 @@ export const users = pgTable("users", {
   bairro: text("bairro").notNull(),
   cidade: text("cidade").notNull(),
   estado: text("estado").notNull(),
-  tipo: text("tipo").notNull().default("entrepreneur"), // entrepreneur, investor
-  status: text("status").notNull().default("ativo"), // ativo, pendente, inativo
-  telefone: text("telefone"),
+  
+  // NOVO SISTEMA: Suporte a múltiplos tipos
+  userTypes: text("user_types").array().notNull().default([]), // ["entrepreneur", "investor"] - pode ter ambos
+  
+  // Campos para investidores (quando aplicável)
+  profissao: text("profissao"),
+  rendaMensal: decimal("renda_mensal", { precision: 15, scale: 2 }),
   limiteInvestimento: text("limite_investimento"),
-  cadastroAprovado: boolean("cadastro_aprovado").default(false),
+  experienciaInvestimentos: text("experiencia_investimentos"),
+  objetivosInvestimento: text("objetivos_investimento"),
+  
+  // Status geral
+  status: text("status").notNull().default("ativo"), // ativo, pendente, inativo
+  
+  // Campos de aprovação granular - agora por tipo
+  entrepreneurApproved: boolean("entrepreneur_approved").default(false),
+  investorApproved: boolean("investor_approved").default(false),
   emailConfirmado: boolean("email_confirmado").default(false),
   documentosVerificados: boolean("documentos_verificados").default(false),
+  
+  // Campos específicos para investidores
+  rendaComprovada: boolean("renda_comprovada").default(false),
+  perfilInvestidor: boolean("perfil_investidor").default(false),
+  
   aprovadoPor: integer("aprovado_por").references(() => adminUsers.id),
   aprovadoEm: timestamp("aprovado_em"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -139,10 +158,8 @@ export const companies = pgTable("companies", {
   observacoesInternas: text("observacoes_internas"),
   analisadoPor: integer("analisado_por").references(() => adminUsers.id),
   dataAnalise: timestamp("data_analise"),
-  userId: integer("user_id").references(() => users.id),
-  entrepreneurId: integer("entrepreneur_id").references(() => entrepreneurs.id),
-  investorId: integer("investor_id").references(() => investors.id),
-  tipoProprietario: text("tipo_proprietario").notNull().default("empreendedor"), // empreendedor, investidor
+  userId: integer("user_id").notNull().references(() => users.id), // Agora sempre obrigatório
+  ownerType: text("owner_type").notNull().default("entrepreneur"), // entrepreneur, investor
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -284,16 +301,14 @@ export const investorsRelations = relations(investors, ({ many }) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
   companies: many(companies),
+  creditRequests: many(creditRequests),
+  valuations: many(valuations),
 }));
 
 export const companiesRelations = relations(companies, ({ one, many }) => ({
   user: one(users, {
     fields: [companies.userId],
     references: [users.id],
-  }),
-  entrepreneur: one(entrepreneurs, {
-    fields: [companies.entrepreneurId],
-    references: [entrepreneurs.id],
   }),
   shareholders: many(companyShareholders),
   guarantees: many(companyGuarantees),
@@ -378,8 +393,49 @@ export const insertInvestorSchema = createInsertSchema(investors).omit({
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
+  status: true,
+  entrepreneurApproved: true,
+  investorApproved: true,
+  emailConfirmado: true,
+  documentosVerificados: true,
+  rendaComprovada: true,
+  perfilInvestidor: true,
+  aprovadoPor: true,
+  aprovadoEm: true,
   createdAt: true,
   updatedAt: true,
+});
+
+// Schema para cadastro de empreendedor
+export const insertEntrepreneurUserSchema = insertUserSchema.extend({
+  userTypes: z.array(z.string()).default(["entrepreneur"]),
+}).omit({
+  profissao: true,
+  rendaMensal: true,
+  limiteInvestimento: true,
+  experienciaInvestimentos: true,
+  objetivosInvestimento: true,
+});
+
+// Schema para cadastro de investidor
+export const insertInvestorUserSchema = insertUserSchema.extend({
+  userTypes: z.array(z.string()).default(["investor"]),
+  profissao: z.string().optional(),
+  rendaMensal: z.string().optional(),
+  limiteInvestimento: z.string().optional(),
+  experienciaInvestimentos: z.string().optional(),
+  objetivosInvestimento: z.string().optional(),
+});
+
+// Schema para adicionar tipo de usuário existente
+export const addUserTypeSchema = z.object({
+  userType: z.enum(["entrepreneur", "investor"]),
+  // Campos específicos para investidor quando adicionando esse tipo
+  profissao: z.string().optional(),
+  rendaMensal: z.string().optional(),
+  limiteInvestimento: z.string().optional(),
+  experienciaInvestimentos: z.string().optional(),
+  objetivosInvestimento: z.string().optional(),
 });
 
 export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({
@@ -395,7 +451,7 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   analisadoPor: true,
   dataAnalise: true,
   observacoesInternas: true,
-  userId: true, // Omit userId from schema since we use entrepreneurId
+  userId: true, // Omit userId from schema since it's set automatically
 }).extend({
   dataFundacao: z.string().min(1, "Data de fundação é obrigatória").transform((str) => new Date(str)),
   faturamento: z.string().min(1, "Faturamento é obrigatório").transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
@@ -424,7 +480,7 @@ export const editCompanySchema = z.object({
   faturamento: z.string().min(1, "Faturamento é obrigatório"),
   numeroFuncionarios: z.number().min(1, "Número de funcionários é obrigatório"),
   descricaoNegocio: z.string().min(1, "Descrição do negócio é obrigatória"),
-  tipoProprietario: z.string().optional(),
+  ownerType: z.string().optional(),
 });
 
 export const passwordChangeSchema = z.object({
