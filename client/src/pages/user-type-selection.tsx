@@ -16,7 +16,16 @@ export default function UserTypeSelection({
 }: UserTypeSelectionProps) {
   const [, setLocation] = useLocation();
 
-  const userTypes = [
+  const userTypes: Array<{
+    id: string;
+    title: string;
+    description: string;
+    icon: any;
+    features: string[];
+    buttonText: string;
+    route: string;
+    registerRoute: string;
+  }> = [
     {
       id: 'entrepreneur',
       title: 'Empreendedor',
@@ -29,7 +38,8 @@ export default function UserTypeSelection({
         'Gestão de documentos'
       ],
       buttonText: 'Sou Empreendedor',
-      route: '/entrepreneur-register'
+      route: '/dashboard',
+      registerRoute: '/entrepreneur-register'
     },
     {
       id: 'investor',
@@ -43,7 +53,8 @@ export default function UserTypeSelection({
         'Dashboard de investimentos'
       ],
       buttonText: 'Sou Investidor',
-      route: '/investor-register'
+      route: '/investor-dashboard',
+      registerRoute: '/investor-register'
     }
   ];
 
@@ -98,23 +109,35 @@ export default function UserTypeSelection({
                       </li>
                     ))}
                   </ul>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setLocation(type.route);
-                    }}
-                  >
-                    {type.buttonText}
-                  </Button>
+                  <div className="space-y-2">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLocation(type.route);
+                      }}
+                    >
+                      {type.buttonText}
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLocation(type.registerRoute);
+                      }}
+                    >
+                      Cadastrar como {type.title}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
 
-        {/* Login Link */}
-        <div className="text-center">
+        {/* Links */}
+        <div className="text-center space-y-4">
           <p className="text-gray-600 dark:text-gray-300">
             Já tem uma conta?{' '}
             <Button
@@ -123,6 +146,16 @@ export default function UserTypeSelection({
               onClick={() => setLocation('/login')}
             >
               Faça login aqui
+            </Button>
+          </p>
+          
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <Button
+              variant="link"
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-0 h-auto text-sm"
+              onClick={() => setLocation('/backoffice/login')}
+            >
+              Acesso ao Backoffice
             </Button>
           </p>
         </div>
