@@ -4,6 +4,11 @@
 InvestMe is a comprehensive business platform connecting entrepreneurs with investors through three specialized portals: Entrepreneur Portal, Investor Portal, and Administrative Backoffice. The system facilitates company registration, credit requests, investment analysis, and business networking with complete mobile responsiveness.
 
 ## Recent Changes
+- **2025-02-02**: ✅ Configured PWA app icon using AWS S3 image (https://s3.us-east-1.amazonaws.com/doc.investme.com.br/appimages/InvestMe.jpg)
+- **2025-02-02**: ✅ Added comprehensive meta tags for iPhone and Android app icon support
+- **2025-02-02**: ✅ Updated manifest.json with proper PWA icon configuration for all sizes
+- **2025-02-02**: ✅ Removed "Investimentos seguros" text from investor feature list
+- **2025-02-02**: ✅ Removed "Instalar App" button from header navbar (PWA popup remains in corner)
 - **2025-02-01**: ✅ Added "Voltar ao site principal" link to entrepreneur and investor login pages
 - **2025-02-01**: ✅ Implemented navigation consistency across all authentication pages following backoffice pattern
 - **2025-02-01**: ✅ Applied currency masks (R$) to all monetary fields across the platform
