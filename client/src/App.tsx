@@ -9,7 +9,6 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import UserTypeSelection from "@/pages/user-type-selection";
-import UnifiedDashboard from "@/pages/unified-dashboard";
 import RegisterEntrepreneur from "@/pages/register-entrepreneur";
 import RegisterInvestor from "@/pages/register-investor";
 import Dashboard from "@/pages/dashboard-modern";
@@ -50,14 +49,10 @@ import { ConfirmEmailPage } from "@/pages/confirm-email";
 function Router() {
   return (
     <Switch>
-      <Route path="/">{() => <UserTypeSelection />}</Route>
-      <Route path="/user-type-selection">{() => <UserTypeSelection />}</Route>
-      <Route path="/entrepreneur-register" component={RegisterEntrepreneur} />
-      <Route path="/investor-register" component={RegisterInvestor} />
+      <Route path="/" component={UserTypeSelection} />
+      <Route path="/user-type-selection" component={UserTypeSelection} />
       <Route path="/register/entrepreneur" component={RegisterEntrepreneur} />
       <Route path="/register/investor" component={RegisterInvestor} />
-      <Route path="/dashboard" component={UnifiedDashboard} />
-      <Route path="/unified-dashboard" component={UnifiedDashboard} />
       <Route path="/login/entrepreneur" component={Login} />
       <Route path="/login/investor" component={Login} />
       <Route path="/login" component={Login} />

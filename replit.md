@@ -12,18 +12,8 @@ InvestMe is a comprehensive business platform designed to connect entrepreneurs 
 ## System Architecture
 The InvestMe platform is built with a three-portal structure: Entrepreneur Portal (`/entrepreneur-*`), Investor Portal (`/investor-*`), and Backoffice Portal (`/backoffice-*`). The core technology stack includes **React 18 + TypeScript** for the frontend, utilizing Wouter for routing and TanStack Query for data management. The backend is powered by **Express.js + TypeScript** with JWT authentication. **PostgreSQL** serves as the database, managed by Drizzle ORM. The UI is designed with **Tailwind CSS** and **shadcn/ui components**, ensuring a responsive and modern aesthetic.
 
-**MAJOR ARCHITECTURAL CHANGE (Jan 2025)**: **COMPLETED** - Implemented unified user management system where all users are stored in a single `users` table with support for multiple user types (`["entrepreneur", "investor"]` or both). This replaces the previous separate `entrepreneurs` and `investors` tables, with CPF-based duplicate prevention and granular approval tracking per user type.
-
-**Migration Status**: Successfully migrated 8 existing users (6 entrepreneurs, 2 investors) to the new unified system. All existing data preserved and properly mapped. Performance indexes added for optimization.
-
-**New Features**:
-- **Unified Registration**: Users can register as entrepreneur or investor through separate flows (`/entrepreneur-register`, `/investor-register`)
-- **Type Expansion**: Existing users can add additional user types (become both entrepreneur and investor)
-- **Unified Dashboard**: New dashboard (`/unified-dashboard`) that adapts based on user types with role-specific actions
-- **Modern User Type Selection**: Landing page allows users to choose their path with detailed feature explanations
-
 Key architectural decisions include:
-- **Authentication**: JWT-based with unified user system supporting multiple user types, email verification, password reset, and granular approval tracking per user type.
+- **Authentication**: JWT-based with role separation, email verification, password reset, and session management.
 - **Data Management**: Drizzle ORM for all database operations, ensuring type safety and efficient queries.
 - **UI/UX**: Focus on a clean, professional interface with a mobile-first approach. Responsive design is a core principle, featuring collapsible filters for mobile views, 2x2 grid layouts for investor profiles, and optimized typography.
 - **Feature Specifications**:

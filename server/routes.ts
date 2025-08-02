@@ -11,9 +11,6 @@ import path from "path";
 import fs from "fs";
 import { 
   insertUserSchema, 
-  insertEntrepreneurUserSchema,
-  insertInvestorUserSchema,
-  addUserTypeSchema,
   insertAdminUserSchema,
   insertEntrepreneurSchema,
   insertInvestorSchema,
@@ -168,20 +165,20 @@ function authenticateAdminToken(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // NOVO: Entrepreneur Registration Route (sistema unificado)
-  app.post('/api/entrepreneurs/register', async (req, res) => {
+  // User Authentication Routes
+  app.post('/api/auth/register', async (req, res) => {
     try {
-      const userData = insertEntrepreneurUserSchema.parse(req.body);
+      const userData = insertUserSchema.parse(req.body);
       
-      // Check if user already exists by CPF (sistema unificado)
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email já cadastrado' });
+      }
+
       const existingCpf = await storage.getUserByCpf(userData.cpf);
       if (existingCpf) {
         return res.status(400).json({ message: 'CPF já cadastrado' });
-      }
-
-      const existingEmail = await storage.getUserByEmail(userData.email);
-      if (existingEmail) {
-        return res.status(400).json({ message: 'Email já cadastrado' });
       }
 
       // Hash password
@@ -191,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       
       const token = jwt.sign(
-        { id: user.id, email: user.email, type: 'user', userTypes: user.userTypes },
+        { id: user.id, email: user.email, type: 'user' },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
@@ -201,73 +198,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token 
       });
     } catch (error: any) {
-      res.status(400).json({ message: error.message || 'Erro ao criar empreendedor' });
+      res.status(400).json({ message: error.message || 'Erro ao criar usuário' });
     }
   });
 
-  // NOVO: Investor Registration Route (sistema unificado)
+  // Investor Registration Route
   app.post('/api/investors/register', async (req, res) => {
-    try {
-      const userData = insertInvestorUserSchema.parse(req.body);
-      
-      // Check if user already exists by CPF (sistema unificado)
-      const existingCpf = await storage.getUserByCpf(userData.cpf);
-      if (existingCpf) {
-        return res.status(400).json({ message: 'CPF já cadastrado' });
-      }
-
-      const existingEmail = await storage.getUserByEmail(userData.email);
-      if (existingEmail) {
-        return res.status(400).json({ message: 'Email já cadastrado' });
-      }
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(userData.senha, SALT_ROUNDS);
-      userData.senha = hashedPassword;
-
-      const user = await storage.createUser(userData);
-      
-      const token = jwt.sign(
-        { id: user.id, email: user.email, type: 'user', userTypes: user.userTypes },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      res.status(201).json({ 
-        user: { ...user, senha: undefined }, 
-        token 
-      });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message || 'Erro ao criar investidor' });
-    }
-  });
-
-  // NOVO: Add User Type Route (para usuários que querem ser ambos)
-  app.post('/api/users/:id/add-type', authenticateToken, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.id);
-      const { userType, ...additionalData } = addUserTypeSchema.parse(req.body);
-      
-      // Verificar se é o próprio usuário ou admin
-      if (req.user.id !== userId && req.user.type !== 'admin') {
-        return res.status(403).json({ message: 'Acesso negado' });
-      }
-
-      const updatedUser = await storage.addUserType(userId, userType, additionalData);
-      if (!updatedUser) {
-        return res.status(404).json({ message: 'Usuário não encontrado' });
-      }
-
-      res.json({ 
-        user: { ...updatedUser, senha: undefined }
-      });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message || 'Erro ao adicionar tipo de usuário' });
-    }
-  });
-
-  // LEGADO: Mantido para compatibilidade (será removido)
-  app.post('/api/investors/register-legacy', async (req, res) => {
     try {
       const investorData = insertInvestorSchema.parse({
         ...req.body,
@@ -483,7 +419,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // NOVO: Login unificado (suporta todos os tipos de usuário)
   app.post('/api/auth/login', async (req, res) => {
     try {
       const { login, senha } = req.body; // login can be email or CPF
@@ -497,115 +432,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
-      // Check if email is confirmed
-      if (!user.emailConfirmado) {
-        return res.status(401).json({ 
-          message: 'Email não confirmado. Verifique sua caixa de entrada e confirme seu email antes de fazer login.',
-          requiresEmailConfirmation: true,
-          email: user.email
-        });
-      }
-
-      // Check account status
-      if (user.status === 'pendente') {
-        return res.status(401).json({ message: 'Conta aguardando aprovação do backoffice' });
-      }
-
-      if (user.status === 'inativo') {
-        return res.status(401).json({ message: 'Conta inativa. Entre em contato com o suporte.' });
-      }
-
       const isValidPassword = await bcrypt.compare(senha, user.senha);
       if (!isValidPassword) {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
-      // Verificar se pelo menos um tipo foi aprovado
-      const hasApprovedType = (user.userTypes?.includes('entrepreneur') && user.entrepreneurApproved) ||
-                             (user.userTypes?.includes('investor') && user.investorApproved);
-
-      if (!hasApprovedType) {
-        return res.status(401).json({ message: 'Conta aguardando aprovação do backoffice' });
-      }
-
       const token = jwt.sign(
-        { 
-          id: user.id, 
-          email: user.email, 
-          type: 'user',
-          userTypes: user.userTypes,
-          entrepreneurApproved: user.entrepreneurApproved,
-          investorApproved: user.investorApproved
-        },
+        { id: user.id, email: user.email, type: 'user' },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
 
       res.json({ 
         user: { ...user, senha: undefined }, 
-        token,
-        userTypes: user.userTypes
+        token 
       });
     } catch (error: any) {
-      console.error('Erro no login:', error);
       res.status(400).json({ message: error.message || 'Erro no login' });
-    }
-  });
-
-  // Dashboard stats route
-  app.get('/api/dashboard/stats', authenticateToken, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: 'Usuário não encontrado' });
-      }
-
-      // Get stats based on user types
-      const stats = {
-        companies: 0,
-        creditRequests: 0,
-        investments: 0,
-        networkConnections: 0
-      };
-
-      // If user is entrepreneur, get company stats
-      if (user.userTypes?.includes('entrepreneur')) {
-        const companies = await storage.getCompaniesByUserId(userId);
-        stats.companies = companies.length;
-        
-        const creditRequests = await storage.getCreditRequestsByUserId(userId);
-        stats.creditRequests = creditRequests.length;
-      }
-
-      // If user is investor, get investment stats
-      if (user.userTypes?.includes('investor')) {
-        // Add investor-specific stats here when needed
-        stats.investments = 0; // Placeholder
-      }
-
-      res.json(stats);
-    } catch (error: any) {
-      console.error('Error fetching dashboard stats:', error);
-      res.status(500).json({ message: 'Erro ao buscar estatísticas' });
-    }
-  });
-
-  // Auth user route
-  app.get('/api/auth/me', authenticateToken, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: 'Usuário não encontrado' });
-      }
-
-      res.json({ ...user, senha: undefined });
-    } catch (error: any) {
-      console.error('Error fetching user:', error);
-      res.status(500).json({ message: 'Erro ao buscar usuário' });
     }
   });
 

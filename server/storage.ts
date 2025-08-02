@@ -58,16 +58,14 @@ import { db } from "./db";
 import { eq, and, desc, like, ilike, sql, or, lt, ne, count, asc, isNull, isNotNull, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
-  // User methods - UNIFICADO
+  // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByCpf(cpf: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
-  addUserType(userId: number, userType: "entrepreneur" | "investor", additionalData?: Partial<InsertUser>): Promise<User | undefined>;
-  updateUserApproval(id: number, userType: "entrepreneur" | "investor", approved: boolean, adminId: number): Promise<User | undefined>;
 
-  // DEPRECADO - mantido para compatibilidade temporária
+  // Entrepreneur methods
   getEntrepreneur(id: number): Promise<Entrepreneur | undefined>;
   getEntrepreneurByEmail(email: string): Promise<Entrepreneur | undefined>;
   getEntrepreneurByCpf(cpf: string): Promise<Entrepreneur | undefined>;
@@ -213,42 +211,7 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // NOVO: User methods unificados
-  async addUserType(userId: number, userType: "entrepreneur" | "investor", additionalData?: Partial<InsertUser>): Promise<User | undefined> {
-    // Busca o usuário atual
-    const currentUser = await this.getUser(userId);
-    if (!currentUser) return undefined;
-
-    // Verifica se já tem esse tipo
-    if (currentUser.userTypes?.includes(userType)) {
-      return currentUser; // Já tem esse tipo
-    }
-
-    // Adiciona o novo tipo
-    const newUserTypes = [...(currentUser.userTypes || []), userType];
-    
-    const updateData: Partial<InsertUser> = {
-      userTypes: newUserTypes,
-      ...additionalData
-    };
-
-    return await this.updateUser(userId, updateData);
-  }
-
-  async updateUserApproval(id: number, userType: "entrepreneur" | "investor", approved: boolean, adminId: number): Promise<User | undefined> {
-    const approvalField = userType === "entrepreneur" ? "entrepreneurApproved" : "investorApproved";
-    
-    const updateData: any = {
-      [approvalField]: approved,
-      aprovadoPor: adminId,
-      aprovadoEm: approved ? new Date() : null,
-      updatedAt: new Date()
-    };
-
-    return await this.updateUser(id, updateData);
-  }
-
-  // User methods básicos
+  // User methods
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
@@ -407,7 +370,13 @@ export class DatabaseStorage implements IStorage {
   async getCompanies(userId?: number, status?: string, search?: string): Promise<Company[]> {
     const conditions = [];
     if (userId) {
-      conditions.push(eq(companies.userId, userId));
+      // Support both old userId and new entrepreneurId structure
+      conditions.push(
+        or(
+          eq(companies.userId, userId),
+          eq(companies.entrepreneurId, userId)
+        )
+      );
     }
     if (status) conditions.push(eq(companies.status, status));
     if (search) {
@@ -457,7 +426,12 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(companies)
-      .where(eq(companies.userId, userId))
+      .where(
+        or(
+          eq(companies.userId, userId),
+          eq(companies.entrepreneurId, userId)
+        )
+      )
       .orderBy(desc(companies.createdAt));
   }
 
@@ -567,7 +541,13 @@ export class DatabaseStorage implements IStorage {
         companyRazaoSocial: companies.razaoSocial,
         companyCnpj: companies.cnpj,
         companyStatus: companies.status,
-        // Removido investorId - não existe mais na nova estrutura
+        investorId: creditRequests.investorId,
+        // Include approving investor company name if available
+        approvingCompanyName: sql<string>`CASE 
+          WHEN ${creditRequests.investorId} IS NOT NULL THEN 
+            (SELECT c.razao_social FROM companies c WHERE c.investor_id = ${creditRequests.investorId} LIMIT 1)
+          ELSE NULL 
+        END`.as('approvingCompanyName')
       })
       .from(creditRequests)
       .leftJoin(companies, eq(creditRequests.companyId, companies.id))
@@ -952,6 +932,7 @@ export class DatabaseStorage implements IStorage {
         .update(creditRequests)
         .set({
           status: 'na_rede',
+          investorId: null,
           dataAceite: null,
           dataLimiteAnalise: null,
           updatedAt: new Date()
@@ -983,16 +964,21 @@ export class DatabaseStorage implements IStorage {
       })
       .from(creditRequests)
       .leftJoin(companies, eq(creditRequests.companyId, companies.id))
-      .where(eq(creditRequests.status, status))
+      .where(
+        and(
+          eq(creditRequests.investorId, investorId),
+          eq(creditRequests.status, status)
+        )
+      )
       .orderBy(desc(creditRequests.createdAt));
     
     console.log(`Encontradas ${result.length} solicitações`);
     return result;
   }
 
-  // NOVO: Admin investor management methods - sistema unificado
+  // Admin investor management methods
   async getInvestors(status?: string): Promise<any[]> {
-    // Get investors from the unified users table
+    // Get investors from the users table (newly registered)
     let userInvestors = await db
       .select({
         id: users.id,
@@ -1002,19 +988,19 @@ export class DatabaseStorage implements IStorage {
         rg: users.rg,
         telefone: users.telefone,
         limiteInvestimento: users.limiteInvestimento,
-        cadastroAprovado: users.investorApproved, // Nova coluna
+        cadastroAprovado: users.cadastroAprovado,
         emailConfirmado: users.emailConfirmado,
         documentosVerificados: users.documentosVerificados,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
         source: sql<string>`'users'`.as('source'),
         status: sql<string>`CASE 
-          WHEN ${users.investorApproved} = true THEN 'ativo'
+          WHEN ${users.cadastroAprovado} = true THEN 'ativo'
           ELSE 'pendente'
         END`.as('status')
       })
       .from(users)
-      .where(sql`'investor' = ANY(${users.userTypes})`) // Novo sistema de tipos
+      .where(eq(users.tipo, 'investor'))
       .orderBy(desc(users.createdAt));
 
     // Get investors from the investors table (approved and active)
@@ -1161,7 +1147,7 @@ export class DatabaseStorage implements IStorage {
         companyCnpj: companies.cnpj,
         companyStatus: companies.status,
         companyId: companies.id,
-        // Removido investorId - campo não existe mais
+        investorId: creditRequests.investorId,
       })
       .from(creditRequests)
       .leftJoin(companies, eq(creditRequests.companyId, companies.id))
@@ -1241,8 +1227,7 @@ export class DatabaseStorage implements IStorage {
   async getUsersByTypeAndStatus(tipo?: string, status?: string): Promise<any[]> {
     const conditions = [];
     if (tipo) {
-      // NOVO: Sistema unificado - busca por tipo no array
-      conditions.push(sql`${tipo} = ANY(${users.userTypes})`);
+      conditions.push(eq(users.tipo, tipo));
     }
     if (status) {
       conditions.push(eq(users.status, status));
@@ -1528,7 +1513,8 @@ export class DatabaseStorage implements IStorage {
         descricaoNegocio: companies.descricaoNegocio,
         images: companies.images,
         userId: companies.userId,
-        ownerType: companies.ownerType
+        entrepreneurId: companies.entrepreneurId,
+        investorId: companies.investorId
       })
       .from(companies)
       .where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0])
