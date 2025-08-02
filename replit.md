@@ -1,169 +1,7 @@
-# InvestMe Platform - Project Documentation
+# InvestMe Platform
 
-## Project Overview
-InvestMe is a comprehensive business platform connecting entrepreneurs with investors through three specialized portals: Entrepreneur Portal, Investor Portal, and Administrative Backoffice. The system facilitates company registration, credit requests, investment analysis, and business networking with complete mobile responsiveness.
-
-## Recent Changes
-- **2025-02-02**: ✅ Configured PWA app icon using AWS S3 image (https://s3.us-east-1.amazonaws.com/doc.investme.com.br/appimages/InvestMe.jpg)
-- **2025-02-02**: ✅ Added comprehensive meta tags for iPhone and Android app icon support
-- **2025-02-02**: ✅ Updated manifest.json with proper PWA icon configuration for all sizes
-- **2025-02-02**: ✅ Removed "Investimentos seguros" text from investor feature list
-- **2025-02-02**: ✅ Removed "Instalar App" button from header navbar (PWA popup remains in corner)
-- **2025-02-01**: ✅ Added "Voltar ao site principal" link to entrepreneur and investor login pages
-- **2025-02-01**: ✅ Implemented navigation consistency across all authentication pages following backoffice pattern
-- **2025-02-01**: ✅ Applied currency masks (R$) to all monetary fields across the platform
-- **2025-02-01**: ✅ Enhanced investor company registration, investor registration, and company edit forms with currency formatting
-- **2025-02-01**: ✅ Implemented password visibility toggle functionality across all login and registration forms
-- **2025-02-01**: ✅ Created reusable PasswordInput component with eye icon toggle for show/hide password
-- **2025-02-01**: ✅ Applied PasswordInput to all authentication pages: login, register, backoffice login, reset password
-- **2025-02-01**: ✅ Enhanced user experience with consistent password field behavior across the platform
-- **2025-01-31**: ✅ Implemented business logic validation: investors must have approved companies to analyze credit requests
-- **2025-01-31**: ✅ Added backend validation in accept endpoint to check for approved company status
-- **2025-01-31**: ✅ Enhanced frontend with visual alerts when investors lack required company approval
-- **2025-01-31**: ✅ Disabled accept buttons with tooltips when company requirements not met
-- **2025-01-31**: ✅ Improved company status alert design with better color contrast (amber palette)
-- **2025-01-31**: ✅ Fixed dashboard click behavior: credit requests now open modals instead of redirecting to network page
-- **2025-01-31**: ✅ Updated "Ver Todas" button to redirect to correct credit requests page (/investor/credit-requests)
-- **2025-01-31**: ✅ Fixed "Ver Mensagens" link in investor dashboard to redirect to investor messages instead of entrepreneur messages
-- **2025-01-31**: ✅ Fixed email confirmation URLs to use correct Replit domain instead of localhost
-- **2025-01-31**: ✅ Enhanced environment detection for production vs development URL generation in email service
-- **2025-01-31**: ✅ Implemented complete PWA (Progressive Web App) functionality with automatic installation
-- **2025-01-31**: ✅ Added service worker for offline caching and improved performance
-- **2025-01-31**: ✅ Created InstallPWAButton component with smart detection for mobile devices
-- **2025-01-31**: ✅ Enhanced manifest.json with comprehensive PWA configuration and shortcuts
-- **2025-01-31**: ✅ Configured Express server to properly serve service worker and manifest files
-- **2025-01-31**: ✅ Fixed investor profile edit page data loading and save errors with proper numeric field handling
-- **2025-01-31**: ✅ Removed duplicate endpoints causing conflicts in investor profile management
-- **2025-01-31**: ✅ Implemented proper validation for decimal fields (rendaMensal) to prevent SQL errors
-- **2025-01-31**: ✅ Implemented credit request details modal for investor profile with complete document display
-- **2025-01-31**: ✅ Added documentos section to investor credit request modal with file icons and download functionality  
-- **2025-01-31**: ✅ Fixed getCreditRequestsByInvestor method to include documentos field for analysis workflow
-- **2025-01-31**: ✅ Fixed missing documentos field in admin credit requests endpoint
-- **2025-01-31**: ✅ Added documentos field to getCreditRequests query in both conditional and non-conditional branches
-- **2025-01-31**: ✅ Enhanced credit request details modal in admin panel to show complete information
-- **2025-01-31**: ✅ Added comprehensive view with company info, request details, finalidade, and attached documents
-- **2025-01-31**: ✅ Implemented document download functionality with file type indicators
-- **2025-01-31**: ✅ Fixed admin dashboard pending approvals count by correcting query endpoints 
-- **2025-01-31**: ✅ Corrected pendingEntrepreneurs query to use /api/admin/entrepreneurs instead of /api/admin/users
-- **2025-01-31**: ✅ Dashboard now accurately shows 3 entrepreneurs + 1 investor = 4 pending approvals
-- **2025-01-31**: ✅ Fixed critical crash in pending profile changes approval system with improved error handling
-- **2025-01-31**: ✅ Corrected tab filtering to show proper data separation (pending/approved/rejected changes)
-- **2025-01-31**: ✅ Added back button to dashboard navigation in pending changes page
-- **2025-01-31**: ✅ Enhanced reviewPendingProfileChange method with detailed logging and validation
-- **2025-01-31**: ✅ Completed pending profile changes system for entrepreneurs with admin approval workflow
-- **2025-01-31**: ✅ Created pendingProfileChanges table and backend endpoints for change management
-- **2025-01-31**: ✅ Built /backoffice/pending-changes page with approval/rejection interface and user feedback
-- **2025-01-31**: ✅ Fixed API call syntax errors in frontend mutations for proper request formatting
-- **2025-01-31**: ✅ Implemented credit request editing functionality with document management
-- **2025-01-31**: ✅ Added PUT /api/credit-requests/:id endpoint for editing solicitações
-- **2025-01-31**: ✅ Added DELETE /api/credit-requests/:id/documents endpoint for removing documents
-- **2025-01-31**: ✅ Created comprehensive edit modal with form validation and file upload/removal
-- **2025-01-31**: ✅ Editing only allowed for requests with status 'na_rede' (not yet in analysis)
-- **2025-01-31**: ✅ Full document management: view, download, remove existing, upload new files
-- **2025-01-31**: ✅ Implemented automatic data refresh system for entrepreneur portal navigation
-- **2025-01-31**: ✅ Created useEntrepreneurNavigation hook to invalidate TanStack Query caches when navigating
-- **2025-01-31**: ✅ All entrepreneur portal pages now automatically reload data when accessed from sidebar
-- **2025-01-31**: ✅ Fixed "Ver Detalhes" modal in credit requests with complete information display
-- **2025-01-31**: ✅ Corrected credit request API to return all necessary fields (prazoMeses, finalidade, etc.)
-- **2025-01-31**: ✅ Fixed entrepreneur profile endpoint to use entrepreneurs table instead of users table
-- **2025-01-30**: ✅ Enhanced visual design of company cards in entrepreneur details modal
-- **2025-01-30**: ✅ Added color-coded status badges (green for approved, red for rejected, yellow for pending)
-- **2025-01-30**: ✅ Improved spacing and typography in company information display
-- **2025-01-30**: ✅ Fixed entrepreneur granular approval system in backoffice by removing duplicate endpoint
-- **2025-01-30**: ✅ Corrected entrepreneur approval to use entrepreneurs table instead of users table
-- **2025-01-30**: ✅ Added getEntrepreneur and updateEntrepreneur methods to storage interface
-- **2025-01-30**: ✅ Implemented AWS S3 integration for credit request document uploads
-- **2025-01-30**: ✅ Created separate S3 multer configuration for documents (PDF, DOC, DOCX, images)
-- **2025-01-30**: ✅ Updated credit request endpoint to store documents in S3 bucket doc.investme.com.br/credit-documents/
-- **2025-01-30**: ✅ Implemented automatic data refresh system for backoffice navigation
-- **2025-01-30**: ✅ Created useBackofficeNavigation hook to invalidate caches when navigating between admin pages
-- **2025-01-30**: ✅ All backoffice pages now automatically reload data when accessed from sidebar navigation
-- **2025-01-30**: ✅ Implemented AWS S3 integration for company image uploads using doc.investme.com.br bucket
-- **2025-01-30**: ✅ Updated company image upload endpoint to store files in S3 instead of local storage
-- **2025-01-30**: ✅ Fixed entrepreneur management page endpoints and added missing address fields
-- **2025-01-30**: ✅ Corrected companies query to filter by entrepreneurId for proper data isolation
-- **2025-01-30**: ✅ Enhanced getEntrepreneurs method to include complete address information
-- **2025-01-30**: ✅ Fixed email confirmation URLs to use correct Replit domain instead of localhost
-- **2025-01-30**: ✅ Activated real AWS SES email delivery for all email types (confirmation, password reset)
-- **2025-01-30**: ✅ Fixed error message display across all authentication pages to show user-friendly messages instead of raw JSON
-- **2025-01-30**: Enhanced error handling in backoffice login, forgot password, reset password, and registration pages
-- **2025-01-30**: ✅ All mutation error responses now properly throw parsed error data for consistent error display
-- **2025-01-30**: ✅ Email confirmation system fully implemented with mandatory verification before login
-- **2025-01-30**: Updated registration flows to automatically send confirmation emails for entrepreneurs and investors
-- **2025-01-30**: Enhanced login process to block access until email is confirmed with user-friendly error handling
-- **2025-01-30**: Created dedicated confirmation page with token validation and resend functionality
-- **2025-01-30**: ✅ AWS SES integration fully tested and validated with real email sending capability
-- **2025-01-30**: ✅ Real email sending confirmed working with MessageId tracking for all email types
-- **2025-01-30**: Finalized dual-mode email system: simulation for development, real AWS SES for production
-- **2025-01-30**: Confirmed email verification in AWS console - system production-ready
-- **2025-01-29**: Configured email service FROM address to suporte@investme.com.br
-- **2025-01-29**: Completed password recovery system with AWS SES integration and development fallback
-- **2025-01-29**: Implemented password reset tokens with 1-hour expiration and secure email verification
-- **2025-01-24**: Implemented collapsible filters for mobile network pages (entrepreneur and investor)
-- **2025-01-24**: Enhanced mobile responsiveness for investor profile navigation with 2x2 grid layout
-- **2025-01-24**: Fixed card headers and button layouts for better mobile experience
-- **2025-01-24**: Added responsive typography and spacing throughout the platform
-- **2025-01-23**: Completed Instagram-style image galleries for company profiles
-- **2025-01-23**: Integrated real-time messaging system between investors and entrepreneurs
-- **2025-01-22**: Fixed credit request analysis workflow with proper cache invalidation
-
-## Architecture
-
-### Technology Stack
-- **Frontend**: React 18 + TypeScript, Wouter routing, TanStack Query
-- **Backend**: Express.js + TypeScript, JWT authentication
-- **Database**: PostgreSQL with Drizzle ORM
-- **UI**: Tailwind CSS + shadcn/ui components
-- **Mobile**: Responsive design with collapsible navigation
-
-### Three-Portal Structure
-1. **Entrepreneur Portal** (`/entrepreneur-*`) - Company management and credit requests
-2. **Investor Portal** (`/investor-*`) - Investment analysis and networking
-3. **Backoffice Portal** (`/backoffice-*`) - Administrative oversight
-
-## Key Features Implemented
-
-### Authentication & User Management
-- JWT-based authentication with role separation
-- Email verification and password reset
-- Session management with PostgreSQL store
-
-### Entrepreneur Capabilities
-- Company registration with document upload
-- Credit request submission and tracking
-- Real-time communication with investors
-- Profile and company data management
-
-### Investor Capabilities
-- Investment opportunity browsing with advanced filters
-- "Minhas Análises" workflow for detailed company analysis
-- Real-time messaging with entrepreneurs
-- Instagram-style company gallery viewing
-- Mobile-responsive profile management
-
-### Administrative Features
-- User and company approval workflows
-- System metrics and analytics dashboard
-- Credit request triaging and management
-- Network oversight with comprehensive reporting
-
-### Mobile Responsiveness
-- Collapsible filters for network pages (entrepreneur and investor)
-- 2x2 grid layout for investor profile navigation tabs
-- Responsive card headers and button layouts
-- Touch-friendly interface elements
-- Optimized typography and spacing
-
-## Database Schema
-- Core tables: users, entrepreneurs, investors, companies, credit_requests
-- Supporting: messages, notifications, states, cities
-- Relationships: Users→Roles (1:1), Companies→Entrepreneurs (N:1)
-
-## API Architecture
-- RESTful endpoints with role-based access
-- File upload handling with Multer
-- Real-time messaging endpoints
-- Geographic data (states/cities) integration
+## Overview
+InvestMe is a comprehensive business platform designed to connect entrepreneurs with investors through three specialized portals: Entrepreneur, Investor, and Administrative Backoffice. Its primary purpose is to facilitate company registration, credit requests, investment analysis, and business networking. The platform aims to be fully mobile-responsive and provide a streamlined experience for all users, fostering business growth and investment opportunities.
 
 ## User Preferences
 - Mobile-first responsive design approach
@@ -171,25 +9,26 @@ InvestMe is a comprehensive business platform connecting entrepreneurs with inve
 - Practical functionality over decorative elements
 - Fast, efficient user interactions with minimal loading states
 
-## Development Guidelines
-- Use Drizzle ORM for all database operations
-- Implement proper TypeScript typing throughout
-- Follow shadcn/ui component patterns
-- Maintain consistent responsive breakpoints (sm, md, lg, xl)
-- Test mobile layouts on actual devices when possible
+## System Architecture
+The InvestMe platform is built with a three-portal structure: Entrepreneur Portal (`/entrepreneur-*`), Investor Portal (`/investor-*`), and Backoffice Portal (`/backoffice-*`). The core technology stack includes **React 18 + TypeScript** for the frontend, utilizing Wouter for routing and TanStack Query for data management. The backend is powered by **Express.js + TypeScript** with JWT authentication. **PostgreSQL** serves as the database, managed by Drizzle ORM. The UI is designed with **Tailwind CSS** and **shadcn/ui components**, ensuring a responsive and modern aesthetic.
 
-## Deployment Configuration
-- Configured for Replit Deployments
-- PostgreSQL database integration
-- Environment variable management for secrets
-- Static file serving for uploads and assets
+Key architectural decisions include:
+- **Authentication**: JWT-based with role separation, email verification, password reset, and session management.
+- **Data Management**: Drizzle ORM for all database operations, ensuring type safety and efficient queries.
+- **UI/UX**: Focus on a clean, professional interface with a mobile-first approach. Responsive design is a core principle, featuring collapsible filters for mobile views, 2x2 grid layouts for investor profiles, and optimized typography.
+- **Feature Specifications**:
+    - **Entrepreneur Portal**: Company registration with document upload, credit request submission and tracking, real-time communication, profile and company data management.
+    - **Investor Portal**: Investment opportunity browsing with advanced filters, a "Minhas Análises" workflow for detailed company analysis, real-time messaging, and Instagram-style company gallery viewing.
+    - **Administrative Backoffice**: User and company approval workflows, system metrics, credit request triaging, and network oversight.
+- **File Management**: Integrated AWS S3 for secure and scalable storage of company images and credit request documents.
+- **Email Service**: Dual-mode email system with real AWS SES integration for production and a development fallback, supporting email confirmation and password recovery.
 
-## Next Development Priorities
-1. Advanced filtering and search capabilities
-2. Enhanced reporting and analytics features
-3. Integration with external financial services
-4. Advanced notification system improvements
-5. Performance optimizations for large datasets
-
----
-*This documentation serves as the primary reference for project context, technical decisions, and development guidelines.*
+## External Dependencies
+- **AWS S3**: Used for storing company images and credit request documents (bucket: `doc.investme.com.br`).
+- **AWS SES**: Utilized for sending all platform emails, including confirmations and password resets.
+- **PostgreSQL**: The relational database used for all application data, accessed via Drizzle ORM.
+- **JWT (JSON Web Tokens)**: Used for secure user authentication and authorization.
+- **TanStack Query**: Client-side data fetching, caching, and synchronization library.
+- **Wouter**: A minimalist React routing library.
+- **Tailwind CSS**: A utility-first CSS framework for styling.
+- **shadcn/ui**: A collection of reusable components built with Tailwind CSS.
