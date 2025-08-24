@@ -39,6 +39,7 @@ export default function CompanyRegistration() {
     ebitda: "",
     dividaLiquida: "",
     numeroFuncionarios: "1",
+    valuation: "",
     descricaoNegocio: "",
     images: [] as string[],
   });
@@ -674,7 +675,18 @@ export default function CompanyRegistration() {
                     />
                   </div>
 
-                  <div className="md:col-span-2">
+                  <div>
+                    <Label htmlFor="valuation">Valuation da Empresa (R$)</Label>
+                    <Input
+                      id="valuation"
+                      value={formData.valuation}
+                      onChange={(e) => setFormData({ ...formData, valuation: formatCurrency(e.target.value) })}
+                      placeholder="R$ 5.000.000,00"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Campo opcional - valor estimado da empresa</p>
+                  </div>
+
+                  <div>
                     <Label htmlFor="descricaoNegocio">Descrição do Negócio</Label>
                     <Textarea
                       id="descricaoNegocio"

@@ -1257,8 +1257,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Empresa não encontrada' });
       }
 
-      // Verify ownership
-      if (company.entrepreneurId !== req.user.id) {
+      // Verify ownership (allow access for both entrepreneur and investor)
+      if (company.entrepreneurId !== req.user.id && req.user.tipo !== 'investor') {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
@@ -1311,26 +1311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get individual company details
-  app.get('/api/companies/:id', authenticateToken, async (req: any, res) => {
-    try {
-      const companyId = parseInt(req.params.id);
-      const company = await storage.getCompany(companyId);
-      
-      if (!company) {
-        return res.status(404).json({ message: 'Empresa não encontrada' });
-      }
 
-      // Verify ownership
-      if (company.entrepreneurId !== req.user.id) {
-        return res.status(403).json({ message: 'Acesso negado' });
-      }
-
-      res.json(company);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Erro ao buscar empresa' });
-    }
-  });
 
   // Get company valuations
   app.get('/api/companies/:id/valuations', authenticateToken, async (req: any, res) => {
@@ -1409,6 +1390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dataFundacao: req.body.dataFundacao ? new Date(req.body.dataFundacao) : company.dataFundacao,
         faturamento: req.body.faturamento,
         numeroFuncionarios: req.body.numeroFuncionarios,
+        valuation: req.body.valuation,
         descricaoNegocio: req.body.descricaoNegocio,
         tipoProprietario: req.body.tipoProprietario,
         images: req.body.images || company.images

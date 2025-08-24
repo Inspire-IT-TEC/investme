@@ -421,26 +421,20 @@ export default function Network() {
                       </p>
                     )}
                     
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Faturamento</span>
-                      <span className="font-medium">
-                        R$ {parseFloat(company.faturamento || 0).toLocaleString('pt-BR')}
-                      </span>
-                    </div>
-                    
-                    {company.valuation && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Valuation</span>
-                        <span className="font-medium text-primary">
-                          R$ {parseFloat(company.valuation).toLocaleString('pt-BR')}
-                        </span>
-                      </div>
-                    )}
-                    
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-3 w-3 text-muted-foreground" />
                       <span className="text-muted-foreground">
                         Fundada em {new Date(company.dataFundacao).getFullYear()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Valuation</span>
+                      <span className="font-medium text-primary">
+                        {company.valuation ? 
+                          `R$ ${parseFloat(company.valuation).toLocaleString('pt-BR')}` : 
+                          'Aguardando Valuation'
+                        }
                       </span>
                     </div>
 
@@ -455,10 +449,6 @@ export default function Network() {
                           <span>{company.postsCount || 0}</span>
                         </div>
                       </div>
-                      
-                      <Badge variant="secondary" className="text-xs">
-                        {company.cnaePrincipal}
-                      </Badge>
                     </div>
                   </div>
                 </CardContent>
