@@ -39,6 +39,7 @@ const companySchema = z.object({
   ebitda: z.string().min(1, "EBITDA é obrigatório"),
   dividaLiquida: z.string().min(1, "Dívida líquida é obrigatória"),
   numeroFuncionarios: z.string().min(1, "Número de funcionários é obrigatório"),
+  valuation: z.string().optional(),
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
@@ -723,6 +724,29 @@ export default function InvestorCompanyRegistration() {
                             <Input {...field} type="number" placeholder="10" />
                           </FormControl>
                           <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="valuation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Valuation da Empresa (R$)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder="R$ 5.000.000,00"
+                              value={field.value ? formatCurrency(field.value) : ''}
+                              onChange={(e) => {
+                                const formatted = formatCurrency(e.target.value);
+                                field.onChange(formatted);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                          <p className="text-sm text-gray-500">Campo opcional - valor estimado da empresa</p>
                         </FormItem>
                       )}
                     />

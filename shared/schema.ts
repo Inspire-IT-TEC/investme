@@ -134,6 +134,7 @@ export const companies = pgTable("companies", {
   dividaLiquida: decimal("divida_liquida", { precision: 15, scale: 2 }).notNull(),
   numeroFuncionarios: integer("numero_funcionarios").notNull(),
   descricaoNegocio: text("descricao_negocio"),
+  valuation: decimal("valuation", { precision: 15, scale: 2 }), // Valuation opcional da empresa
   images: text("images").array(), // URLs to company images (up to 5)
   status: text("status").notNull().default("pendente_analise"), // pendente_analise, em_analise, aprovada, reprovada, incompleto
   observacoesInternas: text("observacoes_internas"),
@@ -227,6 +228,17 @@ export const pendingProfileChanges = pgTable("pending_profile_changes", {
   reviewComment: text("review_comment"),
 });
 
+// Tabela para permitir que uma pessoa física tenha múltiplos perfis (empreendedor e investidor)
+export const dualProfiles = pgTable("dual_profiles", {
+  id: serial("id").primaryKey(),
+  cpf: text("cpf").notNull().unique(),
+  entrepreneurId: integer("entrepreneur_id").references(() => entrepreneurs.id),
+  investorId: integer("investor_id").references(() => investors.id),
+  activeProfile: text("active_profile").notNull().default("entrepreneur"), // entrepreneur, investor
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Messages/Chat table for communication between backoffice and companies
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -274,12 +286,31 @@ export const valuations = pgTable("valuations", {
 });
 
 // Relations
-export const entrepreneursRelations = relations(entrepreneurs, ({ many }) => ({
+export const entrepreneursRelations = relations(entrepreneurs, ({ many, one }) => ({
   companies: many(companies),
+  dualProfile: one(dualProfiles, {
+    fields: [entrepreneurs.cpf],
+    references: [dualProfiles.cpf],
+  }),
 }));
 
-export const investorsRelations = relations(investors, ({ many }) => ({
+export const investorsRelations = relations(investors, ({ many, one }) => ({
   creditRequests: many(creditRequests),
+  dualProfile: one(dualProfiles, {
+    fields: [investors.cpf],
+    references: [dualProfiles.cpf],
+  }),
+}));
+
+export const dualProfilesRelations = relations(dualProfiles, ({ one }) => ({
+  entrepreneur: one(entrepreneurs, {
+    fields: [dualProfiles.entrepreneurId],
+    references: [entrepreneurs.id],
+  }),
+  investor: one(investors, {
+    fields: [dualProfiles.investorId],
+    references: [investors.id],
+  }),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -362,6 +393,12 @@ export const insertEntrepreneurSchema = createInsertSchema(entrepreneurs).omit({
   updatedAt: true,
 });
 
+export const insertDualProfileSchema = createInsertSchema(dualProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertInvestorSchema = createInsertSchema(investors).omit({
   id: true,
   status: true,
@@ -403,6 +440,7 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   dividaLiquida: z.string().min(1, "Dívida líquida é obrigatória").transform((val) => val.replace(/[^\d,.-]/g, '').replace(',', '.')),
   numeroFuncionarios: z.string().min(1, "Número de funcionários é obrigatório").transform((val) => parseInt(val)),
   cnaeSecundarios: z.array(z.string()).optional().default([]),
+  valuation: z.string().optional().transform((val) => val ? val.replace(/[^\d,.-]/g, '').replace(',', '.') : undefined),
 });
 
 export const editCompanySchema = z.object({
@@ -424,6 +462,7 @@ export const editCompanySchema = z.object({
   faturamento: z.string().min(1, "Faturamento é obrigatório"),
   numeroFuncionarios: z.number().min(1, "Número de funcionários é obrigatório"),
   descricaoNegocio: z.string().min(1, "Descrição do negócio é obrigatória"),
+  valuation: z.string().optional(),
   tipoProprietario: z.string().optional(),
 });
 
@@ -536,6 +575,9 @@ export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;
 
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
+
+export type InsertDualProfile = z.infer<typeof insertDualProfileSchema>;
+export type DualProfile = typeof dualProfiles.$inferSelect;
 export type Company = typeof companies.$inferSelect;
 
 export type InsertCompanyShareholder = z.infer<typeof insertCompanyShareholderSchema>;

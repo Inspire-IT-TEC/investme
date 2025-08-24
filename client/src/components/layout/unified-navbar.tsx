@@ -11,6 +11,7 @@ import {
   Settings,
   User
 } from "lucide-react";
+import { ProfileSwitcher } from "@/components/profile-switcher";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 
@@ -108,6 +109,7 @@ export default function UnifiedNavbar({ userType, userName, isCompanyApproved = 
 
           {/* User Info and Actions */}
           <div className="flex items-center space-x-3">
+            <ProfileSwitcher />
             <span className="text-sm opacity-90">Olá, {userName}</span>
             <Button
               variant="ghost"

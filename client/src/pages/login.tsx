@@ -60,14 +60,8 @@ export default function Login() {
         description: "Bem-vindo à plataforma Investme.",
       });
       
-      // Redirect based on user type
-      if (data.user.tipo === 'investor') {
-        setLocation("/investor/dashboard");
-      } else if (data.user.tipo === 'entrepreneur') {
-        setLocation("/dashboard");
-      } else {
-        setLocation("/dashboard");
-      }
+      // Redirect to network as default landing page
+      setLocation("/network");
     },
     onError: (error: any) => {
       if (error.requiresEmailConfirmation) {

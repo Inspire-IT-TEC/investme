@@ -20,6 +20,7 @@ import {
   passwordResetTokens,
   emailConfirmationTokens,
   pendingProfileChanges,
+  dualProfiles,
   type User, 
   type InsertUser,
   type Entrepreneur,
@@ -208,6 +209,9 @@ export interface IStorage {
   getPendingProfileChangeByUser(userId: number, userType: string): Promise<PendingProfileChange | undefined>;
   reviewPendingProfileChange(id: number, approved: boolean, reviewedBy: number, comment?: string): Promise<PendingProfileChange | undefined>;
   deletePendingProfileChange(id: number): Promise<void>;
+
+  // Dual profile methods
+  getDualProfile(userId: number): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1883,6 +1887,25 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(pendingProfileChanges)
       .where(eq(pendingProfileChanges.id, id));
+  }
+
+  // Dual profile methods
+  async getDualProfile(userId: number): Promise<any> {
+    try {
+      // Buscar na tabela dualProfiles pelo userId
+      const result = await db
+        .select()
+        .from(dualProfiles)
+        .where(or(
+          eq(dualProfiles.entrepreneurId, userId),
+          eq(dualProfiles.investorId, userId)
+        ));
+
+      return result[0] || null;
+    } catch (error) {
+      console.error('Error getting dual profile:', error);
+      return null;
+    }
   }
 }
 

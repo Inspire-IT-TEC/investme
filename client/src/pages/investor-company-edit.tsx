@@ -359,6 +359,28 @@ export default function InvestorCompanyEdit() {
                       </FormItem>
                     )}
                   />
+                  
+                  <FormField
+                    control={form.control}
+                    name="valuation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valuation da Empresa (R$)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="R$ 5.000.000,00"
+                            value={field.value ? formatCurrency(field.value) : ''}
+                            onChange={(e) => {
+                              const formatted = formatCurrency(e.target.value);
+                              field.onChange(formatted);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        <p className="text-sm text-gray-500">Campo opcional - valor estimado da empresa</p>
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* Address Information */}

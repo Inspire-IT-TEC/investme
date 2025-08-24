@@ -3178,6 +3178,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dual Profile Routes
+  app.get('/api/dual-profile', authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const dualProfile = await storage.getDualProfile(userId);
+      res.json(dualProfile);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao buscar perfil dual' });
+    }
+  });
+
+  app.post('/api/switch-profile', authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { profileType } = req.body;
+
+      if (!['entrepreneur', 'investor'].includes(profileType)) {
+        return res.status(400).json({ message: 'Tipo de perfil inválido' });
+      }
+
+      // Verificar se o usuário tem o perfil solicitado
+      const dualProfile = await storage.getDualProfile(userId);
+      if (!dualProfile) {
+        return res.status(404).json({ message: 'Perfil dual não encontrado' });
+      }
+
+      // Determinar o ID do perfil correto
+      let targetProfileId: number;
+      if (profileType === 'entrepreneur') {
+        if (!dualProfile.entrepreneurId) {
+          return res.status(400).json({ message: 'Usuário não possui perfil de empreendedor' });
+        }
+        targetProfileId = dualProfile.entrepreneurId;
+      } else {
+        if (!dualProfile.investorId) {
+          return res.status(400).json({ message: 'Usuário não possui perfil de investidor' });
+        }
+        targetProfileId = dualProfile.investorId;
+      }
+
+      // Buscar o usuário do perfil alvo
+      const targetUser = await storage.getUser(targetProfileId);
+      if (!targetUser) {
+        return res.status(404).json({ message: 'Perfil alvo não encontrado' });
+      }
+
+      // Gerar novo token para o perfil alvo
+      const newToken = jwt.sign(
+        { userId: targetUser.id, email: targetUser.email, tipo: targetUser.tipo },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.json({
+        token: newToken,
+        user: {
+          id: targetUser.id,
+          email: targetUser.email,
+          nome: targetUser.nomeCompleto,
+          tipo: targetUser.tipo,
+          aprovado: targetUser.cadastroAprovado
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao trocar perfil' });
+    }
+  });
+
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
