@@ -1,5 +1,4 @@
 import { 
-  users, 
   entrepreneurs,
   investors,
   adminUsers,
@@ -21,8 +20,7 @@ import {
   emailConfirmationTokens,
   pendingProfileChanges,
   dualProfiles,
-  type User, 
-  type InsertUser,
+
   type Entrepreneur,
   type InsertEntrepreneur,
   type Investor,
@@ -59,12 +57,7 @@ import { db } from "./db";
 import { eq, and, desc, like, ilike, sql, or, lt, ne, count, asc, isNull, isNotNull, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
-  // User methods
-  getUser(id: number): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByCpf(cpf: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+
 
   // Entrepreneur methods
   getEntrepreneur(id: number): Promise<Entrepreneur | undefined>;
@@ -142,10 +135,7 @@ export interface IStorage {
   approveEntrepreneur(entrepreneurId: number): Promise<Entrepreneur | undefined>;
   rejectEntrepreneur(entrepreneurId: number, reason: string): Promise<Entrepreneur | undefined>;
 
-  // Admin user management methods
-  getUsersByTypeAndStatus(tipo?: string, status?: string): Promise<any[]>;
-  approveUser(userId: number): Promise<User | undefined>;
-  rejectUser(userId: number, reason: string): Promise<User | undefined>;
+
 
   // Admin network methods
   getNetworkRequests(status?: string): Promise<any[]>;
@@ -215,35 +205,7 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
-  }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
-  }
-
-  async getUserByCpf(cpf: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.cpf, cpf));
-    return user || undefined;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
-    return user;
-  }
-
-  async updateUser(id: number, updateData: Partial<InsertUser>): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({ ...updateData, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user || undefined;
-  }
 
   // Admin user methods
   async getAdminUser(id: number): Promise<AdminUser | undefined> {
@@ -427,15 +389,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserCompanies(userId: number): Promise<Company[]> {
+    // This method now only looks at entrepreneurId since we removed the users table
     return await db
       .select()
       .from(companies)
-      .where(
-        or(
-          eq(companies.userId, userId),
-          eq(companies.entrepreneurId, userId)
-        )
-      )
+      .where(eq(companies.entrepreneurId, userId))
       .orderBy(desc(companies.createdAt));
   }
 

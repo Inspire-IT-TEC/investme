@@ -66,33 +66,7 @@ export const investors = pgTable("investors", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Users table (mantido para compatibilidade - será removido depois)
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  cpf: text("cpf").notNull().unique(),
-  rg: text("rg").notNull(),
-  nomeCompleto: text("nome_completo").notNull(),
-  email: text("email").notNull().unique(),
-  senha: text("senha").notNull(),
-  cep: text("cep").notNull(),
-  rua: text("rua").notNull(),
-  numero: text("numero").notNull(),
-  complemento: text("complemento"),
-  bairro: text("bairro").notNull(),
-  cidade: text("cidade").notNull(),
-  estado: text("estado").notNull(),
-  tipo: text("tipo").notNull().default("entrepreneur"), // entrepreneur, investor
-  status: text("status").notNull().default("ativo"), // ativo, pendente, inativo
-  telefone: text("telefone"),
-  limiteInvestimento: text("limite_investimento"),
-  cadastroAprovado: boolean("cadastro_aprovado").default(false),
-  emailConfirmado: boolean("email_confirmado").default(false),
-  documentosVerificados: boolean("documentos_verificados").default(false),
-  aprovadoPor: integer("aprovado_por").references(() => adminUsers.id),
-  aprovadoEm: timestamp("aprovado_em"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+
 
 // Admin users table (Investme team)
 export const adminUsers = pgTable("admin_users", {
@@ -140,7 +114,7 @@ export const companies = pgTable("companies", {
   observacoesInternas: text("observacoes_internas"),
   analisadoPor: integer("analisado_por").references(() => adminUsers.id),
   dataAnalise: timestamp("data_analise"),
-  userId: integer("user_id").references(() => users.id),
+  // userId removed - companies now only belong to entrepreneurs
   entrepreneurId: integer("entrepreneur_id").references(() => entrepreneurs.id),
   investorId: integer("investor_id").references(() => investors.id),
   tipoProprietario: text("tipo_proprietario").notNull().default("empreendedor"), // empreendedor, investidor
@@ -179,11 +153,11 @@ export const creditRequests = pgTable("credit_requests", {
   documentos: text("documentos").array(), // URLs to uploaded documents
   // Novo fluxo: na_rede -> em_analise -> aprovada/reprovada
   status: text("status").notNull().default("na_rede"), // na_rede, em_analise, aprovada, reprovada
-  investorId: integer("investor_id").references(() => users.id), // Quem aceitou da rede
+  investorId: integer("investor_id").references(() => investors.id), // Quem aceitou da rede
   dataAceite: timestamp("data_aceite"), // Quando foi aceita pelo investidor
   dataLimiteAnalise: timestamp("data_limite_analise"), // 24 horas após aceite
   observacoesAnalise: text("observacoes_analise"),
-  analisadoPor: integer("analisado_por").references(() => users.id), // Investidor que está analisando
+  analisadoPor: integer("analisado_por").references(() => investors.id), // Investidor que está analisando
   dataAnalise: timestamp("data_analise"), // Quando foi analisado
   aprovadoPorBackoffice: integer("aprovado_por_backoffice").references(() => adminUsers.id), // Supervisão do backoffice
   dataAprovacaoBackoffice: timestamp("data_aprovacao_backoffice"),
@@ -259,7 +233,7 @@ export const messages = pgTable("messages", {
 export const valuations = pgTable("valuations", {
   id: serial("id").primaryKey(),
   companyId: integer("company_id").notNull().references(() => companies.id),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull(), // References either entrepreneur or investor ID
   userType: text("user_type").notNull(), // 'entrepreneur' or 'investor'
   method: text("method").notNull(), // 'dcf' or 'multiples'
   status: text("status").notNull().default("draft"), // 'draft' or 'completed'
@@ -313,15 +287,9 @@ export const dualProfilesRelations = relations(dualProfiles, ({ one }) => ({
   }),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
-  companies: many(companies),
-}));
+
 
 export const companiesRelations = relations(companies, ({ one, many }) => ({
-  user: one(users, {
-    fields: [companies.userId],
-    references: [users.id],
-  }),
   entrepreneur: one(entrepreneurs, {
     fields: [companies.entrepreneurId],
     references: [entrepreneurs.id],
@@ -336,10 +304,6 @@ export const valuationsRelations = relations(valuations, ({ one }) => ({
   company: one(companies, {
     fields: [valuations.companyId],
     references: [companies.id],
-  }),
-  user: one(users, {
-    fields: [valuations.userId],
-    references: [users.id],
   }),
 }));
 
@@ -413,11 +377,7 @@ export const insertInvestorSchema = createInsertSchema(investors).omit({
   updatedAt: true,
 });
 
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+
 
 export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({
   id: true,
@@ -568,8 +528,7 @@ export type Entrepreneur = typeof entrepreneurs.$inferSelect;
 export type InsertInvestor = z.infer<typeof insertInvestorSchema>;
 export type Investor = typeof investors.$inferSelect;
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+
 
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;

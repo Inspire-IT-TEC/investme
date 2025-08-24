@@ -10,7 +10,7 @@ InvestMe is a comprehensive business platform designed to connect entrepreneurs 
 - Fast, efficient user interactions with minimal loading states
 
 ## System Architecture
-The InvestMe platform is built with a three-portal structure: Entrepreneur Portal (`/entrepreneur-*`), Investor Portal (`/investor-*`), and Backoffice Portal (`/backoffice-*`). The core technology stack includes **React 18 + TypeScript** for the frontend, utilizing Wouter for routing and TanStack Query for data management. The backend is powered by **Express.js + TypeScript** with JWT authentication. **PostgreSQL** serves as the database, managed by Drizzle ORM. The UI is designed with **Tailwind CSS** and **shadcn/ui components**, ensuring a responsive and modern aesthetic.
+The InvestMe platform is built with a three-portal structure: Entrepreneur Portal (`/entrepreneur-*`), Investor Portal (`/investor-*`), and Backoffice Portal (`/backoffice-*`). The core technology stack includes **React 18 + TypeScript** for the frontend, utilizing Wouter for routing and TanStack Query for data management. The backend is powered by **Express.js + TypeScript** with JWT authentication. **PostgreSQL** serves as the database, managed by Drizzle ORM with separate `entrepreneurs` and `investors` tables (legacy `users` table removed August 2025). The UI is designed with **Tailwind CSS** and **shadcn/ui components**, ensuring a responsive and modern aesthetic.
 
 Key architectural decisions include:
 - **Authentication**: JWT-based with role separation, email verification, password reset, and session management.

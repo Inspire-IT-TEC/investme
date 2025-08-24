@@ -10,7 +10,6 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import path from "path";
 import fs from "fs";
 import { 
-  insertUserSchema, 
   insertAdminUserSchema,
   insertEntrepreneurSchema,
   insertInvestorSchema,
@@ -166,41 +165,7 @@ function authenticateAdminToken(req: any, res: any, next: any) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User Authentication Routes
-  app.post('/api/auth/register', async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
-        return res.status(400).json({ message: 'Email já cadastrado' });
-      }
 
-      const existingCpf = await storage.getUserByCpf(userData.cpf);
-      if (existingCpf) {
-        return res.status(400).json({ message: 'CPF já cadastrado' });
-      }
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(userData.senha, SALT_ROUNDS);
-      userData.senha = hashedPassword;
-
-      const user = await storage.createUser(userData);
-      
-      const token = jwt.sign(
-        { id: user.id, email: user.email, type: 'user' },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      res.status(201).json({ 
-        user: { ...user, senha: undefined }, 
-        token 
-      });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message || 'Erro ao criar usuário' });
-    }
-  });
 
   // Investor Registration Route
   app.post('/api/investors/register', async (req, res) => {
@@ -419,38 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/login', async (req, res) => {
-    try {
-      const { login, senha } = req.body; // login can be email or CPF
-      
-      let user = await storage.getUserByEmail(login);
-      if (!user) {
-        user = await storage.getUserByCpf(login);
-      }
 
-      if (!user) {
-        return res.status(401).json({ message: 'Credenciais inválidas' });
-      }
-
-      const isValidPassword = await bcrypt.compare(senha, user.senha);
-      if (!isValidPassword) {
-        return res.status(401).json({ message: 'Credenciais inválidas' });
-      }
-
-      const token = jwt.sign(
-        { id: user.id, email: user.email, type: 'user' },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      res.json({ 
-        user: { ...user, senha: undefined }, 
-        token 
-      });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message || 'Erro no login' });
-    }
-  });
 
   // Password change routes
   app.post('/api/entrepreneur/change-password', authenticateToken, async (req: any, res) => {
@@ -458,18 +392,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const { senhaAtual, novaSenha } = req.body;
 
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'Usuário não encontrado' });
+      const entrepreneur = await storage.getEntrepreneur(userId);
+      if (!entrepreneur) {
+        return res.status(404).json({ message: 'Empreendedor não encontrado' });
       }
 
-      const isValidPassword = await bcrypt.compare(senhaAtual, user.senha);
+      const isValidPassword = await bcrypt.compare(senhaAtual, entrepreneur.senha);
       if (!isValidPassword) {
         return res.status(400).json({ message: 'Senha atual incorreta' });
       }
 
       const hashedPassword = await bcrypt.hash(novaSenha, SALT_ROUNDS);
-      await storage.updateUser(userId, { senha: hashedPassword });
+      await storage.updateEntrepreneur(userId, { senha: hashedPassword });
 
       res.json({ message: 'Senha alterada com sucesso' });
     } catch (error: any) {
@@ -482,18 +416,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const { senhaAtual, novaSenha } = req.body;
 
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'Usuário não encontrado' });
+      const investor = await storage.getInvestor(userId);
+      if (!investor) {
+        return res.status(404).json({ message: 'Investidor não encontrado' });
       }
 
-      const isValidPassword = await bcrypt.compare(senhaAtual, user.senha);
+      const isValidPassword = await bcrypt.compare(senhaAtual, investor.senha);
       if (!isValidPassword) {
         return res.status(400).json({ message: 'Senha atual incorreta' });
       }
 
       const hashedPassword = await bcrypt.hash(novaSenha, SALT_ROUNDS);
-      await storage.updateUser(userId, { senha: hashedPassword });
+      await storage.updateInvestor(userId, { senha: hashedPassword });
 
       res.json({ message: 'Senha alterada com sucesso' });
     } catch (error: any) {
@@ -535,14 +469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Check legacy users table
-      if (!userExists) {
-        const user = await storage.getUserByEmail(email);
-        if (user) {
-          userType = user.tipo || 'user';
-          userExists = true;
-        }
-      }
+
 
       if (!userExists) {
         return res.status(404).json({ message: 'Email não encontrado no sistema' });
@@ -1237,10 +1164,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      // Default: use authenticated user's companies
-      console.log('Fetching companies for authenticated user:', req.user.id);
+      // Default: use authenticated entrepreneur's companies
+      console.log('Fetching companies for authenticated entrepreneur:', req.user.id);
       const companies = await storage.getUserCompanies(req.user.id);
-      console.log('Found companies for authenticated user:', companies.length);
+      console.log('Found companies for authenticated entrepreneur:', companies.length);
       res.json(companies);
     } catch (error: any) {
       console.error('Error fetching companies:', error);
