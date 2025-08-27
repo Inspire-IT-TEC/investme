@@ -1,6 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { getConfig } from "../config/environments.js";
+
+// Initialize environment configuration
+const config = getConfig();
+console.log(`🚀 InvestMe Platform starting in ${config.NODE_ENV} mode`);
+if (config.NODE_ENV === 'production') {
+  console.log('✅ Production environment detected (REPLIT_DEPLOYMENT=1)');
+}
 
 const app = express();
 app.use(express.json());
