@@ -272,12 +272,12 @@ export default function Login() {
                 </Link>
               </p>
               <p className="text-sm text-white/80">
-                <Link 
-                  href="/" 
+                <a 
+                  href="https://investme.com.br" 
                   className="font-medium text-white/60 hover:text-white/80 hover:underline transition-colors"
                 >
                   ← Voltar ao site principal
-                </Link>
+                </a>
               </p>
             </div>
 
