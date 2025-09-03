@@ -245,15 +245,24 @@ export default function Login() {
             </form>
 
             <div className="mt-6 text-center space-y-2">
-              <p className="text-sm text-white/80">
-                Não tem uma conta?{" "}
-                <Link 
-                  href="/register" 
-                  className="font-medium text-white hover:text-white/80 hover:underline transition-colors"
-                >
-                  Cadastre-se aqui
-                </Link>
-              </p>
+              {isInvestor ? (
+                <p className="text-sm text-white/80">
+                  Não tem uma conta?{" "}
+                  <span className="font-medium text-white/60">
+                    Em breve
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sm text-white/80">
+                  Não tem uma conta?{" "}
+                  <Link 
+                    href="/register" 
+                    className="font-medium text-white hover:text-white/80 hover:underline transition-colors"
+                  >
+                    Cadastre-se aqui
+                  </Link>
+                </p>
+              )}
               <p className="text-sm text-white/80">
                 <Link 
                   href={`/forgot-password${userType === 'investor' ? '/investor' : userType === 'entrepreneur' ? '/entrepreneur' : ''}`}
