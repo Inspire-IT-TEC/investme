@@ -256,7 +256,7 @@ export default function Login() {
                 <p className="text-sm text-white/80">
                   Não tem uma conta?{" "}
                   <Link 
-                    href="/register" 
+                    href="/register/entrepreneur" 
                     className="font-medium text-white hover:text-white/80 hover:underline transition-colors"
                   >
                     Cadastre-se aqui
