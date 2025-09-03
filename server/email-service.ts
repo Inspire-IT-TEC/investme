@@ -119,9 +119,8 @@ export class EmailService {
     console.log(`NODE_ENV: ${process.env.NODE_ENV || 'undefined'}`);
     
     if (process.env.REPLIT_DOMAINS) {
-      // Production environment - use the first domain from REPLIT_DOMAINS
-      const domains = process.env.REPLIT_DOMAINS.split(',');
-      baseUrl = `https://${domains[0].trim()}`;
+      // Production environment - use custom domain
+      baseUrl = 'https://app.investme.com.br';
       console.log(`✅ Using production domain: ${baseUrl}`);
     } else if (process.env.REPLIT_DEV_DOMAIN) {
       // Development environment on Replit
@@ -282,9 +281,8 @@ export class EmailService {
     console.log(`NODE_ENV: ${process.env.NODE_ENV || 'undefined'}`);
     
     if (process.env.REPLIT_DOMAINS) {
-      // Production environment - use the first domain from REPLIT_DOMAINS
-      const domains = process.env.REPLIT_DOMAINS.split(',');
-      baseUrl = `https://${domains[0].trim()}`;
+      // Production environment - use custom domain
+      baseUrl = 'https://app.investme.com.br';
       console.log(`✅ Using production domain: ${baseUrl}`);
     } else if (process.env.REPLIT_DEV_DOMAIN) {
       // Development environment on Replit
