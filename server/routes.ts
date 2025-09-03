@@ -44,6 +44,20 @@ const s3Client = new S3Client({
 const BUCKET_NAME = "doc.investme.com.br";
 const BUCKET_URL = "https://doc.investme.com.br";
 
+// Function to convert S3 URL to custom domain URL
+const convertS3UrlToCustomDomain = (s3Url: string): string => {
+  try {
+    const url = new URL(s3Url);
+    // Extract the path (everything after the bucket name)
+    const pathParts = url.pathname.split('/');
+    const filePath = pathParts.slice(1).join('/'); // Remove the first empty part
+    return `${BUCKET_URL}/${filePath}`;
+  } catch (error) {
+    console.error('Error converting S3 URL:', error);
+    return s3Url; // Return original URL if conversion fails
+  }
+};
+
 // Multer configuration for S3 uploads (company images)
 const uploadS3 = multer({
   storage: multerS3({
@@ -1361,7 +1375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Handle uploaded files from S3
-      const documentos = req.files ? req.files.map((file: any) => (file as any).location) : [];
+      const documentos = req.files ? req.files.map((file: any) => convertS3UrlToCustomDomain((file as any).location)) : [];
       creditRequestData.documentos = documentos;
       
       console.log('Documents uploaded to S3:', documentos);
@@ -1400,7 +1414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { valorSolicitado, prazoMeses, finalidade, documentosExistentes } = req.body;
       
       // Handle new uploaded files from S3
-      const novosDocumentos = req.files ? req.files.map((file: any) => (file as any).location) : [];
+      const novosDocumentos = req.files ? req.files.map((file: any) => convertS3UrlToCustomDomain((file as any).location)) : [];
       
       // Combine existing documents with new documents
       const documentosExistentesList = documentosExistentes ? 
@@ -1775,8 +1789,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Nenhuma imagem foi enviada' });
       }
 
-      // Get the S3 URL from multer-s3
-      const imageUrl = (req.file as any).location;
+      // Get the S3 URL from multer-s3 and convert to custom domain
+      const imageUrl = convertS3UrlToCustomDomain((req.file as any).location);
       console.log('Image uploaded to S3:', imageUrl);
       
       res.json({ url: imageUrl });
