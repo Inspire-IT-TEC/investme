@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate } from "@/lib/utils";
 import { CheckCircle, XCircle, Eye, UserCheck, Building, AlertCircle } from "lucide-react";
-import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
+import BackofficeLayout from "@/components/layout/backoffice-layout";
 import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 
 export default function BackofficeApprovals() {
@@ -139,11 +139,8 @@ export default function BackofficeApprovals() {
   });
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <BackofficeSidebar onLogout={logout} />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">
+    <BackofficeLayout onLogout={logout}>
+      <div className="p-6">
           <div className="max-w-7xl mx-auto">
             <div className="space-y-6">
               {/* Header */}
@@ -404,24 +401,23 @@ export default function BackofficeApprovals() {
               </Tabs>
             </div>
           </div>
-        </main>
-      </div>
 
-      {/* User Detail Modal */}
-      {selectedUser && (
-        <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Detalhes do {selectedUser.tipo === 'investor' ? 'Investidor' : 'Empreendedor'}</DialogTitle>
-              <DialogDescription>
-                Informações completas para análise de aprovação
-              </DialogDescription>
-            </DialogHeader>
-            <UserDetailView user={selectedUser} />
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+          {/* User Detail Modal */}
+          {selectedUser && (
+            <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Detalhes do {selectedUser.tipo === 'investor' ? 'Investidor' : 'Empreendedor'}</DialogTitle>
+                  <DialogDescription>
+                    Informações completas para análise de aprovação
+                  </DialogDescription>
+                </DialogHeader>
+                <UserDetailView user={selectedUser} />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+    </BackofficeLayout>
   );
 }
 

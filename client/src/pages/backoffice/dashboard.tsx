@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Clock, CheckCircle, DollarSign, Users, UserCheck } from "lucide-react";
-import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
+import BackofficeLayout from "@/components/layout/backoffice-layout";
 import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 import { useBackofficeNavigation } from "@/hooks/use-backoffice-navigation";
 
@@ -68,12 +68,9 @@ export default function BackofficeDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <BackofficeSidebar onLogout={logout} />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
-          <div className="max-w-7xl mx-auto">
+    <BackofficeLayout onLogout={logout}>
+      <div className="p-3 sm:p-6">
+        <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="bg-gradient-to-r from-gray-800 to-gray-700 text-white rounded-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Back Office - Investme</h1>
@@ -231,9 +228,8 @@ export default function BackofficeDashboard() {
                 </CardContent>
               </Card>
             </div>
-          </div>
-        </main>
+        </div>
       </div>
-    </div>
+    </BackofficeLayout>
   );
 }

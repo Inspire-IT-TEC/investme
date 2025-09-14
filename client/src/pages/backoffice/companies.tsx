@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
+import BackofficeLayout from "@/components/layout/backoffice-layout";
 import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 import { Search, Eye, Edit, Building2 } from "lucide-react";
 
@@ -117,12 +117,9 @@ export default function BackofficeCompanies() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <BackofficeSidebar onLogout={logout} />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto">
+    <BackofficeLayout onLogout={logout}>
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -314,8 +311,7 @@ export default function BackofficeCompanies() {
               </CardContent>
             </Card>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </BackofficeLayout>
   );
 }

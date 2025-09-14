@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Briefcase, Users, CheckCircle, XCircle, Eye, UserCheck, AlertCircle } from "lucide-react";
-import BackofficeSidebar from "@/components/layout/backoffice-sidebar";
+import BackofficeLayout from "@/components/layout/backoffice-layout";
 import { useAuth, useRequireAdmin } from "@/hooks/use-auth";
 
 export default function BackofficeEntrepreneurs() {
@@ -272,11 +272,8 @@ export default function BackofficeEntrepreneurs() {
   );
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <BackofficeSidebar onLogout={logout} />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">
+    <BackofficeLayout onLogout={logout}>
+      <div className="p-6">
           <div className="max-w-7xl mx-auto">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Empreendedores</h1>
@@ -490,24 +487,23 @@ export default function BackofficeEntrepreneurs() {
               </CardContent>
             </Card>
           </div>
-        </main>
-      </div>
 
-      {/* Entrepreneur Detail Modal */}
-      {selectedEntrepreneur && (
-        <Dialog open={!!selectedEntrepreneur} onOpenChange={() => setSelectedEntrepreneur(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Detalhes do Empreendedor</DialogTitle>
-              <DialogDescription>
-                Informações completas do empreendedor e suas empresas
-              </DialogDescription>
-            </DialogHeader>
-            <EntrepreneurDetailView entrepreneur={selectedEntrepreneur} />
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+          {/* Entrepreneur Detail Modal */}
+          {selectedEntrepreneur && (
+            <Dialog open={!!selectedEntrepreneur} onOpenChange={() => setSelectedEntrepreneur(null)}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Detalhes do Empreendedor</DialogTitle>
+                  <DialogDescription>
+                    Informações completas do empreendedor e suas empresas
+                  </DialogDescription>
+                </DialogHeader>
+                <EntrepreneurDetailView entrepreneur={selectedEntrepreneur} />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+    </BackofficeLayout>
   );
 }
 
