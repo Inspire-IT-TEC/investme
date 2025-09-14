@@ -77,12 +77,15 @@ export default function BackofficeSidebar({ onLogout }: BackofficeSidebarProps) 
     }
   ];
 
+  // No mobile, forçar escondido quando não estiver aberto
+  if (isMobile && !isOpen) {
+    return null;
+  }
+
   return (
     <div className={`bg-white border-r border-gray-200 h-full flex flex-col transition-all duration-300 ${
       isMobile 
-        ? `fixed left-0 top-0 z-50 shadow-lg transform ${
-            isOpen ? 'translate-x-0' : '-translate-x-full'
-          } w-64`
+        ? 'fixed left-0 top-0 z-50 shadow-lg w-64'
         : isCollapsed 
           ? 'w-16' 
           : 'w-64'
@@ -91,7 +94,7 @@ export default function BackofficeSidebar({ onLogout }: BackofficeSidebarProps) 
       <div className={`border-b border-gray-200 flex items-center justify-between ${
         isMobile ? 'p-2' : 'p-4'
       }`}>
-        {!isCollapsed && (
+        {(isMobile || !isCollapsed) && (
           <div className="flex items-center space-x-2">
             <UserCog className={`text-blue-600 ${
               isMobile ? 'h-6 w-6' : 'h-8 w-8'

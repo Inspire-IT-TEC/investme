@@ -14,24 +14,22 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isMobile, setIsMobile] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Iniciar collapsed por padrão
 
   useEffect(() => {
     const checkIsMobile = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
       
-      // No mobile, sempre iniciar collapsed
+      // No mobile, sempre manter fechado
       if (mobile) {
+        setIsOpen(false);
         setIsCollapsed(true);
-        setIsOpen(false);
-      } else {
-        // No desktop, não forçar collapsed
-        setIsOpen(false);
       }
     };
 
     checkIsMobile();
+    
     window.addEventListener('resize', checkIsMobile);
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
