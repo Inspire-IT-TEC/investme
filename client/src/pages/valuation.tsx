@@ -223,7 +223,7 @@ const ValuationPage = () => {
     },
     onSuccess: () => {
       toast({ title: "Valuation excluído com sucesso" });
-      setLocation(`/companies/${companyId}`);
+      setLocation(`/empresa/${companyId}`);
     },
     onError: (error: any) => {
       toast({
@@ -372,7 +372,7 @@ const ValuationPage = () => {
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
-              onClick={() => setLocation(`/companies/${companyId}`)}
+              onClick={() => setLocation(`/empresa/${companyId}`)}
               size="sm"
               className="p-2"
               data-testid="button-back"
