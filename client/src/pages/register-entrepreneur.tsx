@@ -37,6 +37,12 @@ export default function RegisterEntrepreneur() {
   const [cpfConsulted, setCpfConsulted] = useState(false);
   const [isConsultingCep, setIsConsultingCep] = useState(false);
   const [cepConsulted, setCepConsulted] = useState(false);
+  const [autoFilled, setAutoFilled] = useState({
+    rua: false,
+    bairro: false,
+    cidade: false,
+    estado: false
+  });
 
   const consultCpfApi = async (cpf: string) => {
     const cleanCpf = cpf.replace(/\D/g, '');
@@ -100,26 +106,35 @@ export default function RegisterEntrepreneur() {
                             data.localidade && data.localidade.trim() !== "" &&
                             data.uf && data.uf.trim() !== "";
         
-        // Preencher apenas os dados que não estão vazios, preservando entradas manuais
+        // Rastrear quais campos foram preenchidos automaticamente e atualizar dados
+        const newAutoFilled = {
+          rua: !!(data.logradouro && data.logradouro.trim()),
+          bairro: !!(data.bairro && data.bairro.trim()),
+          cidade: !!(data.localidade && data.localidade.trim()),
+          estado: !!(data.uf && data.uf.trim())
+        };
+        
+        setAutoFilled(newAutoFilled);
+        
         setFormData(prev => ({
           ...prev,
-          rua: data.logradouro && data.logradouro.trim() ? data.logradouro : prev.rua,
-          bairro: data.bairro && data.bairro.trim() ? data.bairro : prev.bairro,
-          cidade: data.localidade && data.localidade.trim() ? data.localidade : prev.cidade,
-          estado: data.uf && data.uf.trim() ? data.uf : prev.estado,
+          rua: newAutoFilled.rua ? data.logradouro : prev.rua,
+          bairro: newAutoFilled.bairro ? data.bairro : prev.bairro,
+          cidade: newAutoFilled.cidade ? data.localidade : prev.cidade,
+          estado: newAutoFilled.estado ? data.uf : prev.estado,
           complemento: data.complemento && data.complemento.trim() ? data.complemento : prev.complemento
         }));
 
-        if (hasValidData) {
-          // Só marca como consultado se os dados principais não estiverem vazios
-          setCepConsulted(true);
+        // Marcar como consultado se ao menos um campo foi preenchido
+        const anyFieldFilled = Object.values(newAutoFilled).some(filled => filled);
+        setCepConsulted(anyFieldFilled);
+        
+        if (anyFieldFilled) {
           toast({
             title: "CEP consultado com sucesso!",
-            description: "Os dados de endereço foram preenchidos automaticamente.",
+            description: "Alguns dados de endereço foram preenchidos automaticamente.",
           });
         } else {
-          // Dados vazios - mantém campos editáveis
-          setCepConsulted(false);
           toast({
             title: "CEP encontrado mas sem dados completos",
             description: "Complete manualmente os dados de endereço.",
@@ -129,6 +144,7 @@ export default function RegisterEntrepreneur() {
       } else {
         // API retornou erro - CEP não encontrado
         setCepConsulted(false);
+        setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
         toast({
           title: "CEP não encontrado",
           description: "Preencha manualmente os dados de endereço.",
@@ -138,6 +154,7 @@ export default function RegisterEntrepreneur() {
     } catch (error) {
       console.error('Erro ao consultar CEP:', error);
       setCepConsulted(false);
+      setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
       toast({
         title: "Erro na consulta",
         description: "Não foi possível consultar o CEP. Preencha manualmente os dados.",
@@ -191,6 +208,7 @@ export default function RegisterEntrepreneur() {
       // Reset CEP consultation state when user changes CEP
       if (cepConsulted) {
         setCepConsulted(false);
+        setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
       }
     } else if (field === "telefone") {
       formattedValue = formatPhone(value);
@@ -478,12 +496,12 @@ export default function RegisterEntrepreneur() {
                       value={formData.rua}
                       onChange={(e) => handleInputChange("rua", e.target.value)}
                       className={errors.rua ? "border-red-500" : ""}
-                      disabled={cepConsulted && formData.rua.trim() !== ""}
+                      disabled={autoFilled.rua}
                     />
                     {errors.rua && (
                       <p className="text-sm text-red-500 mt-1">{errors.rua}</p>
                     )}
-                    {cepConsulted && (
+                    {autoFilled.rua && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
@@ -521,12 +539,12 @@ export default function RegisterEntrepreneur() {
                       value={formData.bairro}
                       onChange={(e) => handleInputChange("bairro", e.target.value)}
                       className={errors.bairro ? "border-red-500" : ""}
-                      disabled={cepConsulted && formData.bairro.trim() !== ""}
+                      disabled={autoFilled.bairro}
                     />
                     {errors.bairro && (
                       <p className="text-sm text-red-500 mt-1">{errors.bairro}</p>
                     )}
-                    {cepConsulted && (
+                    {autoFilled.bairro && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
@@ -538,12 +556,12 @@ export default function RegisterEntrepreneur() {
                       value={formData.cidade}
                       onChange={(e) => handleInputChange("cidade", e.target.value)}
                       className={errors.cidade ? "border-red-500" : ""}
-                      disabled={cepConsulted && formData.cidade.trim() !== ""}
+                      disabled={autoFilled.cidade}
                     />
                     {errors.cidade && (
                       <p className="text-sm text-red-500 mt-1">{errors.cidade}</p>
                     )}
-                    {cepConsulted && (
+                    {autoFilled.cidade && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
@@ -556,12 +574,12 @@ export default function RegisterEntrepreneur() {
                       onChange={(e) => handleInputChange("estado", e.target.value)}
                       placeholder="SP"
                       className={errors.estado ? "border-red-500" : ""}
-                      disabled={cepConsulted && formData.estado.trim() !== ""}
+                      disabled={autoFilled.estado}
                     />
                     {errors.estado && (
                       <p className="text-sm text-red-500 mt-1">{errors.estado}</p>
                     )}
-                    {cepConsulted && (
+                    {autoFilled.estado && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
