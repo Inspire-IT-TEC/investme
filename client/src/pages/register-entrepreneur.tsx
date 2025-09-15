@@ -101,11 +101,6 @@ export default function RegisterEntrepreneur() {
       const data = await response.json();
       
       if (!data.erro) {
-        // Verificar se os dados retornados são válidos e não estão vazios
-        const hasValidData = data.logradouro && data.logradouro.trim() !== "" &&
-                            data.localidade && data.localidade.trim() !== "" &&
-                            data.uf && data.uf.trim() !== "";
-        
         // Rastrear quais campos foram preenchidos automaticamente e atualizar dados
         const newAutoFilled = {
           rua: !!(data.logradouro && data.logradouro.trim()),
