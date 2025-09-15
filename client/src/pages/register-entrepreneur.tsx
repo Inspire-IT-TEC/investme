@@ -95,20 +95,37 @@ export default function RegisterEntrepreneur() {
       const data = await response.json();
       
       if (!data.erro) {
-        // API retornou sucesso e dados encontrados
+        // Verificar se os dados retornados são válidos e não estão vazios
+        const hasValidData = data.logradouro && data.logradouro.trim() !== "" &&
+                            data.localidade && data.localidade.trim() !== "" &&
+                            data.uf && data.uf.trim() !== "";
+        
+        // Preencher apenas os dados que não estão vazios, preservando entradas manuais
         setFormData(prev => ({
           ...prev,
-          rua: data.logradouro || "",
-          bairro: data.bairro || "",
-          cidade: data.localidade || "",
-          estado: data.uf || "",
-          complemento: data.complemento || prev.complemento
+          rua: data.logradouro && data.logradouro.trim() ? data.logradouro : prev.rua,
+          bairro: data.bairro && data.bairro.trim() ? data.bairro : prev.bairro,
+          cidade: data.localidade && data.localidade.trim() ? data.localidade : prev.cidade,
+          estado: data.uf && data.uf.trim() ? data.uf : prev.estado,
+          complemento: data.complemento && data.complemento.trim() ? data.complemento : prev.complemento
         }));
-        setCepConsulted(true);
-        toast({
-          title: "CEP consultado com sucesso!",
-          description: "Os dados de endereço foram preenchidos automaticamente.",
-        });
+
+        if (hasValidData) {
+          // Só marca como consultado se os dados principais não estiverem vazios
+          setCepConsulted(true);
+          toast({
+            title: "CEP consultado com sucesso!",
+            description: "Os dados de endereço foram preenchidos automaticamente.",
+          });
+        } else {
+          // Dados vazios - mantém campos editáveis
+          setCepConsulted(false);
+          toast({
+            title: "CEP encontrado mas sem dados completos",
+            description: "Complete manualmente os dados de endereço.",
+            variant: "destructive",
+          });
+        }
       } else {
         // API retornou erro - CEP não encontrado
         setCepConsulted(false);
@@ -461,7 +478,7 @@ export default function RegisterEntrepreneur() {
                       value={formData.rua}
                       onChange={(e) => handleInputChange("rua", e.target.value)}
                       className={errors.rua ? "border-red-500" : ""}
-                      disabled={cepConsulted}
+                      disabled={cepConsulted && formData.rua.trim() !== ""}
                     />
                     {errors.rua && (
                       <p className="text-sm text-red-500 mt-1">{errors.rua}</p>
@@ -504,7 +521,7 @@ export default function RegisterEntrepreneur() {
                       value={formData.bairro}
                       onChange={(e) => handleInputChange("bairro", e.target.value)}
                       className={errors.bairro ? "border-red-500" : ""}
-                      disabled={cepConsulted}
+                      disabled={cepConsulted && formData.bairro.trim() !== ""}
                     />
                     {errors.bairro && (
                       <p className="text-sm text-red-500 mt-1">{errors.bairro}</p>
@@ -521,7 +538,7 @@ export default function RegisterEntrepreneur() {
                       value={formData.cidade}
                       onChange={(e) => handleInputChange("cidade", e.target.value)}
                       className={errors.cidade ? "border-red-500" : ""}
-                      disabled={cepConsulted}
+                      disabled={cepConsulted && formData.cidade.trim() !== ""}
                     />
                     {errors.cidade && (
                       <p className="text-sm text-red-500 mt-1">{errors.cidade}</p>
@@ -539,7 +556,7 @@ export default function RegisterEntrepreneur() {
                       onChange={(e) => handleInputChange("estado", e.target.value)}
                       placeholder="SP"
                       className={errors.estado ? "border-red-500" : ""}
-                      disabled={cepConsulted}
+                      disabled={cepConsulted && formData.estado.trim() !== ""}
                     />
                     {errors.estado && (
                       <p className="text-sm text-red-500 mt-1">{errors.estado}</p>
