@@ -1554,6 +1554,23 @@ export class DatabaseStorage implements IStorage {
         .where(eq(networkComments.postId, post.id))
         .orderBy(networkComments.createdAt);
 
+      // Add user names to comments
+      for (const comment of comments) {
+        if (comment.userType === 'entrepreneur') {
+          const [entrepreneur] = await db
+            .select({ nomeCompleto: entrepreneurs.nomeCompleto })
+            .from(entrepreneurs)
+            .where(eq(entrepreneurs.id, comment.userId));
+          (comment as any).userName = entrepreneur?.nomeCompleto || 'Usuário';
+        } else if (comment.userType === 'investor') {
+          const [investor] = await db
+            .select({ nomeCompleto: investors.nomeCompleto })
+            .from(investors)
+            .where(eq(investors.id, comment.userId));
+          (comment as any).userName = investor?.nomeCompleto || 'Usuário';
+        }
+      }
+
       (post as any).likesCount = likesResult.count || 0;
       (post as any).commentsCount = commentsResult.count || 0;
       (post as any).comments = comments;
