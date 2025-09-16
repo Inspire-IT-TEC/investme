@@ -663,6 +663,15 @@ export const networkLikes = pgTable("network_likes", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Curtidas em empresas
+export const companyLikes = pgTable("company_likes", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull(),
+  userType: varchar("user_type", { length: 50 }).notNull(), // 'entrepreneur', 'investor'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Password reset tokens table
 export const passwordResetTokens = pgTable("password_reset_tokens", {
   id: serial("id").primaryKey(),

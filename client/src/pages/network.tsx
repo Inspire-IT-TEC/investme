@@ -464,10 +464,23 @@ export default function Network() {
                           variant="ghost"
                           size="sm"
                           className="flex items-center gap-1 h-8 px-2 text-muted-foreground hover:text-red-500"
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            // Like the company directly (we'll implement this)
-                            console.log('Like company:', company.id);
+                            try {
+                              const response = await fetch(`/api/network/companies/${company.id}/like`, {
+                                method: 'POST',
+                                headers: {
+                                  'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                },
+                              });
+                              
+                              if (response.ok) {
+                                // Refresh companies to update like count
+                                companiesQuery.refetch();
+                              }
+                            } catch (error) {
+                              console.error('Erro ao curtir empresa:', error);
+                            }
                           }}
                         >
                           <Heart className="h-4 w-4" />

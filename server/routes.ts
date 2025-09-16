@@ -2831,6 +2831,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Like/Unlike company
+  app.post('/api/network/companies/:id/like', authenticateToken, async (req: any, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const userType = req.user.type || 'entrepreneur';
+      
+      if (isNaN(companyId)) {
+        return res.status(400).json({ message: 'ID da empresa inválido' });
+      }
+      
+      await storage.likeCompany(companyId, req.user.id, userType);
+      res.json({ message: 'Empresa curtida' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || 'Erro ao curtir empresa' });
+    }
+  });
+
   // Like/Unlike network post
   app.post('/api/network/posts/:id/like', authenticateToken, async (req: any, res) => {
     try {

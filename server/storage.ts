@@ -16,6 +16,7 @@ import {
   networkPosts,
   networkComments,
   networkLikes,
+  companyLikes,
   passwordResetTokens,
   emailConfirmationTokens,
   pendingProfileChanges,
@@ -169,6 +170,7 @@ export interface IStorage {
   getNetworkPosts(companyId: number): Promise<any[]>;
   likeNetworkPost(postId: number, userId: number, userType: string): Promise<void>;
   unlikeNetworkPost(postId: number, userId: number, userType: string): Promise<void>;
+  likeCompany(companyId: number, userId: number, userType: string): Promise<void>;
   
   // Network comments methods
   createNetworkComment(comment: any): Promise<any>;
@@ -1569,6 +1571,26 @@ export class DatabaseStorage implements IStorage {
         eq(networkLikes.userId, userId),
         eq(networkLikes.userType, userType)
       ));
+  }
+
+  async likeCompany(companyId: number, userId: number, userType: string): Promise<void> {
+    // Check if already liked
+    const existingLike = await db
+      .select()
+      .from(companyLikes)
+      .where(and(
+        eq(companyLikes.companyId, companyId),
+        eq(companyLikes.userId, userId),
+        eq(companyLikes.userType, userType)
+      ));
+
+    if (existingLike.length === 0) {
+      await db.insert(companyLikes).values({
+        companyId,
+        userId,
+        userType,
+      });
+    }
   }
 
   // Network comments methods
