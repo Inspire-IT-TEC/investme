@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,6 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -43,6 +43,33 @@ export default function Network() {
   // Determinar o tipo de usuário baseado na URL ou contexto
   const userType = (user as any)?.tipo || 'entrepreneur';
   const theme = userType === 'investor' ? 'blue' : 'green';
+
+  // Like company mutation with optimistic updates
+  const likeCompanyMutation = useMutation({
+    mutationFn: async (companyId: number) => {
+      const res = await fetch(`/api/network/companies/${companyId}/like`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (!res.ok) throw new Error('Erro ao curtir empresa');
+      return res.json();
+    },
+    onMutate: async (companyId) => {
+      const key = ['/api/network/companies', selectedState, selectedCity, searchTerm];
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<any[]>(key);
+      queryClient.setQueryData<any[]>(key, (old) =>
+        (old || []).map((c) => c.id === companyId ? { ...c, likesCount: (c.likesCount ?? 0) + 1 } : c)
+      );
+      return { previous, key };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(ctx.key, ctx.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/network/companies'] });
+    },
+  });
 
   // Fetch states
   const { data: states } = useQuery({
@@ -362,7 +389,7 @@ export default function Network() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(companies || []).map((company: any) => (
+            {(companiesQuery.data || []).map((company: any) => (
               <Card key={company.id} className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden" onClick={() => setSelectedCompany(company)}>
                 {/* Company Images - Instagram Style */}
                 <div className="relative group">
@@ -464,23 +491,10 @@ export default function Network() {
                           variant="ghost"
                           size="sm"
                           className="flex items-center gap-1 h-8 px-2 text-muted-foreground hover:text-red-500"
+                          disabled={likeCompanyMutation.isPending}
                           onClick={async (e) => {
                             e.stopPropagation();
-                            try {
-                              const response = await fetch(`/api/network/companies/${company.id}/like`, {
-                                method: 'POST',
-                                headers: {
-                                  'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                                },
-                              });
-                              
-                              if (response.ok) {
-                                // Refresh companies to update like count
-                                companiesQuery.refetch();
-                              }
-                            } catch (error) {
-                              console.error('Erro ao curtir empresa:', error);
-                            }
+                            likeCompanyMutation.mutate(company.id);
                           }}
                         >
                           <Heart className="h-4 w-4" />
