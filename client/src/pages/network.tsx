@@ -581,7 +581,7 @@ export default function Network() {
                 </div>
 
                 {/* Create Post (only for company owner) */}
-                {userType === 'entrepreneur' && selectedCompany.userId === user?.id && (
+                {userType === 'entrepreneur' && selectedCompany.entrepreneurId === user?.id && (
                   <Card>
                     <CardHeader>
                       <h3 className="font-semibold">Criar novo post</h3>
@@ -623,6 +623,11 @@ export default function Network() {
                     <div className="text-center py-8 text-muted-foreground">
                       <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
                       <p>Nenhuma atividade ainda</p>
+                      {userType === 'entrepreneur' && selectedCompany.entrepreneurId === user?.id ? (
+                        <p className="text-xs mt-2">Crie o primeiro post da sua empresa!</p>
+                      ) : (
+                        <p className="text-xs mt-2">Aguarde o primeiro post desta empresa para comentar</p>
+                      )}
                     </div>
                   ) : (
                     (posts || []).map((post: any) => (
