@@ -506,7 +506,7 @@ export default function Network() {
                           className="flex items-center gap-1 h-8 px-2 text-muted-foreground hover:text-blue-500"
                           onClick={(e) => {
                             e.stopPropagation();
-                            // Open company detail to view/create posts
+                            console.log('Comment button clicked for company:', company.id);
                             setSelectedCompany(company);
                           }}
                         >
