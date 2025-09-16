@@ -53,7 +53,12 @@ export default function Network() {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }).then(res => res.json());
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch states');
+        }
+        return res.json();
+      });
     },
   });
 
@@ -67,7 +72,12 @@ export default function Network() {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }).then(res => res.json());
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch cities');
+        }
+        return res.json();
+      });
     },
     enabled: !!(selectedState && selectedState !== "all"),
   });
@@ -86,7 +96,12 @@ export default function Network() {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }).then(res => res.json());
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch companies');
+        }
+        return res.json();
+      });
     },
   });
 
@@ -100,7 +115,12 @@ export default function Network() {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }).then(res => res.json());
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+        return res.json();
+      });
     },
     enabled: !!selectedCompany,
   });
@@ -282,11 +302,11 @@ export default function Network() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todos os estados</SelectItem>
-                        {(states || []).map((state: any) => (
+                        {Array.isArray(states) ? states.map((state: any) => (
                           <SelectItem key={state.id} value={state.id.toString()}>
                             {state.name} ({state.code})
                           </SelectItem>
-                        ))}
+                        )) : null}
                       </SelectContent>
                     </Select>
                   </div>
@@ -299,11 +319,11 @@ export default function Network() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todas as cidades</SelectItem>
-                        {(cities || []).map((city: any) => (
+                        {Array.isArray(cities) ? cities.map((city: any) => (
                           <SelectItem key={city.id} value={city.id.toString()}>
                             {city.name}
                           </SelectItem>
-                        ))}
+                        )) : null}
                       </SelectContent>
                     </Select>
                   </div>
