@@ -1478,11 +1478,30 @@ export class DatabaseStorage implements IStorage {
         images: companies.images,
         entrepreneurId: companies.entrepreneurId,
         investorId: companies.investorId,
-        tipoProprietario: companies.tipoProprietario
+        tipoProprietario: companies.tipoProprietario,
+        valuation: companies.valuation
       })
       .from(companies)
       .where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0])
       .orderBy(companies.razaoSocial);
+
+    // Add likes count and posts count for each company
+    for (const company of result) {
+      // Count likes for this company
+      const [likesResult] = await db
+        .select({ count: count() })
+        .from(companyLikes)
+        .where(eq(companyLikes.companyId, company.id));
+
+      // Count posts for this company
+      const [postsResult] = await db
+        .select({ count: count() })
+        .from(networkPosts)
+        .where(eq(networkPosts.companyId, company.id));
+
+      (company as any).likesCount = likesResult.count || 0;
+      (company as any).postsCount = postsResult.count || 0;
+    }
 
     return result;
   }
