@@ -2837,18 +2837,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const postId = parseInt(req.params.id);
       const userType = req.user.type || 'entrepreneur';
       
-      console.log('Like request:', { postId, userId: req.user.id, userType });
-      
       if (isNaN(postId)) {
         return res.status(400).json({ message: 'ID do post inválido' });
       }
       
       await storage.likeNetworkPost(postId, req.user.id, userType);
-      
-      console.log('Like successful');
       res.json({ message: 'Post curtido' });
     } catch (error: any) {
-      console.error('Like error:', error);
       res.status(500).json({ message: error.message || 'Erro ao curtir post' });
     }
   });
@@ -2858,8 +2853,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const postId = parseInt(req.params.id);
       const userType = req.user.type || 'entrepreneur';
-      
-      console.log('Comment request:', { postId, userId: req.user.id, userType, content: req.body.content });
       
       if (isNaN(postId)) {
         return res.status(400).json({ message: 'ID do post inválido' });
@@ -2873,11 +2866,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const comment = await storage.createNetworkComment(commentData);
-      
-      console.log('Comment successful:', comment.id);
       res.status(201).json(comment);
     } catch (error: any) {
-      console.error('Comment error:', error);
       res.status(400).json({ message: error.message || 'Erro ao comentar' });
     }
   });

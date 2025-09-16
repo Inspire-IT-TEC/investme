@@ -460,14 +460,32 @@ export default function Network() {
 
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex items-center gap-1 h-8 px-2 text-muted-foreground hover:text-red-500"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Like the company directly (we'll implement this)
+                            console.log('Like company:', company.id);
+                          }}
+                        >
                           <Heart className="h-4 w-4" />
                           <span>{company.likesCount || 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex items-center gap-1 h-8 px-2 text-muted-foreground hover:text-blue-500"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Open company detail to view/create posts
+                            setSelectedCompany(company);
+                          }}
+                        >
                           <MessageCircle className="h-4 w-4" />
                           <span>{company.postsCount || 0}</span>
-                        </div>
+                        </Button>
                       </div>
                     </div>
                   </div>
