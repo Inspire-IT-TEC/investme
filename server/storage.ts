@@ -1474,9 +1474,9 @@ export class DatabaseStorage implements IStorage {
         dataFundacao: companies.dataFundacao,
         descricaoNegocio: companies.descricaoNegocio,
         images: companies.images,
-        userId: companies.userId,
         entrepreneurId: companies.entrepreneurId,
-        investorId: companies.investorId
+        investorId: companies.investorId,
+        tipoProprietario: companies.tipoProprietario
       })
       .from(companies)
       .where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0])

@@ -2788,20 +2788,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/network/companies', authenticateToken, async (req: any, res) => {
     try {
       const { stateId, cityId, search } = req.query;
-      console.log('Network companies request:', { stateId, cityId, search, userId: req.user.id });
-      
       const filters: any = {};
       
       if (stateId) filters.stateId = parseInt(stateId as string);
       if (cityId) filters.cityId = parseInt(cityId as string);
       if (search) filters.search = search as string;
 
-      console.log('Network companies filters:', filters);
       const companies = await storage.getNetworkCompanies(filters);
-      console.log('Network companies found:', companies.length);
       res.json(companies);
     } catch (error: any) {
-      console.error('Network companies error:', error);
       res.status(500).json({ message: error.message || 'Erro ao buscar empresas da rede' });
     }
   });

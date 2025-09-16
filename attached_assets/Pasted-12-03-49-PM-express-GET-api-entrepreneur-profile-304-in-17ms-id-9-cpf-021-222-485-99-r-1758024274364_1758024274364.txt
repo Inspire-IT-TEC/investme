@@ -1,0 +1,43 @@
+12:03:49 PM [express] GET /api/entrepreneur/profile 304 in 17ms :: {"id":9,"cpf":"021.222.485-99","rg…
+12:03:49 PM [express] GET /api/entrepreneur/pending-profile-changes 200 in 21ms
+Network companies request: { stateId: undefined, cityId: undefined, search: undefined, userId: 9 }
+Network companies filters: {}
+Network companies error: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:16)
+    at <anonymous> (/home/runner/workspace/node_modules/src/utils.ts:88:19)
+    at Array.reduce (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:32)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:979:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:978:17)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1009:16)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1008:17)
+    at PgSelectBase.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+12:03:50 PM [express] GET /api/network/companies 500 in 3ms :: {"message":"Cannot convert undefined o…
+12:03:50 PM [express] GET /api/entrepreneur/profile 304 in 20ms :: {"id":9,"cpf":"021.222.485-99","rg…
+12:03:50 PM [express] GET /api/notifications 304 in 16ms :: []
+12:03:50 PM [express] GET /api/entrepreneur/pending-profile-changes 200 in 16ms
+12:03:50 PM [express] GET /api/notifications/unread/count 304 in 73ms :: {"count":0}
+Network companies request: { stateId: undefined, cityId: undefined, search: undefined, userId: 9 }
+Network companies filters: {}
+Network companies error: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:16)
+    at <anonymous> (/home/runner/workspace/node_modules/src/utils.ts:88:19)
+    at Array.reduce (<anonymous>)
+    at orderSelectedFields (/home/runner/workspace/node_modules/src/utils.ts:77:32)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:979:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:978:17)
+    at <anonymous> (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1009:16)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at PgSelectBase.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/select.ts:1008:17)
+    at PgSelectBase.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+12:03:57 PM [express] GET /api/network/companies 500 in 2ms :: {"message":"Cannot convert undefined o…
+12:03:57 PM [express] GET /api/notifications 304 in 17ms :: []
+12:03:57 PM [express] GET /api/notifications/unread/count 304 in 20ms :: {"count":0}
+12:03:57 PM [express] GET /api/states 304 in 15ms :: [{"id":1,"name":"Acre","code":"AC","created_at":…
