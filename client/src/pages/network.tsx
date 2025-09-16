@@ -389,7 +389,7 @@ export default function Network() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(companiesQuery.data || []).map((company: any) => (
+            {(companies || []).map((company: any) => (
               <Card key={company.id} className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden" onClick={() => setSelectedCompany(company)}>
                 {/* Company Images - Instagram Style */}
                 <div className="relative group">
