@@ -2593,7 +2593,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Network API for investors to view companies with valuations
+  // Network API for investors to view companies with valuations (COMMENTED OUT - conflicting with network route)
+  /*
   app.get('/api/network/companies', authenticateToken, async (req: any, res) => {
     try {
       const { search, sector, status } = req.query;
@@ -2617,6 +2618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: error.message || 'Erro ao buscar empresas da rede' });
     }
   });
+  */
 
   // =============================================================================
   // END VALUATION ROUTES
@@ -2787,7 +2789,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { stateId, cityId, search } = req.query;
       const filters: any = {
-        excludeUserId: req.user.id, // Don't show user's own companies
+        // Removed excludeUserId to allow users to see and post to their own companies
       };
       
       if (stateId) filters.stateId = parseInt(stateId as string);
