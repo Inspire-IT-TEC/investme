@@ -148,7 +148,7 @@ export default function RegisterInvestor() {
     onSuccess: () => {
       toast({
         title: "Cadastro realizado com sucesso!",
-        description: "Sua conta está aguardando aprovação do backoffice. Você receberá um email quando for aprovada.",
+        description: "Sua conta foi criada e está ativa! Você já pode fazer login.",
       });
       setLocation("/user-type-selection");
     },
@@ -283,10 +283,9 @@ export default function RegisterInvestor() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-amber-800">
-                <strong>Importante:</strong> Após o cadastro, sua conta passará por aprovação do backoffice antes de ser ativada. 
-                Você receberá um email quando sua conta for aprovada.
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-green-800">
+                <strong>Ótimo:</strong> Após completar o cadastro, sua conta estará imediatamente ativa e você poderá fazer login.
               </p>
             </div>
 

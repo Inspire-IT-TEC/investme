@@ -283,19 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
-      // Check if email is confirmed
-      if (!investor.emailConfirmado) {
-        return res.status(401).json({ 
-          message: 'Email não confirmado. Verifique sua caixa de entrada e confirme seu email antes de fazer login.',
-          requiresEmailConfirmation: true,
-          email: investor.email
-        });
-      }
-
-      // Check if investor account is approved
-      if (investor.status === 'pendente') {
-        return res.status(401).json({ message: 'Conta aguardando aprovação do backoffice' });
-      }
+      // Note: Email confirmation and approval checks removed - users are auto-approved on registration
 
       if (investor.status === 'inativo') {
         return res.status(401).json({ message: 'Conta inativa. Entre em contato com o suporte.' });
@@ -338,19 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
 
-      // Check if email is confirmed
-      if (!entrepreneur.emailConfirmado) {
-        return res.status(401).json({ 
-          message: 'Email não confirmado. Verifique sua caixa de entrada e confirme seu email antes de fazer login.',
-          requiresEmailConfirmation: true,
-          email: entrepreneur.email
-        });
-      }
-
-      // Check if entrepreneur account is approved
-      if (entrepreneur.status === 'pendente') {
-        return res.status(401).json({ message: 'Conta aguardando aprovação do backoffice' });
-      }
+      // Note: Email confirmation and approval checks removed - users are auto-approved on registration
 
       if (entrepreneur.status === 'inativo') {
         return res.status(401).json({ message: 'Conta inativa. Entre em contato com o suporte.' });
