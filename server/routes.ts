@@ -186,7 +186,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const investorData = insertInvestorSchema.parse({
         ...req.body,
-        status: 'pendente'
+        status: 'ativo',
+        cadastroAprovado: true,
+        emailConfirmado: true,
+        documentosVerificados: true
       });
       
       // Check if investor already exists by email or CPF
@@ -205,26 +208,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const investor = await storage.createInvestor({
         ...investorData,
-        senha: hashedPassword,
-        status: 'pendente'
+        senha: hashedPassword
       });
 
-      // Generate confirmation token and send email
-      const confirmationToken = crypto.randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-      await storage.createEmailConfirmationToken({
-        email: investor.email,
-        token: confirmationToken,
-        userType: 'investor',
-        expiresAt
-      });
-
-      // Send confirmation email
-      await emailService.sendEmailConfirmation(investor.email, confirmationToken, 'investor');
+      // Send welcome email (optional)
+      // await emailService.sendWelcomeEmail(investor.email, 'investor');
 
       res.status(201).json({ 
-        message: 'Investidor cadastrado com sucesso! Verifique seu email para confirmar sua conta.',
+        message: 'Investidor cadastrado e aprovado com sucesso!',
         investor: { ...investor, senha: undefined } 
       });
     } catch (error: any) {
@@ -258,28 +249,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entrepreneur = await storage.createEntrepreneur({
         ...entrepreneurData,
         senha: hashedPassword,
-        status: 'pendente',
-        cadastroAprovado: false,
-        emailConfirmado: false,
-        documentosVerificados: false
+        status: 'ativo',
+        cadastroAprovado: true,
+        emailConfirmado: true,
+        documentosVerificados: true
       });
 
-      // Generate confirmation token and send email
-      const confirmationToken = crypto.randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-      await storage.createEmailConfirmationToken({
-        email: entrepreneur.email,
-        token: confirmationToken,
-        userType: 'entrepreneur',
-        expiresAt
-      });
-
-      // Send confirmation email
-      await emailService.sendEmailConfirmation(entrepreneur.email, confirmationToken, 'entrepreneur');
+      // Send welcome email (optional)
+      // await emailService.sendWelcomeEmail(entrepreneur.email, 'entrepreneur');
 
       res.status(201).json({ 
-        message: 'Empreendedor cadastrado com sucesso! Verifique seu email para confirmar sua conta.',
+        message: 'Empreendedor cadastrado e aprovado com sucesso!',
         entrepreneur: { ...entrepreneur, senha: undefined } 
       });
     } catch (error: any) {
