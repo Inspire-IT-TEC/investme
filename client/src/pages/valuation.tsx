@@ -370,11 +370,7 @@ const ValuationPage = () => {
         status: 'completed',
         informData: { ...informData, documents }
       };
-      if (valuationId) {
-        updateValuationMutation.mutate(data);
-      } else {
-        createValuationMutation.mutate(data);
-      }
+      createValuationMutation.mutate(data);
     }
   };
 
