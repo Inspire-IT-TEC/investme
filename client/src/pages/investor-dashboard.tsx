@@ -514,7 +514,8 @@ export default function InvestorDashboard() {
                                                 <p className="text-sm font-medium text-green-800">Método de Avaliação</p>
                                                 <p className="text-lg font-bold text-green-700">
                                                   {companyValuation.method === 'dcf' ? 'DCF (Fluxo de Caixa Descontado)' : 
-                                                   companyValuation.method === 'multiples' ? 'Múltiplos de Mercado' : 'Não informado'}
+                                                   companyValuation.method === 'multiples' ? 'Múltiplos de Mercado' :
+                                                   companyValuation.method === 'inform' ? 'Informar Valuation' : 'Não informado'}
                                                 </p>
                                               </div>
                                               <div>

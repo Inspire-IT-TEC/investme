@@ -410,17 +410,22 @@ const CompanyDetailPage = () => {
                             <div key={valuation.id} className="border border-gray-200 rounded-lg p-3" data-testid={`card-valuation-${valuation.id}`}>
                               <div className="flex justify-between items-start mb-2">
                                 <Badge variant="outline">
-                                  {valuation.method === "dcf" ? "DCF" : "Múltiplos"}
+                                  {valuation.method === "dcf" ? "DCF" : valuation.method === "multiples" ? "Múltiplos" : "Informar"}
                                 </Badge>
                                 {getValuationStatusBadge(valuation.status)}
                               </div>
                               
-                              {valuation.enterpriseValue && (
+                              {valuation.method === "inform" && valuation.informData?.valor ? (
+                                <div className="mb-2">
+                                  <p className="text-sm text-gray-600">Valor Informado</p>
+                                  <p className="font-bold text-lg">{formatCurrency(valuation.informData.valor)}</p>
+                                </div>
+                              ) : valuation.enterpriseValue ? (
                                 <div className="mb-2">
                                   <p className="text-sm text-gray-600">Valor da Empresa</p>
                                   <p className="font-bold text-lg">{formatCurrency(valuation.enterpriseValue)}</p>
                                 </div>
-                              )}
+                              ) : null}
                               
                               <div className="flex justify-between items-center">
                                 <p className="text-xs text-gray-500">{formatDate(valuation.createdAt)}</p>
@@ -656,22 +661,26 @@ const CompanyDetailPage = () => {
                                 <TableCell>{formatDate(valuation.createdAt)}</TableCell>
                                 <TableCell>
                                   <Badge variant="outline">
-                                    {valuation.method === "dcf" ? "DCF" : "Múltiplos"}
+                                    {valuation.method === "dcf" ? "DCF" : valuation.method === "multiples" ? "Múltiplos" : "Informar"}
                                   </Badge>
                                 </TableCell>
                                 <TableCell>
                                   {getValuationStatusBadge(valuation.status)}
                                 </TableCell>
                                 <TableCell>
-                                  {valuation.enterpriseValue ? 
-                                    formatCurrency(valuation.enterpriseValue) : 
-                                    "-"
+                                  {valuation.method === "inform" && valuation.informData?.valor ? 
+                                    formatCurrency(valuation.informData.valor) :
+                                    valuation.enterpriseValue ? 
+                                      formatCurrency(valuation.enterpriseValue) : 
+                                      "-"
                                   }
                                 </TableCell>
                                 <TableCell>
-                                  {valuation.equityValue ? 
-                                    formatCurrency(valuation.equityValue) : 
-                                    "-"
+                                  {valuation.method === "inform" && valuation.informData?.valor ? 
+                                    formatCurrency(valuation.informData.valor) :
+                                    valuation.equityValue ? 
+                                      formatCurrency(valuation.equityValue) : 
+                                      "-"
                                   }
                                 </TableCell>
                                 <TableCell>
@@ -800,7 +809,7 @@ const CompanyDetailPage = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Método:</span>
                     <Badge variant="outline">
-                      {(latestValuation as any).method === "dcf" ? "DCF" : "Múltiplos"}
+                      {(latestValuation as any).method === "dcf" ? "DCF" : (latestValuation as any).method === "multiples" ? "Múltiplos" : "Informar"}
                     </Badge>
                   </div>
                   
@@ -809,7 +818,16 @@ const CompanyDetailPage = () => {
                     {getValuationStatusBadge((latestValuation as any).status)}
                   </div>
                   
-                  {(latestValuation as any).enterpriseValue && (
+                  {((latestValuation as any).method === "inform" && (latestValuation as any).informData?.valor) && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Valor Informado</p>
+                      <p className="text-xl font-bold text-green-600">
+                        {formatCurrency((latestValuation as any).informData.valor)}
+                      </p>
+                    </div>
+                  )}
+
+                  {((latestValuation as any).method !== "inform" && (latestValuation as any).enterpriseValue) && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Valor da Empresa</p>
                       <p className="text-xl font-bold">
@@ -818,7 +836,7 @@ const CompanyDetailPage = () => {
                     </div>
                   )}
                   
-                  {(latestValuation as any).equityValue && (
+                  {((latestValuation as any).method !== "inform" && (latestValuation as any).equityValue) && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Valor do Equity</p>
                       <p className="text-xl font-bold text-green-600">

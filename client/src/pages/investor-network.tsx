@@ -246,7 +246,7 @@ const InvestorNetworkPage = () => {
                                 {getValuationStatusBadge(company.latestValuation.status)}
                               </div>
                               <Badge variant="outline">
-                                {company.latestValuation.method === "dcf" ? "DCF" : "Múltiplos"}
+                                {company.latestValuation.method === "dcf" ? "DCF" : company.latestValuation.method === "multiples" ? "Múltiplos" : "Informar"}
                               </Badge>
                             </div>
                             
@@ -352,7 +352,7 @@ const InvestorNetworkPage = () => {
                                       <div>
                                         <p className="text-xs text-green-600">Método</p>
                                         <p className="font-medium">
-                                          {selectedCompany.latestValuation.method === "dcf" ? "DCF" : "Múltiplos"}
+                                          {selectedCompany.latestValuation.method === "dcf" ? "DCF" : selectedCompany.latestValuation.method === "multiples" ? "Múltiplos" : "Informar"}
                                         </p>
                                       </div>
                                       <div>
