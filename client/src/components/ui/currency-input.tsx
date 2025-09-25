@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 
 interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -6,37 +6,40 @@ interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   onChange?: (value: string) => void;
 }
 
-const formatCurrency = (value: string) => {
+const formatDisplayValue = (value: string): string => {
   // Remove all non-numeric characters except dots and commas
-  const numbers = value.replace(/[^\d.,]/g, '');
+  const cleaned = value.replace(/[^\d,]/g, '');
   
-  // Handle empty or invalid input
-  if (!numbers || numbers === '.' || numbers === ',') {
-    return 'R$ 0,00';
+  if (!cleaned) {
+    return '';
   }
   
-  // Handle large numbers safely by working with strings
-  let cleanNumber = numbers.replace(',', '.');
+  // Split by comma to handle decimal part
+  const parts = cleaned.split(',');
+  const integerPart = parts[0] || '';
+  const decimalPart = parts[1] || '';
   
-  // Split into integer and decimal parts
-  const parts = cleanNumber.split('.');
-  const integerPart = parts[0] || '0';
-  const decimalPart = (parts[1] || '00').padEnd(2, '0').substring(0, 2);
-  
-  // Format integer part with thousands separators
+  // Format integer part with thousand separators (dots)
   const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   
-  return `R$ ${formattedInteger},${decimalPart}`;
+  // Combine with decimal part (limit to 2 decimal places)
+  if (decimalPart.length > 0) {
+    const limitedDecimal = decimalPart.substring(0, 2);
+    return `${formattedInteger},${limitedDecimal}`;
+  }
+  
+  return formattedInteger;
 };
 
-const parseCurrency = (formattedValue: string): string => {
-  // Remove currency symbol and thousand separators, keep decimal
-  let cleaned = formattedValue
-    .replace(/[^\d,]/g, '')
-    .replace(',', '.');
+const parseToNumericString = (formattedValue: string): string => {
+  // Remove thousand separators (dots) but keep decimal comma
+  let cleaned = formattedValue.replace(/\./g, '');
+  
+  // Convert decimal comma to dot for JavaScript parsing
+  cleaned = cleaned.replace(',', '.');
   
   // Handle edge cases
-  if (!cleaned || cleaned === '.') {
+  if (!cleaned || cleaned === '.' || cleaned === '') {
     return '0';
   }
   
@@ -45,26 +48,45 @@ const parseCurrency = (formattedValue: string): string => {
 
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ value, onChange, ...props }, ref) => {
+    const [displayValue, setDisplayValue] = useState('');
+    
+    // Update display value when prop value changes
+    useEffect(() => {
+      if (value !== undefined && value !== null) {
+        const stringValue = value.toString();
+        if (stringValue !== '0' && stringValue !== '') {
+          // Format the value for display
+          const formatted = formatDisplayValue(stringValue.replace('.', ','));
+          setDisplayValue(formatted);
+        } else {
+          setDisplayValue('');
+        }
+      } else {
+        setDisplayValue('');
+      }
+    }, [value]);
+    
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
       
+      // Allow only numbers, commas, and dots
+      const cleanInput = inputValue.replace(/[^\d.,]/g, '');
+      
       // If user is clearing the field
-      if (inputValue === '') {
-        onChange?.('');
+      if (cleanInput === '') {
+        setDisplayValue('');
+        onChange?.('0');
         return;
       }
       
-      // Parse and reformat the currency
-      const numericValue = parseCurrency(inputValue);
-      const formatted = formatCurrency(numericValue);
+      // Format for display
+      const formatted = formatDisplayValue(cleanInput);
+      setDisplayValue(formatted);
       
+      // Parse to numeric string for onChange
+      const numericValue = parseToNumericString(formatted);
       onChange?.(numericValue);
-      
-      // Update the display value
-      e.target.value = formatted;
     };
-
-    const displayValue = value ? formatCurrency(value.toString()) : '';
 
     return (
       <Input
@@ -73,7 +95,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         type="text"
         value={displayValue}
         onChange={handleChange}
-        placeholder="R$ 0,00"
+        placeholder="0,00"
       />
     );
   }
