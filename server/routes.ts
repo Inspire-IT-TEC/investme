@@ -2813,7 +2813,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (cityId) filters.cityId = parseInt(cityId as string);
       if (search) filters.search = search as string;
 
+      console.log('Network companies request - User:', req.user?.id, 'Type:', req.user?.type);
       const companies = await storage.getNetworkCompanies(filters);
+      console.log('Found companies for network:', companies.length);
+      
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.json(companies);
     } catch (error: any) {
       res.status(500).json({ message: error.message || 'Erro ao buscar empresas da rede' });
