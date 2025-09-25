@@ -248,14 +248,14 @@ export default function CompanyRegistration() {
     if (!files) return;
 
     const currentImageCount = formData.images.length;
-    const maxImages = 5;
+    const maxImages = 10;
     const availableSlots = maxImages - currentImageCount;
     const filesToUpload = Array.from(files).slice(0, availableSlots);
 
     if (filesToUpload.length === 0) {
       toast({
         title: "Limite de imagens",
-        description: "Você pode adicionar no máximo 5 imagens por empresa.",
+        description: "Você pode adicionar no máximo 10 imagens por empresa.",
         variant: "destructive",
       });
       return;
