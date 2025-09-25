@@ -2321,14 +2321,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/companies/:companyId/valuations', authenticateToken, async (req: any, res) => {
     try {
       const { companyId } = req.params;
-      const { method, dcfData, multiplesData, assumptions, notes } = req.body;
+      const { method, dcfData, multiplesData, informData, assumptions, notes } = req.body;
 
       // Validate input data based on method
       let validatedData: any = {};
+      let status = 'draft';
+      
       if (method === 'dcf' && dcfData) {
         validatedData.dcfData = dcfDataSchema.parse(dcfData);
       } else if (method === 'multiples' && multiplesData) {
         validatedData.multiplesData = multiplesDataSchema.parse(multiplesData);
+      } else if (method === 'inform' && informData) {
+        validatedData.informData = informData;
+        // For inform method, use the provided value directly and mark as completed
+        if (informData.valor) {
+          const valorNumerico = parseFloat(informData.valor);
+          validatedData.enterpriseValue = valorNumerico;
+          validatedData.equityValue = valorNumerico;
+          status = 'completed';
+        }
       }
 
       const valuationData = insertValuationSchema.parse({
@@ -2336,7 +2347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user.id,
         userType: req.user.type || 'entrepreneur',
         method,
-        status: 'draft',
+        status,
         ...validatedData,
         assumptions,
         notes,
@@ -2364,22 +2375,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Não autorizado a editar este valuation' });
       }
 
-      const { method, dcfData, multiplesData, assumptions, notes, status, enterpriseValue, equityValue, sensitivityData } = req.body;
+      const { method, dcfData, multiplesData, informData, assumptions, notes, status, enterpriseValue, equityValue, sensitivityData } = req.body;
 
       let validatedData: any = {};
       if (method === 'dcf' && dcfData) {
         validatedData.dcfData = dcfDataSchema.parse(dcfData);
       } else if (method === 'multiples' && multiplesData) {
         validatedData.multiplesData = multiplesDataSchema.parse(multiplesData);
+      } else if (method === 'inform' && informData) {
+        validatedData.informData = informData;
+        // For inform method, use the provided value directly
+        if (informData.valor) {
+          const valorNumerico = parseFloat(informData.valor);
+          validatedData.enterpriseValue = valorNumerico;
+          validatedData.equityValue = valorNumerico;
+          validatedData.status = 'completed';
+        }
       }
 
       const updateData = {
         ...validatedData,
         assumptions,
         notes,
-        status,
-        enterpriseValue,
-        equityValue,
+        status: validatedData.status || status,
+        enterpriseValue: validatedData.enterpriseValue || enterpriseValue,
+        equityValue: validatedData.equityValue || equityValue,
         sensitivityData,
       };
 
