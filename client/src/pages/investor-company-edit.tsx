@@ -474,7 +474,7 @@ export default function InvestorCompanyEdit() {
                       <label
                         htmlFor="image-upload"
                         className={`flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                          images.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''
+                          images.length >= 10 ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
                         <Upload className="w-4 h-4" />
@@ -486,11 +486,11 @@ export default function InvestorCompanyEdit() {
                         multiple
                         accept="image/*"
                         onChange={handleImageUpload}
-                        disabled={uploadingImages || images.length >= 5}
+                        disabled={uploadingImages || images.length >= 10}
                         className="hidden"
                       />
                       <span className="text-sm text-muted-foreground">
-                        {images.length}/5 imagens
+                        {images.length}/10 imagens
                       </span>
                     </div>
 

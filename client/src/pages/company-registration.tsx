@@ -712,7 +712,7 @@ export default function CompanyRegistration() {
                     <label
                       htmlFor="image-upload"
                       className={`flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                        formData.images.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''
+                        formData.images.length >= 10 ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
                       <Upload className="w-4 h-4" />
@@ -724,11 +724,11 @@ export default function CompanyRegistration() {
                       multiple
                       accept="image/*"
                       onChange={handleImageUpload}
-                      disabled={uploadingImages || formData.images.length >= 5}
+                      disabled={uploadingImages || formData.images.length >= 10}
                       className="hidden"
                     />
                     <span className="text-sm text-gray-500">
-                      {formData.images.length}/5 imagens
+                      {formData.images.length}/10 imagens
                     </span>
                   </div>
 
