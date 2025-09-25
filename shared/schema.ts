@@ -474,6 +474,14 @@ export const insertValuationSchema = createInsertSchema(valuations).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Transform number inputs to string for decimal fields
+  enterpriseValue: z.union([z.string(), z.number()]).optional().transform((val) => 
+    val !== undefined ? String(val) : val
+  ),
+  equityValue: z.union([z.string(), z.number()]).optional().transform((val) => 
+    val !== undefined ? String(val) : val
+  ),
 });
 
 export const insertEmailConfirmationTokenSchema = createInsertSchema(emailConfirmationTokens).omit({
