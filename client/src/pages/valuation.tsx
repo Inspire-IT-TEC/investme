@@ -17,7 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Calculator, TrendingUp, FileText, Save, Play, Trash2, ArrowLeft, Download, Building2, DollarSign } from "lucide-react";
+import { Calculator, TrendingUp, FileText, Save, Play, Trash2, ArrowLeft, Download, Building2, DollarSign, Upload, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -53,6 +53,14 @@ const multiplesFormSchema = z.object({
   liquidityDiscount: z.number().min(0).max(1).default(0),
   controlPremium: z.number().min(0).max(1).default(0),
   comparablesSources: z.string().optional(),
+});
+
+// Informar Valuation Form Schema
+const informValuationSchema = z.object({
+  valuationAmount: z.number().min(0, "Valor deve ser positivo"),
+  valuationDate: z.string().min(1, "Data é obrigatória"),
+  valuationOrigin: z.string().min(1, "Origem é obrigatória"),
+  documents: z.array(z.string()).optional(),
 });
 
 // Componente para input de valor com máscara R$
@@ -91,7 +99,7 @@ const ValuationPage = () => {
   const [, params] = useRoute("/companies/:companyId/valuation/:valuationId?");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [activeMethod, setActiveMethod] = useState<"dcf" | "multiples">("dcf");
+  const [activeMethod, setActiveMethod] = useState<"dcf" | "multiples" | "inform">("dcf");
   const [calculationResults, setCalculationResults] = useState<any>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -151,6 +159,21 @@ const ValuationPage = () => {
     },
   });
 
+  // Inform Valuation Form
+  const informForm = useForm({
+    resolver: zodResolver(informValuationSchema),
+    defaultValues: {
+      valuationAmount: 0,
+      valuationDate: "",
+      valuationOrigin: "",
+      documents: [],
+    },
+  });
+  
+  // State for document upload
+  const [documents, setDocuments] = useState<string[]>([]);
+  const [uploadingDocuments, setUploadingDocuments] = useState(false);
+
   // Create/Update Valuation Mutation
   const createValuationMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -196,6 +219,60 @@ const ValuationPage = () => {
       });
     },
   });
+
+  // Handle document upload for inform valuation
+  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    setUploadingDocuments(true);
+
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('document', file);
+
+        const response = await fetch('/api/upload/valuation-document', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Falha no upload do documento');
+        const result = await response.json();
+        return result.url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      
+      setDocuments(prev => [...prev, ...uploadedUrls]);
+      informForm.setValue('documents', [...documents, ...uploadedUrls]);
+
+      toast({
+        title: "Documentos enviados",
+        description: `${uploadedUrls.length} documento(s) adicionado(s) com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no upload",
+        description: "Falha ao enviar um ou mais documentos.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingDocuments(false);
+      event.target.value = '';
+    }
+  };
+
+  // Remove document
+  const removeDocument = (index: number) => {
+    const updatedDocs = documents.filter((_, i) => i !== index);
+    setDocuments(updatedDocs);
+    informForm.setValue('documents', updatedDocs);
+  };
 
   // Calculate Multiples Mutation
   const calculateMultiplesMutation = useMutation({
@@ -243,6 +320,11 @@ const ValuationPage = () => {
         dcfForm.reset((existingValuation as any).dcfData);
       } else if ((existingValuation as any).method === "multiples" && (existingValuation as any).multiplesData) {
         multiplesForm.reset((existingValuation as any).multiplesData);
+      } else if ((existingValuation as any).method === "inform" && (existingValuation as any).informData) {
+        informForm.reset((existingValuation as any).informData);
+        if ((existingValuation as any).informData.documents) {
+          setDocuments((existingValuation as any).informData.documents);
+        }
       }
     }
   }, [existingValuation]);
@@ -252,7 +334,9 @@ const ValuationPage = () => {
     const data = {
       method: activeMethod,
       status: "draft",
-      ...(activeMethod === "dcf" ? { dcfData: dcfForm.getValues() } : { multiplesData: multiplesForm.getValues() }),
+      ...(activeMethod === "dcf" ? { dcfData: dcfForm.getValues() } : 
+          activeMethod === "multiples" ? { multiplesData: multiplesForm.getValues() } :
+          { informData: { ...informForm.getValues(), documents } }),
     };
     createValuationMutation.mutate(data);
   };
@@ -264,7 +348,9 @@ const ValuationPage = () => {
       const data = {
         method: activeMethod,
         status: "draft",
-        ...(activeMethod === "dcf" ? { dcfData: dcfForm.getValues() } : { multiplesData: multiplesForm.getValues() }),
+        ...(activeMethod === "dcf" ? { dcfData: dcfForm.getValues() } : 
+            activeMethod === "multiples" ? { multiplesData: multiplesForm.getValues() } :
+            { informData: { ...informForm.getValues(), documents } }),
       };
       createValuationMutation.mutate(data);
       return;
@@ -272,8 +358,17 @@ const ValuationPage = () => {
 
     if (activeMethod === "dcf") {
       calculateDcfMutation.mutate(dcfForm.getValues());
-    } else {
+    } else if (activeMethod === "multiples") {
       calculateMultiplesMutation.mutate(multiplesForm.getValues());
+    } else if (activeMethod === "inform") {
+      // For inform method, save the valuation directly without calculation
+      const informData = informForm.getValues();
+      const data = {
+        method: 'inform',
+        status: 'completed',
+        informData: { ...informData, documents }
+      };
+      createValuationMutation.mutate(data);
     }
   };
 
@@ -314,7 +409,8 @@ const ValuationPage = () => {
         <div className="flex space-x-1 p-2 min-w-max">
           {[
             { value: 'dcf', label: 'DCF', icon: TrendingUp },
-            { value: 'multiples', label: 'Múltiplos', icon: DollarSign }
+            { value: 'multiples', label: 'Múltiplos', icon: DollarSign },
+            { value: 'inform', label: 'Informar Valuation', icon: Info }
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -322,7 +418,7 @@ const ValuationPage = () => {
                 key={tab.value}
                 variant={activeMethod === tab.value ? "default" : "ghost"}
                 size="sm"
-                onClick={() => setActiveMethod(tab.value as "dcf" | "multiples")}
+                onClick={() => setActiveMethod(tab.value as "dcf" | "multiples" | "inform")}
                 className={`whitespace-nowrap flex items-center space-x-1 flex-shrink-0 ${
                   activeMethod === tab.value 
                     ? 'bg-blue-600 text-white' 
@@ -874,6 +970,133 @@ const ValuationPage = () => {
                     </CardContent>
                   </Card>
                 </TabContent>
+
+                <TabContent tabValue="inform">
+                  <Card data-testid="card-inform-form">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Info className="w-5 h-5 mr-2" />
+                        Informar Valuation
+                      </CardTitle>
+                      <CardDescription>
+                        Informar valor de valuation já realizado
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Form {...informForm}>
+                        <div className="space-y-6">
+                          {/* Valor do Valuation */}
+                          <FormField
+                            control={informForm.control}
+                            name="valuationAmount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Valor do Valuation *</FormLabel>
+                                <FormControl>
+                                  <CurrencyInput
+                                    {...field}
+                                    onChange={(value) => field.onChange(parseFloat(value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {/* Data de Realizacao */}
+                          <FormField
+                            control={informForm.control}
+                            name="valuationDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Data de Realização *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="date"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {/* Origem do Valuation */}
+                          <FormField
+                            control={informForm.control}
+                            name="valuationOrigin"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Origem do Valuation *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Ex: Auditoria Externa, Laudo de Avaliação..."
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {/* Anexos/Documentos */}
+                          <div className="space-y-4">
+                            <div>
+                              <h3 className="text-base font-semibold">Documentos</h3>
+                              <p className="text-sm text-gray-600">Anexe documentos que comprovem o valuation</p>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-4">
+                                <label
+                                  htmlFor="document-upload-mobile"
+                                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                >
+                                  <Upload className="w-4 h-4" />
+                                  {uploadingDocuments ? 'Enviando...' : 'Anexar Documentos'}
+                                </label>
+                                <input
+                                  id="document-upload-mobile"
+                                  type="file"
+                                  multiple
+                                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                  onChange={handleDocumentUpload}
+                                  disabled={uploadingDocuments}
+                                  className="hidden"
+                                />
+                                <span className="text-sm text-gray-500">
+                                  {documents.length} documento(s)
+                                </span>
+                              </div>
+                              
+                              {/* Lista de documentos */}
+                              {documents.length > 0 && (
+                                <div className="space-y-2">
+                                  {documents.map((docUrl, index) => (
+                                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                                      <span className="text-sm text-gray-700 truncate flex-1">
+                                        Documento {index + 1}
+                                      </span>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => removeDocument(index)}
+                                        className="ml-2"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </Form>
+                    </CardContent>
+                  </Card>
+                </TabContent>
               </>
             ) : (
               // Layout desktop - tabs tradicionais
@@ -888,10 +1111,11 @@ const ValuationPage = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Tabs value={activeMethod} onValueChange={(value) => setActiveMethod(value as "dcf" | "multiples")}>
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="dcf">DCF (Fluxo de Caixa Descontado)</TabsTrigger>
-                      <TabsTrigger value="multiples">Múltiplos de Mercado</TabsTrigger>
+                  <Tabs value={activeMethod} onValueChange={(value) => setActiveMethod(value as "dcf" | "multiples" | "inform")}>
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="dcf">DCF</TabsTrigger>
+                      <TabsTrigger value="multiples">Múltiplos</TabsTrigger>
+                      <TabsTrigger value="inform">Informar</TabsTrigger>
                     </TabsList>
 
                     {/* DCF Tab */}
@@ -1343,6 +1567,121 @@ const ValuationPage = () => {
                                 </FormItem>
                               )}
                             />
+                          </div>
+                        </div>
+                      </Form>
+                    </TabsContent>
+                    
+                    {/* Inform Valuation Tab */}
+                    <TabsContent value="inform" className="space-y-6">
+                      <Form {...informForm}>
+                        <div className="space-y-6">
+                          {/* Valor do Valuation */}
+                          <FormField
+                            control={informForm.control}
+                            name="valuationAmount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Valor do Valuation *</FormLabel>
+                                <FormControl>
+                                  <CurrencyInput
+                                    {...field}
+                                    onChange={(value) => field.onChange(parseFloat(value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {/* Data de Realizacao */}
+                          <FormField
+                            control={informForm.control}
+                            name="valuationDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Data de Realização *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="date"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {/* Origem do Valuation */}
+                          <FormField
+                            control={informForm.control}
+                            name="valuationOrigin"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Origem do Valuation *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Ex: Auditoria Externa, Laudo de Avaliação, Consultoria Especializada..."
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {/* Anexos/Documentos */}
+                          <div className="space-y-4">
+                            <div>
+                              <h3 className="text-lg font-semibold">Documentos Comprobatórios</h3>
+                              <p className="text-sm text-gray-600">Anexe documentos que comprovem o valuation informado</p>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-4">
+                                <label
+                                  htmlFor="document-upload"
+                                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                >
+                                  <Upload className="w-4 h-4" />
+                                  {uploadingDocuments ? 'Enviando...' : 'Anexar Documentos'}
+                                </label>
+                                <input
+                                  id="document-upload"
+                                  type="file"
+                                  multiple
+                                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                  onChange={handleDocumentUpload}
+                                  disabled={uploadingDocuments}
+                                  className="hidden"
+                                />
+                                <span className="text-sm text-gray-500">
+                                  {documents.length} documento(s)
+                                </span>
+                              </div>
+                              
+                              {/* Lista de documentos */}
+                              {documents.length > 0 && (
+                                <div className="space-y-2">
+                                  {documents.map((docUrl, index) => (
+                                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                                      <span className="text-sm text-gray-700 truncate flex-1">
+                                        Documento {index + 1}
+                                      </span>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => removeDocument(index)}
+                                        className="ml-2"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </Form>

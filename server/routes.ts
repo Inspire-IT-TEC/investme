@@ -108,6 +108,31 @@ const uploadS3Documents = multer({
   }
 });
 
+// Multer configuration for valuation documents (S3)
+const uploadS3ValuationDocuments = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: BUCKET_NAME,
+    key: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const fileName = `valuation-documents/${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`;
+      cb(null, fileName);
+    },
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não permitido. Use apenas PDF, DOC, DOCX, JPG ou PNG.'));
+    }
+  }
+});
+
 // Multer configuration for local file uploads (for documents)
 const storage_multer = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -1753,6 +1778,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Error uploading image to S3:', error);
       res.status(500).json({ message: error.message || 'Erro ao fazer upload da imagem' });
+    }
+  });
+
+  // Upload valuation document route
+  app.post('/api/upload/valuation-document', authenticateToken, uploadS3ValuationDocuments.single('document'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'Nenhum documento foi enviado' });
+      }
+
+      // Get the S3 URL from multer-s3 and convert to custom domain
+      const documentUrl = convertS3UrlToCustomDomain((req.file as any).location);
+      console.log('Valuation document uploaded to S3:', documentUrl);
+      
+      res.json({ url: documentUrl });
+    } catch (error: any) {
+      console.error('Error uploading valuation document to S3:', error);
+      res.status(500).json({ message: error.message || 'Erro ao fazer upload do documento' });
     }
   });
 
