@@ -235,7 +235,7 @@ export const valuations = pgTable("valuations", {
   companyId: integer("company_id").notNull().references(() => companies.id),
   userId: integer("user_id").notNull(), // References either entrepreneur or investor ID
   userType: text("user_type").notNull(), // 'entrepreneur' or 'investor'
-  method: text("method").notNull(), // 'dcf' or 'multiples'
+  method: text("method").notNull(), // 'dcf', 'multiples', or 'inform'
   status: text("status").notNull().default("draft"), // 'draft' or 'completed'
   
   // Common valuation results
@@ -247,6 +247,9 @@ export const valuations = pgTable("valuations", {
   
   // Multiples specific data
   multiplesData: jsonb("multiples_data"), // Stores multiples and comparable data
+  
+  // Inform valuation specific data
+  informData: jsonb("inform_data"), // Stores informed valuation data
   
   // Sensitivity analysis data
   sensitivityData: jsonb("sensitivity_data"),

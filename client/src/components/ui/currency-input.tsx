@@ -10,22 +10,37 @@ const formatCurrency = (value: string) => {
   // Remove all non-numeric characters except dots and commas
   const numbers = value.replace(/[^\d.,]/g, '');
   
-  // Convert to number and format
-  const numValue = parseFloat(numbers.replace(',', '.')) || 0;
+  // Handle empty or invalid input
+  if (!numbers || numbers === '.' || numbers === ',') {
+    return 'R$ 0,00';
+  }
   
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numValue);
+  // Handle large numbers safely by working with strings
+  let cleanNumber = numbers.replace(',', '.');
+  
+  // Split into integer and decimal parts
+  const parts = cleanNumber.split('.');
+  const integerPart = parts[0] || '0';
+  const decimalPart = (parts[1] || '00').padEnd(2, '0').substring(0, 2);
+  
+  // Format integer part with thousands separators
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  
+  return `R$ ${formattedInteger},${decimalPart}`;
 };
 
 const parseCurrency = (formattedValue: string): string => {
   // Remove currency symbol and thousand separators, keep decimal
-  return formattedValue
+  let cleaned = formattedValue
     .replace(/[^\d,]/g, '')
     .replace(',', '.');
+  
+  // Handle edge cases
+  if (!cleaned || cleaned === '.') {
+    return '0';
+  }
+  
+  return cleaned;
 };
 
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(

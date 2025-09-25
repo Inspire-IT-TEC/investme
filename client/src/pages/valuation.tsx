@@ -57,7 +57,9 @@ const multiplesFormSchema = z.object({
 
 // Informar Valuation Form Schema
 const informValuationSchema = z.object({
-  valuationAmount: z.number().min(0, "Valor deve ser positivo"),
+  valuationAmount: z.number()
+    .min(0, "Valor deve ser positivo")
+    .max(9999999999999.99, "Valor muito grande. Limite de 13 dígitos"),
   valuationDate: z.string().min(1, "Data é obrigatória"),
   valuationOrigin: z.string().min(1, "Origem é obrigatória"),
   documents: z.array(z.string()).optional(),
@@ -995,7 +997,19 @@ const ValuationPage = () => {
                                 <FormControl>
                                   <CurrencyInput
                                     {...field}
-                                    onChange={(value) => field.onChange(parseFloat(value) || 0)}
+                                    onChange={(value) => {
+                                      // Handle large numbers safely
+                                      if (value === '' || value === '0') {
+                                        field.onChange(0);
+                                        return;
+                                      }
+                                      const numValue = parseFloat(value);
+                                      if (isNaN(numValue) || !isFinite(numValue)) {
+                                        field.onChange(0);
+                                      } else {
+                                        field.onChange(numValue);
+                                      }
+                                    }}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1586,7 +1600,19 @@ const ValuationPage = () => {
                                 <FormControl>
                                   <CurrencyInput
                                     {...field}
-                                    onChange={(value) => field.onChange(parseFloat(value) || 0)}
+                                    onChange={(value) => {
+                                      // Handle large numbers safely
+                                      if (value === '' || value === '0') {
+                                        field.onChange(0);
+                                        return;
+                                      }
+                                      const numValue = parseFloat(value);
+                                      if (isNaN(numValue) || !isFinite(numValue)) {
+                                        field.onChange(0);
+                                      } else {
+                                        field.onChange(numValue);
+                                      }
+                                    }}
                                   />
                                 </FormControl>
                                 <FormMessage />
