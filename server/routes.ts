@@ -2334,8 +2334,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (method === 'inform' && informData) {
         validatedData.informData = informData;
         // For inform method, use the provided value directly and mark as completed
-        if (informData.valor) {
-          const valorNumerico = parseFloat(informData.valor);
+        if (informData.valuationAmount) {
+          const valorNumerico = parseFloat(informData.valuationAmount);
           validatedData.enterpriseValue = valorNumerico;
           validatedData.equityValue = valorNumerico;
           status = 'completed';
@@ -2385,8 +2385,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (method === 'inform' && informData) {
         validatedData.informData = informData;
         // For inform method, use the provided value directly
-        if (informData.valor) {
-          const valorNumerico = parseFloat(informData.valor);
+        if (informData.valuationAmount) {
+          const valorNumerico = parseFloat(informData.valuationAmount);
           validatedData.enterpriseValue = valorNumerico;
           validatedData.equityValue = valorNumerico;
           validatedData.status = 'completed';

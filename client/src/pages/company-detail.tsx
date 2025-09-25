@@ -415,10 +415,10 @@ const CompanyDetailPage = () => {
                                 {getValuationStatusBadge(valuation.status)}
                               </div>
                               
-                              {valuation.method === "inform" && valuation.informData?.valor ? (
+                              {valuation.method === "inform" && valuation.informData?.valuationAmount ? (
                                 <div className="mb-2">
                                   <p className="text-sm text-gray-600">Valor Informado</p>
-                                  <p className="font-bold text-lg">{formatCurrency(valuation.informData.valor)}</p>
+                                  <p className="font-bold text-lg">{formatCurrency(valuation.informData.valuationAmount)}</p>
                                 </div>
                               ) : valuation.enterpriseValue ? (
                                 <div className="mb-2">
@@ -668,16 +668,16 @@ const CompanyDetailPage = () => {
                                   {getValuationStatusBadge(valuation.status)}
                                 </TableCell>
                                 <TableCell>
-                                  {valuation.method === "inform" && valuation.informData?.valor ? 
-                                    formatCurrency(valuation.informData.valor) :
+                                  {valuation.method === "inform" && valuation.informData?.valuationAmount ? 
+                                    formatCurrency(valuation.informData.valuationAmount) :
                                     valuation.enterpriseValue ? 
                                       formatCurrency(valuation.enterpriseValue) : 
                                       "-"
                                   }
                                 </TableCell>
                                 <TableCell>
-                                  {valuation.method === "inform" && valuation.informData?.valor ? 
-                                    formatCurrency(valuation.informData.valor) :
+                                  {valuation.method === "inform" && valuation.informData?.valuationAmount ? 
+                                    formatCurrency(valuation.informData.valuationAmount) :
                                     valuation.equityValue ? 
                                       formatCurrency(valuation.equityValue) : 
                                       "-"
@@ -818,11 +818,11 @@ const CompanyDetailPage = () => {
                     {getValuationStatusBadge((latestValuation as any).status)}
                   </div>
                   
-                  {((latestValuation as any).method === "inform" && (latestValuation as any).informData?.valor) && (
+                  {((latestValuation as any).method === "inform" && (latestValuation as any).informData?.valuationAmount) && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Valor Informado</p>
                       <p className="text-xl font-bold text-green-600">
-                        {formatCurrency((latestValuation as any).informData.valor)}
+                        {formatCurrency((latestValuation as any).informData.valuationAmount)}
                       </p>
                     </div>
                   )}
