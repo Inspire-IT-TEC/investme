@@ -478,8 +478,8 @@ export default function Network() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Valuation</span>
                       <span className="font-medium text-primary">
-                        {company.valuation ? 
-                          `R$ ${parseFloat(company.valuation).toLocaleString('pt-BR')}` : 
+                        {company.latestValuation?.enterpriseValue ? 
+                          `R$ ${parseFloat(company.latestValuation.enterpriseValue).toLocaleString('pt-BR')}` : 
                           'Aguardando Valuation'
                         }
                       </span>

@@ -1510,11 +1510,6 @@ export class DatabaseStorage implements IStorage {
       (company as any).likesCount = likesResult.count || 0;
       (company as any).postsCount = postsResult.count || 0;
       (company as any).latestValuation = latestValuation || null;
-      
-      // Debug logging
-      if (company.id === 9) {
-        console.log('Company 9 latestValuation:', JSON.stringify(latestValuation, null, 2));
-      }
     }
 
     return result;
