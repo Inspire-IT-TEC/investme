@@ -456,7 +456,7 @@ export default function CompanyEdit() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Imagens da Empresa</h3>
                   <p className="text-sm text-muted-foreground">
-                    Adicione até 5 imagens que representem sua empresa (produtos, instalações, equipe, etc.)
+                    Adicione até 10 imagens que representem sua empresa (produtos, instalações, equipe, etc.)
                   </p>
                   
                   <div className="space-y-4">

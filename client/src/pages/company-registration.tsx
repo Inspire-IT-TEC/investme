@@ -703,7 +703,7 @@ export default function CompanyRegistration() {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Imagens da Empresa</h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Adicione até 5 imagens que representem sua empresa (produtos, instalações, equipe, etc.)
+                  Adicione até 10 imagens que representem sua empresa (produtos, instalações, equipe, etc.)
                 </p>
                 
                 <div className="space-y-4">
