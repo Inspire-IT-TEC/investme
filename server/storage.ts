@@ -1460,7 +1460,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (filters?.excludeUserId) {
-      whereConditions.push(ne(companies.userId, filters.excludeUserId));
+      whereConditions.push(ne(companies.entrepreneurId, filters.excludeUserId));
     }
 
     const result = await db
@@ -1485,7 +1485,7 @@ export class DatabaseStorage implements IStorage {
       .where(whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0])
       .orderBy(companies.razaoSocial);
 
-    // Add likes count and posts count for each company
+    // Add likes count, posts count and latest valuation for each company
     for (const company of result) {
       // Count likes for this company
       const [likesResult] = await db
@@ -1499,8 +1499,17 @@ export class DatabaseStorage implements IStorage {
         .from(networkPosts)
         .where(eq(networkPosts.companyId, company.id));
 
+      // Get latest valuation for this company
+      const [latestValuation] = await db
+        .select()
+        .from(valuations)
+        .where(eq(valuations.companyId, company.id))
+        .orderBy(desc(valuations.createdAt))
+        .limit(1);
+
       (company as any).likesCount = likesResult.count || 0;
       (company as any).postsCount = postsResult.count || 0;
+      (company as any).latestValuation = latestValuation || null;
     }
 
     return result;
