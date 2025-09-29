@@ -90,11 +90,20 @@ export default function InvestorCompanyRegistration() {
       
       if (data.returnCode === 0 && data.data?.encontrado) {
         // API retornou sucesso e dados encontrados
+        // Encontrar atividade principal (IsMain=true)
+        const mainActivity = data.data.Activities?.find((activity: any) => activity.IsMain === true);
+        const cnaePrincipal = mainActivity 
+          ? `${mainActivity.Code}-${mainActivity.Activity}`
+          : "";
+        
         form.setValue('razaoSocial', data.data.razaoSocial || '');
         form.setValue('nomeFantasia', data.data.nomeFantasia || '');
         if (data.data.dataFundacao) {
           const foundingDate = new Date(data.data.dataFundacao);
           form.setValue('dataFundacao', foundingDate.toISOString().split('T')[0]);
+        }
+        if (cnaePrincipal) {
+          form.setValue('cnaePrincipal', cnaePrincipal);
         }
         setCnpjConsulted(true);
         toast({

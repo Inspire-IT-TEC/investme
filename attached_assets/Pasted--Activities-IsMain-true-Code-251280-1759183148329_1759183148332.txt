@@ -1,0 +1,42 @@
+"Activities":[
+               {
+                  "IsMain":true,
+                  "Code":"2512800",
+                  "Activity":"FABRICACAO DE ESQUADRIAS DE METAL",
+                  "ActivityDivision":"FABRICACAO DE PRODUTOS DE METAL, EXCETO MAQUINAS E EQUIPAMENTOS",
+                  "ActivityGroup":"FABRICACAO DE ESTRUTURAS METALICAS E OBRAS DE CALDEIRARIA PESADA",
+                  "ActivityClass":"FABRICACAO DE ESQUADRIAS DE METAL"
+               },
+               {
+                  "IsMain":false,
+                  "Code":"4743100",
+                  "Activity":"COMERCIO VAREJISTA DE VIDROS",
+                  "ActivityDivision":"COMERCIO VAREJISTA",
+                  "ActivityGroup":"COMERCIO VAREJISTA DE MATERIAL DE CONSTRUCAO",
+                  "ActivityClass":"COMERCIO VAREJISTA DE VIDROS"
+               },
+               {
+                  "IsMain":false,
+                  "Code":"4744001",
+                  "Activity":"COMERCIO VAREJISTA DE FERRAGENS E FERRAMENTAS",
+                  "ActivityDivision":"COMERCIO VAREJISTA",
+                  "ActivityGroup":"COMERCIO VAREJISTA DE MATERIAL DE CONSTRUCAO",
+                  "ActivityClass":"COMERCIO VAREJISTA DE FERRAGENS, MADEIRA E MATERIAIS DE CONSTRUCAO"
+               },
+               {
+                  "IsMain":false,
+                  "Code":"4753900",
+                  "Activity":"COMERCIO VAREJISTA ESPECIALIZADO DE ELETRODOMESTICOS E EQUIPAMENTOS DE AUDIO E VIDEO",
+                  "ActivityDivision":"COMERCIO VAREJISTA",
+                  "ActivityGroup":"COMERCIO VAREJISTA DE EQUIPAMENTOS DE INFORMATICA E COMUNICACAO",
+                  "ActivityClass":"COMERCIO VAREJISTA ESPECIALIZADO DE ELETRODOMESTICOS E EQUIPAMENTOS DE AUDIO E VIDEO"
+               },
+               {
+                  "IsMain":false,
+                  "Code":"4759899",
+                  "Activity":"COMERCIO VAREJISTA DE OUTROS ARTIGOS DE USO DOMESTICO NAO ESPECIFICADOS ANTERIORMENTE",
+                  "ActivityDivision":"COMERCIO VAREJISTA",
+                  "ActivityGroup":"COMERCIO VAREJISTA DE EQUIPAMENTOS DE INFORMATICA E COMUNICACAO",
+                  "ActivityClass":"COMERCIO VAREJISTA DE ARTIGOS DE USO DOMESTICO NAO ESPECIFICADOS ANTERIORMENTE"
+               }
+            ],

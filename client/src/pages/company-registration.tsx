@@ -77,11 +77,18 @@ export default function CompanyRegistration() {
       
       if (data.returnCode === 0 && data.data?.encontrado) {
         // API retornou sucesso e dados encontrados
+        // Encontrar atividade principal (IsMain=true)
+        const mainActivity = data.data.Activities?.find((activity: any) => activity.IsMain === true);
+        const cnaePrincipal = mainActivity 
+          ? `${mainActivity.Code}-${mainActivity.Activity}`
+          : "";
+        
         setFormData(prev => ({
           ...prev,
           razaoSocial: data.data.razaoSocial || "",
           nomeFantasia: data.data.nomeFantasia || "",
-          dataFundacao: data.data.dataFundacao ? new Date(data.data.dataFundacao).toISOString().split('T')[0] : ""
+          dataFundacao: data.data.dataFundacao ? new Date(data.data.dataFundacao).toISOString().split('T')[0] : "",
+          ...(cnaePrincipal && { cnaePrincipal })
         }));
         setCnpjConsulted(true);
         toast({
