@@ -61,7 +61,8 @@ export default function Login() {
       });
       
       // Redirect to network as default landing page
-      setLocation("/network");
+      // Use replace: true to remove login page from history (prevents Android back button issue)
+      setLocation("/network", { replace: true });
     },
     onError: (error: any) => {
       if (error.requiresEmailConfirmation) {

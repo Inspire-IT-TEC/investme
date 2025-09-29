@@ -36,7 +36,8 @@ export default function BackofficeLogin() {
         title: "Login realizado com sucesso!",
         description: "Bem-vindo ao Back Office Investme.",
       });
-      setLocation("/backoffice/dashboard");
+      // Use replace: true to remove login page from history (prevents Android back button issue)
+      setLocation("/backoffice/dashboard", { replace: true });
     },
     onError: (error: any) => {
       toast({

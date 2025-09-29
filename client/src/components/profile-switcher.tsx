@@ -54,7 +54,8 @@ export function ProfileSwitcher() {
       
       // Redirecionar para dashboard apropriado
       const targetPath = data.user.tipo === 'investor' ? '/investor/dashboard' : '/dashboard';
-      setLocation(targetPath);
+      // Use replace: true to prevent going back to previous dashboard when switching profiles
+      setLocation(targetPath, { replace: true });
       
       toast({
         title: "Perfil alterado com sucesso!",

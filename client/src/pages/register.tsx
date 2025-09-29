@@ -49,7 +49,8 @@ export default function Register() {
         title: "Cadastro realizado com sucesso!",
         description: "Bem-vindo à plataforma Investme.",
       });
-      setLocation("/dashboard");
+      // Use replace: true to remove register page from history (prevents Android back button issue)
+      setLocation("/dashboard", { replace: true });
     },
     onError: (error: any) => {
       toast({
