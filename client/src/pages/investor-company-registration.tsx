@@ -90,10 +90,10 @@ export default function InvestorCompanyRegistration() {
       
       if (data.returnCode === 0 && data.data?.encontrado) {
         // API retornou sucesso e dados encontrados
-        // Encontrar atividade principal (IsMain=true)
-        const mainActivity = data.data.Activities?.find((activity: any) => activity.IsMain === true);
+        // Encontrar atividade principal (isMain=true) - API retorna em lowercase
+        const mainActivity = data.data.activities?.find((activity: any) => activity.isMain === true);
         const cnaePrincipal = mainActivity 
-          ? `${mainActivity.Code}-${mainActivity.Activity}`
+          ? `${mainActivity.code}-${mainActivity.activity}`
           : "";
         
         form.setValue('razaoSocial', data.data.razaoSocial || '');
