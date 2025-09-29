@@ -75,20 +75,13 @@ export default function CompanyRegistration() {
       const response = await fetch(`https://integracaoconsultas.inspireit.com.br/consulta/${cleanCnpj}`);
       const data = await response.json();
       
-      console.log('CNPJ API Response:', data);
-      console.log('Activities:', data.data?.Activities);
-      
       if (data.returnCode === 0 && data.data?.encontrado) {
         // API retornou sucesso e dados encontrados
         // Encontrar atividade principal (isMain=true) - API retorna em lowercase
         const mainActivity = data.data.activities?.find((activity: any) => activity.isMain === true);
-        console.log('Main Activity Found:', mainActivity);
-        
         const cnaePrincipal = mainActivity 
           ? `${mainActivity.code}-${mainActivity.activity}`
           : "";
-        
-        console.log('CNAE Principal formatado:', cnaePrincipal);
         
         const updatedData = {
           ...formData,
@@ -102,8 +95,6 @@ export default function CompanyRegistration() {
         }
         
         setFormData(updatedData);
-        
-        console.log('FormData após atualização:', updatedData);
         setCnpjConsulted(true);
         toast({
           title: "CNPJ consultado com sucesso!",
