@@ -38,6 +38,12 @@ export default function RegisterInvestor() {
   const [cpfConsulted, setCpfConsulted] = useState(false);
   const [isConsultingCep, setIsConsultingCep] = useState(false);
   const [cepConsulted, setCepConsulted] = useState(false);
+  const [autoFilled, setAutoFilled] = useState({
+    rua: false,
+    bairro: false,
+    cidade: false,
+    estado: false
+  });
 
   const consultCpfApi = async (cpf: string) => {
     const cleanCpf = cpf.replace(/\D/g, '');
@@ -96,23 +102,45 @@ export default function RegisterInvestor() {
       const data = await response.json();
       
       if (!data.erro) {
-        // API retornou sucesso e dados encontrados
+        // Rastrear quais campos foram preenchidos automaticamente e atualizar dados
+        const newAutoFilled = {
+          rua: !!(data.logradouro && data.logradouro.trim()),
+          bairro: !!(data.bairro && data.bairro.trim()),
+          cidade: !!(data.localidade && data.localidade.trim()),
+          estado: !!(data.uf && data.uf.trim())
+        };
+        
+        setAutoFilled(newAutoFilled);
+        
         setFormData(prev => ({
           ...prev,
-          rua: data.logradouro || "",
-          bairro: data.bairro || "",
-          cidade: data.localidade || "",
-          estado: data.uf || "",
-          complemento: data.complemento || prev.complemento
+          rua: newAutoFilled.rua ? data.logradouro : prev.rua,
+          bairro: newAutoFilled.bairro ? data.bairro : prev.bairro,
+          cidade: newAutoFilled.cidade ? data.localidade : prev.cidade,
+          estado: newAutoFilled.estado ? data.uf : prev.estado,
+          complemento: data.complemento && data.complemento.trim() ? data.complemento : prev.complemento
         }));
-        setCepConsulted(true);
-        toast({
-          title: "CEP consultado com sucesso!",
-          description: "Os dados de endereço foram preenchidos automaticamente.",
-        });
+
+        // Marcar como consultado se ao menos um campo foi preenchido
+        const anyFieldFilled = Object.values(newAutoFilled).some(filled => filled);
+        setCepConsulted(anyFieldFilled);
+        
+        if (anyFieldFilled) {
+          toast({
+            title: "CEP consultado com sucesso!",
+            description: "Alguns dados de endereço foram preenchidos automaticamente.",
+          });
+        } else {
+          toast({
+            title: "CEP encontrado mas sem dados completos",
+            description: "Complete manualmente os dados de endereço.",
+            variant: "destructive",
+          });
+        }
       } else {
         // API retornou erro - CEP não encontrado
         setCepConsulted(false);
+        setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
         toast({
           title: "CEP não encontrado",
           description: "Preencha manualmente os dados de endereço.",
@@ -122,6 +150,7 @@ export default function RegisterInvestor() {
     } catch (error) {
       console.error('Erro ao consultar CEP:', error);
       setCepConsulted(false);
+      setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
       toast({
         title: "Erro na consulta",
         description: "Não foi possível consultar o CEP. Preencha manualmente os dados.",
@@ -175,6 +204,7 @@ export default function RegisterInvestor() {
       // Reset CEP consultation state when user changes CEP
       if (cepConsulted) {
         setCepConsulted(false);
+        setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
       }
     } else if (field === "telefone") {
       formattedValue = formatPhone(value);
@@ -478,12 +508,12 @@ export default function RegisterInvestor() {
                       value={formData.rua}
                       onChange={(e) => handleInputChange("rua", e.target.value)}
                       className={errors.rua ? "border-red-500" : ""}
-                      disabled={cepConsulted}
+                      disabled={autoFilled.rua}
                     />
                     {errors.rua && (
                       <p className="text-sm text-red-500 mt-1">{errors.rua}</p>
                     )}
-                    {cepConsulted && (
+                    {autoFilled.rua && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
@@ -521,12 +551,12 @@ export default function RegisterInvestor() {
                       value={formData.bairro}
                       onChange={(e) => handleInputChange("bairro", e.target.value)}
                       className={errors.bairro ? "border-red-500" : ""}
-                      disabled={cepConsulted}
+                      disabled={autoFilled.bairro}
                     />
                     {errors.bairro && (
                       <p className="text-sm text-red-500 mt-1">{errors.bairro}</p>
                     )}
-                    {cepConsulted && (
+                    {autoFilled.bairro && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
@@ -538,12 +568,12 @@ export default function RegisterInvestor() {
                       value={formData.cidade}
                       onChange={(e) => handleInputChange("cidade", e.target.value)}
                       className={errors.cidade ? "border-red-500" : ""}
-                      disabled={cepConsulted}
+                      disabled={autoFilled.cidade}
                     />
                     {errors.cidade && (
                       <p className="text-sm text-red-500 mt-1">{errors.cidade}</p>
                     )}
-                    {cepConsulted && (
+                    {autoFilled.cidade && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
@@ -556,12 +586,12 @@ export default function RegisterInvestor() {
                       onChange={(e) => handleInputChange("estado", e.target.value)}
                       placeholder="SP"
                       className={errors.estado ? "border-red-500" : ""}
-                      disabled={cepConsulted}
+                      disabled={autoFilled.estado}
                     />
                     {errors.estado && (
                       <p className="text-sm text-red-500 mt-1">{errors.estado}</p>
                     )}
-                    {cepConsulted && (
+                    {autoFilled.estado && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>

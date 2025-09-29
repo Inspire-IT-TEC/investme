@@ -57,6 +57,12 @@ export default function CompanyRegistration() {
   const [cnpjConsulted, setCnpjConsulted] = useState(false);
   const [isConsultingCep, setIsConsultingCep] = useState(false);
   const [cepConsulted, setCepConsulted] = useState(false);
+  const [autoFilled, setAutoFilled] = useState({
+    rua: false,
+    bairro: false,
+    cidade: false,
+    estado: false
+  });
 
   const consultCnpjApi = async (cnpj: string) => {
     const cleanCnpj = cnpj.replace(/\D/g, '');
@@ -148,6 +154,7 @@ export default function CompanyRegistration() {
       // Reset CEP consultation state when user changes CEP
       if (cepConsulted) {
         setCepConsulted(false);
+        setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
       }
     }
     
@@ -180,22 +187,45 @@ export default function CompanyRegistration() {
       const data = await response.json();
       
       if (!data.erro) {
-        // API retornou sucesso e dados encontrados
+        // Rastrear quais campos foram preenchidos automaticamente e atualizar dados
+        const newAutoFilled = {
+          rua: !!(data.logradouro && data.logradouro.trim()),
+          bairro: !!(data.bairro && data.bairro.trim()),
+          cidade: !!(data.localidade && data.localidade.trim()),
+          estado: !!(data.uf && data.uf.trim())
+        };
+        
+        setAutoFilled(newAutoFilled);
+        
         setFormData(prev => ({
           ...prev,
-          rua: data.logradouro || "",
-          bairro: data.bairro || "",
-          cidade: data.localidade || "",
-          estado: data.uf || ""
+          rua: newAutoFilled.rua ? data.logradouro : prev.rua,
+          bairro: newAutoFilled.bairro ? data.bairro : prev.bairro,
+          cidade: newAutoFilled.cidade ? data.localidade : prev.cidade,
+          estado: newAutoFilled.estado ? data.uf : prev.estado,
+          complemento: data.complemento && data.complemento.trim() ? data.complemento : prev.complemento
         }));
-        setCepConsulted(true);
-        toast({
-          title: "CEP consultado com sucesso!",
-          description: "Os dados de endereço foram preenchidos automaticamente.",
-        });
+
+        // Marcar como consultado se ao menos um campo foi preenchido
+        const anyFieldFilled = Object.values(newAutoFilled).some(filled => filled);
+        setCepConsulted(anyFieldFilled);
+        
+        if (anyFieldFilled) {
+          toast({
+            title: "CEP consultado com sucesso!",
+            description: "Alguns dados de endereço foram preenchidos automaticamente.",
+          });
+        } else {
+          toast({
+            title: "CEP encontrado mas sem dados completos",
+            description: "Complete manualmente os dados de endereço.",
+            variant: "destructive",
+          });
+        }
       } else {
         // API retornou erro - CEP não encontrado
         setCepConsulted(false);
+        setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
         toast({
           title: "CEP não encontrado",
           description: "Preencha manualmente os dados de endereço.",
@@ -205,6 +235,7 @@ export default function CompanyRegistration() {
     } catch (error) {
       console.error('Erro ao consultar CEP:', error);
       setCepConsulted(false);
+      setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
       toast({
         title: "Erro na consulta",
         description: "Não foi possível consultar o CEP. Preencha manualmente os dados.",
@@ -482,10 +513,10 @@ export default function CompanyRegistration() {
                       value={formData.rua}
                       onChange={(e) => handleInputChange("rua", e.target.value)}
                       placeholder="Preenchido automaticamente"
-                      disabled={cepConsulted}
+                      disabled={autoFilled.rua}
                       required
                     />
-                    {cepConsulted && (
+                    {autoFilled.rua && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
@@ -518,10 +549,10 @@ export default function CompanyRegistration() {
                       value={formData.bairro}
                       onChange={(e) => handleInputChange("bairro", e.target.value)}
                       placeholder="Preenchido automaticamente"
-                      disabled={cepConsulted}
+                      disabled={autoFilled.bairro}
                       required
                     />
-                    {cepConsulted && (
+                    {autoFilled.bairro && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
@@ -533,10 +564,10 @@ export default function CompanyRegistration() {
                       value={formData.cidade}
                       onChange={(e) => handleInputChange("cidade", e.target.value)}
                       placeholder="Preenchido automaticamente"
-                      disabled={cepConsulted}
+                      disabled={autoFilled.cidade}
                       required
                     />
-                    {cepConsulted && (
+                    {autoFilled.cidade && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>
@@ -548,10 +579,10 @@ export default function CompanyRegistration() {
                       value={formData.estado}
                       onChange={(e) => handleInputChange("estado", e.target.value)}
                       placeholder="SP"
-                      disabled={cepConsulted}
+                      disabled={autoFilled.estado}
                       required
                     />
-                    {cepConsulted && (
+                    {autoFilled.estado && (
                       <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                     )}
                   </div>

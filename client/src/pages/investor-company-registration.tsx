@@ -55,6 +55,12 @@ export default function InvestorCompanyRegistration() {
   const [cnpjConsulted, setCnpjConsulted] = useState(false);
   const [isConsultingCep, setIsConsultingCep] = useState(false);
   const [cepConsulted, setCepConsulted] = useState(false);
+  const [autoFilled, setAutoFilled] = useState({
+    rua: false,
+    bairro: false,
+    cidade: false,
+    estado: false
+  });
 
   const formatCnpj = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -136,19 +142,41 @@ export default function InvestorCompanyRegistration() {
       const data = await response.json();
       
       if (!data.erro) {
-        // API retornou sucesso e dados encontrados
-        form.setValue('rua', data.logradouro || '');
-        form.setValue('bairro', data.bairro || '');
-        form.setValue('cidade', data.localidade || '');
-        form.setValue('estado', data.uf || '');
-        setCepConsulted(true);
-        toast({
-          title: "CEP consultado com sucesso!",
-          description: "Os dados de endereço foram preenchidos automaticamente.",
-        });
+        // Rastrear quais campos foram preenchidos automaticamente e atualizar dados
+        const newAutoFilled = {
+          rua: !!(data.logradouro && data.logradouro.trim()),
+          bairro: !!(data.bairro && data.bairro.trim()),
+          cidade: !!(data.localidade && data.localidade.trim()),
+          estado: !!(data.uf && data.uf.trim())
+        };
+        
+        setAutoFilled(newAutoFilled);
+        
+        if (newAutoFilled.rua) form.setValue('rua', data.logradouro);
+        if (newAutoFilled.bairro) form.setValue('bairro', data.bairro);
+        if (newAutoFilled.cidade) form.setValue('cidade', data.localidade);
+        if (newAutoFilled.estado) form.setValue('estado', data.uf);
+
+        // Marcar como consultado se ao menos um campo foi preenchido
+        const anyFieldFilled = Object.values(newAutoFilled).some(filled => filled);
+        setCepConsulted(anyFieldFilled);
+        
+        if (anyFieldFilled) {
+          toast({
+            title: "CEP consultado com sucesso!",
+            description: "Alguns dados de endereço foram preenchidos automaticamente.",
+          });
+        } else {
+          toast({
+            title: "CEP encontrado mas sem dados completos",
+            description: "Complete manualmente os dados de endereço.",
+            variant: "destructive",
+          });
+        }
       } else {
         // API retornou erro - CEP não encontrado
         setCepConsulted(false);
+        setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
         toast({
           title: "CEP não encontrado",
           description: "Preencha manualmente os dados de endereço.",
@@ -158,6 +186,7 @@ export default function InvestorCompanyRegistration() {
     } catch (error) {
       console.error('Erro ao consultar CEP:', error);
       setCepConsulted(false);
+      setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
       toast({
         title: "Erro na consulta",
         description: "Não foi possível consultar o CEP. Preencha manualmente os dados.",
@@ -477,6 +506,7 @@ export default function InvestorCompanyRegistration() {
                                   // Reset CEP consultation state when user changes CEP
                                   if (cepConsulted) {
                                     setCepConsulted(false);
+                                    setAutoFilled({ rua: false, bairro: false, cidade: false, estado: false });
                                   }
                                 }}
                                 onBlur={() => handleCepBlur(field.value)}
@@ -505,10 +535,10 @@ export default function InvestorCompanyRegistration() {
                         <FormItem className="md:col-span-2">
                           <FormLabel>Rua *</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={cepConsulted} />
+                            <Input {...field} disabled={autoFilled.rua} />
                           </FormControl>
                           <FormMessage />
-                          {cepConsulted && (
+                          {autoFilled.rua && (
                             <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                           )}
                         </FormItem>
@@ -550,10 +580,10 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Bairro *</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={cepConsulted} />
+                            <Input {...field} disabled={autoFilled.bairro} />
                           </FormControl>
                           <FormMessage />
-                          {cepConsulted && (
+                          {autoFilled.bairro && (
                             <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                           )}
                         </FormItem>
@@ -567,10 +597,10 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Cidade *</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={cepConsulted} />
+                            <Input {...field} disabled={autoFilled.cidade} />
                           </FormControl>
                           <FormMessage />
-                          {cepConsulted && (
+                          {autoFilled.cidade && (
                             <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                           )}
                         </FormItem>
@@ -584,10 +614,10 @@ export default function InvestorCompanyRegistration() {
                         <FormItem>
                           <FormLabel>Estado *</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="SP" maxLength={2} disabled={cepConsulted} />
+                            <Input {...field} placeholder="SP" maxLength={2} disabled={autoFilled.estado} />
                           </FormControl>
                           <FormMessage />
-                          {cepConsulted && (
+                          {autoFilled.estado && (
                             <p className="text-sm text-green-600 mt-1">Preenchido automaticamente</p>
                           )}
                         </FormItem>
