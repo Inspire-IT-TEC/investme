@@ -90,15 +90,20 @@ export default function CompanyRegistration() {
         
         console.log('CNAE Principal formatado:', cnaePrincipal);
         
-        setFormData(prev => ({
-          ...prev,
+        const updatedData = {
+          ...formData,
           razaoSocial: data.data.razaoSocial || "",
           nomeFantasia: data.data.nomeFantasia || "",
-          dataFundacao: data.data.dataFundacao ? new Date(data.data.dataFundacao).toISOString().split('T')[0] : "",
-          ...(cnaePrincipal && { cnaePrincipal })
-        }));
+          dataFundacao: data.data.dataFundacao ? new Date(data.data.dataFundacao).toISOString().split('T')[0] : ""
+        };
         
-        console.log('FormData após atualização - cnaePrincipal:', cnaePrincipal);
+        if (cnaePrincipal) {
+          updatedData.cnaePrincipal = cnaePrincipal;
+        }
+        
+        setFormData(updatedData);
+        
+        console.log('FormData após atualização:', updatedData);
         setCnpjConsulted(true);
         toast({
           title: "CNPJ consultado com sucesso!",
