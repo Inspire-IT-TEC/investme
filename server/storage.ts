@@ -338,13 +338,8 @@ export class DatabaseStorage implements IStorage {
   async getCompanies(userId?: number, status?: string, search?: string): Promise<Company[]> {
     const conditions = [];
     if (userId) {
-      // Support both old userId and new entrepreneurId structure
-      conditions.push(
-        or(
-          eq(companies.userId, userId),
-          eq(companies.entrepreneurId, userId)
-        )
-      );
+      // Use entrepreneurId only since userId field was removed
+      conditions.push(eq(companies.entrepreneurId, userId));
     }
     if (status) conditions.push(eq(companies.status, status));
     if (search) {
@@ -377,7 +372,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCompany(insertCompany: InsertCompany): Promise<Company> {
-    const [company] = await db.insert(companies).values(insertCompany).returning();
+    const [company] = await db.insert(companies).values([insertCompany]).returning();
     return company;
   }
 
@@ -623,12 +618,12 @@ export class DatabaseStorage implements IStorage {
         let senderName = '';
         
         if (message.tipo === 'investor') {
-          // Investors are actually users with investor role
-          const user = await this.getUser(message.remetenteId);
-          senderName = user?.nomeCompleto || `Investidor #${message.remetenteId}`;
+          // Get investor name
+          const investor = await this.getInvestor(message.remetenteId);
+          senderName = investor?.nomeCompleto || `Investidor #${message.remetenteId}`;
         } else if (message.tipo === 'empresa') {
-          const user = await this.getUser(message.remetenteId);
-          senderName = user?.nomeCompleto || `Empresa #${message.remetenteId}`;
+          const entrepreneur = await this.getEntrepreneur(message.remetenteId);
+          senderName = entrepreneur?.nomeCompleto || `Empresa #${message.remetenteId}`;
         } else if (message.tipo === 'admin') {
           const admin = await this.getAdminUser(message.remetenteId);
           senderName = admin?.nome || `Admin #${message.remetenteId}`;
@@ -703,8 +698,8 @@ export class DatabaseStorage implements IStorage {
 
       if (otherParticipant) {
         if (otherParticipant.tipo === 'investor') {
-          const user = await this.getUser(otherParticipant.remetenteId);
-          participantName = user?.nomeCompleto || `Investidor #${otherParticipant.remetenteId}`;
+          const investor = await this.getInvestor(otherParticipant.remetenteId);
+          participantName = investor?.nomeCompleto || `Investidor #${otherParticipant.remetenteId}`;
           participantType = 'Investidor';
         } else if (otherParticipant.tipo === 'admin') {
           const admin = await this.getAdminUser(otherParticipant.remetenteId);
@@ -942,40 +937,15 @@ export class DatabaseStorage implements IStorage {
 
   // Admin investor management methods
   async getInvestors(status?: string): Promise<any[]> {
-    // Get investors from the users table (newly registered)
-    let userInvestors = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        nomeCompleto: users.nomeCompleto,
-        cpf: users.cpf,
-        rg: users.rg,
-        telefone: users.telefone,
-        limiteInvestimento: users.limiteInvestimento,
-        cadastroAprovado: users.cadastroAprovado,
-        emailConfirmado: users.emailConfirmado,
-        documentosVerificados: users.documentosVerificados,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        source: sql<string>`'users'`.as('source'),
-        status: sql<string>`CASE 
-          WHEN ${users.cadastroAprovado} = true THEN 'ativo'
-          ELSE 'pendente'
-        END`.as('status')
-      })
-      .from(users)
-      .where(eq(users.tipo, 'investor'))
-      .orderBy(desc(users.createdAt));
-
-    // Get investors from the investors table (approved and active)
-    const investorTableResults = await db
+    // Get investors from the investors table only (users table was removed)
+    const investorResults = await db
       .select({
         id: investors.id,
         email: investors.email,
         nomeCompleto: investors.nomeCompleto,
         cpf: investors.cpf,
         rg: investors.rg,
-        telefone: sql<string>`NULL`.as('telefone'),
+        telefone: investors.telefone,
         limiteInvestimento: investors.limiteInvestimento,
         cadastroAprovado: investors.cadastroAprovado,
         emailConfirmado: investors.emailConfirmado,
@@ -988,19 +958,12 @@ export class DatabaseStorage implements IStorage {
       .from(investors)
       .orderBy(desc(investors.createdAt));
 
-    // Combine results and remove duplicates based on email
-    // Priority: investors table over users table (more complete data)
-    const allInvestors = [...investorTableResults, ...userInvestors];
-    const uniqueInvestors = allInvestors.filter((investor, index, array) => 
-      array.findIndex(i => i.email === investor.email) === index
-    );
-
     // Filter by status if provided
     if (status && status !== 'all') {
-      return uniqueInvestors.filter(investor => investor.status === status);
+      return investorResults.filter(investor => investor.status === status);
     }
 
-    return uniqueInvestors;
+    return investorResults;
   }
 
   async approveInvestor(investorId: number): Promise<Investor | undefined> {
@@ -1187,47 +1150,23 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  // Admin user management methods
+  // Admin user management methods - removed since users table no longer exists
   async getUsersByTypeAndStatus(tipo?: string, status?: string): Promise<any[]> {
-    const conditions = [];
-    if (tipo) {
-      conditions.push(eq(users.tipo, tipo));
-    }
-    if (status) {
-      conditions.push(eq(users.status, status));
-    }
-    
-    if (conditions.length > 0) {
-      return await db.select().from(users).where(and(...conditions)).orderBy(desc(users.createdAt));
-    }
-
-    return await db.select().from(users).orderBy(desc(users.createdAt));
+    // This method is deprecated since users table was split into entrepreneurs and investors
+    // Use getEntrepreneurs() or getInvestors() instead
+    return [];
   }
 
-  async approveUser(userId: number): Promise<User | undefined> {
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        status: 'ativo',
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId))
-      .returning();
-
-    return updatedUser;
+  async approveUser(userId: number): Promise<any | undefined> {
+    // This method is deprecated since users table was split
+    // Use approveEntrepreneur() or approveInvestor() instead
+    return undefined;
   }
 
-  async rejectUser(userId: number, reason: string): Promise<User | undefined> {
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        status: 'rejeitado',
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId))
-      .returning();
-
-    return updatedUser;
+  async rejectUser(userId: number, reason: string): Promise<any | undefined> {
+    // This method is deprecated since users table was split  
+    // Use rejectEntrepreneur() or rejectInvestor() instead
+    return undefined;
   }
 
   // Valuation methods
@@ -1725,11 +1664,8 @@ export class DatabaseStorage implements IStorage {
         .set({ senha: hashedPassword })
         .where(eq(adminUsers.email, email));
     } else {
-      // Legacy users table
-      await db
-        .update(users)
-        .set({ senha: hashedPassword })
-        .where(eq(users.email, email));
+      // No legacy users table support since it was removed
+      throw new Error('User not found in entrepreneurs or investors tables');
     }
   }
 
@@ -1786,11 +1722,8 @@ export class DatabaseStorage implements IStorage {
         .set({ emailConfirmado: true })
         .where(eq(investors.email, email));
     } else {
-      // Legacy users table
-      await db
-        .update(users)
-        .set({ emailConfirmado: true })
-        .where(eq(users.email, email));
+      // No legacy users table support since it was removed
+      throw new Error('User not found in entrepreneurs or investors tables');
     }
   }
 
