@@ -1420,6 +1420,8 @@ export class DatabaseStorage implements IStorage {
         cnpj: companies.cnpj,
         cidade: companies.cidade,
         estado: companies.estado,
+        stateId: companies.stateId,
+        cityId: companies.cityId,
         cnaePrincipal: companies.cnaePrincipal,
         faturamento: companies.faturamento,
         dataFundacao: companies.dataFundacao,
