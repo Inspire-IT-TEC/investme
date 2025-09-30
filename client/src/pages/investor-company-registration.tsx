@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,18 @@ export default function InvestorCompanyRegistration() {
     bairro: false,
     cidade: false,
     estado: false
+  });
+  
+  const [stateId, setStateId] = useState<number | null>(null);
+  const [cityId, setCityId] = useState<number | null>(null);
+  
+  // Buscar estados
+  const { data: states } = useQuery({
+    queryKey: ['/api/states'],
+    queryFn: () => fetch('/api/states', {
+      credentials: 'include',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    }).then(res => res.json())
   });
 
   const formatCnpj = (value: string) => {
@@ -165,6 +177,31 @@ export default function InvestorCompanyRegistration() {
         if (newAutoFilled.bairro) form.setValue('bairro', data.bairro);
         if (newAutoFilled.cidade) form.setValue('cidade', data.localidade);
         if (newAutoFilled.estado) form.setValue('estado', data.uf);
+        
+        // Buscar stateId e cityId
+        if (data.uf && states) {
+          const foundState = states.find((s: any) => s.code === data.uf);
+          if (foundState) {
+            setStateId(foundState.id);
+            
+            // Buscar cityId baseado no nome da cidade
+            if (data.localidade && foundState.id) {
+              try {
+                const citiesResponse = await fetch(`/api/cities?stateId=${foundState.id}`, {
+                  credentials: 'include',
+                  headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const cities = await citiesResponse.json();
+                const foundCity = cities.find((c: any) => c.name.toLowerCase() === data.localidade.toLowerCase());
+                if (foundCity) {
+                  setCityId(foundCity.id);
+                }
+              } catch (error) {
+                console.error('Erro ao buscar cidade:', error);
+              }
+            }
+          }
+        }
 
         // Marcar como consultado se ao menos um campo foi preenchido
         const anyFieldFilled = Object.values(newAutoFilled).some(filled => filled);
@@ -344,7 +381,13 @@ export default function InvestorCompanyRegistration() {
   };
 
   const onSubmit = (data: CompanyFormData) => {
-    createCompanyMutation.mutate(data);
+    // Adicionar stateId e cityId ao payload
+    const payload = {
+      ...data,
+      stateId,
+      cityId
+    };
+    createCompanyMutation.mutate(payload);
   };
 
   return (

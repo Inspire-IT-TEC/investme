@@ -131,11 +131,7 @@ export default function Network() {
       if (selectedCity && selectedCity !== "all") params.append('cityId', selectedCity);
       if (searchTerm) params.append('search', searchTerm);
       
-      const url = `/api/network/companies?${params.toString()}`;
-      console.log('Fetching companies with URL:', url);
-      console.log('Filters:', { selectedState, selectedCity, searchTerm });
-      
-      return fetch(url, {
+      return fetch(`/api/network/companies?${params.toString()}`, {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -262,7 +258,6 @@ export default function Network() {
   
   // Função para aplicar filtros
   const applyFilters = () => {
-    console.log('Aplicando filtros:', { tempState, tempCity, tempSearchTerm });
     setSelectedState(tempState);
     setSelectedCity(tempCity);
     setSearchTerm(tempSearchTerm);

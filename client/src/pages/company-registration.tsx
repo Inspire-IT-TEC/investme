@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,8 @@ export default function CompanyRegistration() {
     bairro: "",
     cidade: "",
     estado: "",
+    stateId: null as number | null,
+    cityId: null as number | null,
     telefone: "",
     emailContato: "",
     cnaePrincipal: "",
@@ -62,6 +64,15 @@ export default function CompanyRegistration() {
     bairro: false,
     cidade: false,
     estado: false
+  });
+  
+  // Buscar estados
+  const { data: states } = useQuery({
+    queryKey: ['/api/states'],
+    queryFn: () => fetch('/api/states', {
+      credentials: 'include',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    }).then(res => res.json())
   });
 
   const consultCnpjApi = async (cnpj: string) => {
@@ -209,12 +220,42 @@ export default function CompanyRegistration() {
         
         setAutoFilled(newAutoFilled);
         
+        // Buscar stateId baseado na sigla do estado (UF)
+        let stateId: number | null = null;
+        let cityId: number | null = null;
+        
+        if (data.uf && states) {
+          const foundState = states.find((s: any) => s.code === data.uf);
+          if (foundState) {
+            stateId = foundState.id;
+            
+            // Buscar cityId baseado no nome da cidade
+            if (data.localidade && stateId) {
+              try {
+                const citiesResponse = await fetch(`/api/cities?stateId=${stateId}`, {
+                  credentials: 'include',
+                  headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const cities = await citiesResponse.json();
+                const foundCity = cities.find((c: any) => c.name.toLowerCase() === data.localidade.toLowerCase());
+                if (foundCity) {
+                  cityId = foundCity.id;
+                }
+              } catch (error) {
+                console.error('Erro ao buscar cidade:', error);
+              }
+            }
+          }
+        }
+        
         setFormData(prev => ({
           ...prev,
           rua: newAutoFilled.rua ? data.logradouro : prev.rua,
           bairro: newAutoFilled.bairro ? data.bairro : prev.bairro,
           cidade: newAutoFilled.cidade ? data.localidade : prev.cidade,
           estado: newAutoFilled.estado ? data.uf : prev.estado,
+          stateId: stateId,
+          cityId: cityId,
           complemento: data.complemento && data.complemento.trim() ? data.complemento : prev.complemento
         }));
 
