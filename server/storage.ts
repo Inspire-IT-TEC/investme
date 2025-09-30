@@ -1401,6 +1401,16 @@ export class DatabaseStorage implements IStorage {
     if (filters?.excludeUserId) {
       whereConditions.push(ne(companies.entrepreneurId, filters.excludeUserId));
     }
+    
+    // Aplicar filtro por estado
+    if (filters?.stateId) {
+      whereConditions.push(eq(companies.stateId, filters.stateId));
+    }
+    
+    // Aplicar filtro por cidade
+    if (filters?.cityId) {
+      whereConditions.push(eq(companies.cityId, filters.cityId));
+    }
 
     const result = await db
       .select({
