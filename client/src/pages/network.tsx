@@ -32,9 +32,17 @@ import {
 export default function Network() {
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Estados temporários (para o usuário digitar/selecionar)
+  const [tempState, setTempState] = useState("all");
+  const [tempCity, setTempCity] = useState("all");
+  const [tempSearchTerm, setTempSearchTerm] = useState("");
+  
+  // Estados aplicados (usados na query)
   const [selectedState, setSelectedState] = useState("all");
   const [selectedCity, setSelectedCity] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  
   const [newPostContent, setNewPostContent] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [commentText, setCommentText] = useState("");
@@ -89,12 +97,12 @@ export default function Network() {
     },
   });
 
-  // Fetch cities based on selected state
+  // Fetch cities based on temporary selected state
   const { data: cities } = useQuery({
-    queryKey: ['/api/cities', selectedState],
+    queryKey: ['/api/cities', tempState],
     queryFn: () => {
-      if (!selectedState || selectedState === "all") return [];
-      return fetch(`/api/cities?stateId=${selectedState}`, {
+      if (!tempState || tempState === "all") return [];
+      return fetch(`/api/cities?stateId=${tempState}`, {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -106,8 +114,13 @@ export default function Network() {
         return res.json();
       });
     },
-    enabled: !!(selectedState && selectedState !== "all"),
+    enabled: !!(tempState && tempState !== "all"),
   });
+  
+  // Remover cidades duplicadas
+  const uniqueCities = cities ? Array.from(
+    new Map(cities.map((city: any) => [city.name, city])).values()
+  ) : [];
 
   // Fetch network companies with filters
   const { data: companies, isLoading } = useQuery({
@@ -242,6 +255,23 @@ export default function Network() {
   const getCompanyInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase();
   };
+  
+  // Função para aplicar filtros
+  const applyFilters = () => {
+    setSelectedState(tempState);
+    setSelectedCity(tempCity);
+    setSearchTerm(tempSearchTerm);
+  };
+  
+  // Função para limpar filtros
+  const clearFilters = () => {
+    setTempState("all");
+    setTempCity("all");
+    setTempSearchTerm("");
+    setSelectedState("all");
+    setSelectedCity("all");
+    setSearchTerm("");
+  };
 
   if (isLoading) {
     return (
@@ -304,68 +334,75 @@ export default function Network() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Buscar empresa</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Nome da empresa..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Buscar empresa</label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Nome da empresa..."
+                          value={tempSearchTerm}
+                          onChange={(e) => setTempSearchTerm(e.target.value)}
+                          className="pl-10"
+                          data-testid="input-search-company"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Estado</label>
+                      <Select value={tempState} onValueChange={(value) => {
+                        setTempState(value);
+                        setTempCity("all");
+                      }}>
+                        <SelectTrigger data-testid="select-state">
+                          <SelectValue placeholder="Selecione o estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os estados</SelectItem>
+                          {Array.isArray(states) ? states.map((state: any) => (
+                            <SelectItem key={state.id} value={state.id.toString()}>
+                              {state.name} ({state.code})
+                            </SelectItem>
+                          )) : null}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Cidade</label>
+                      <Select value={tempCity} onValueChange={setTempCity} disabled={tempState === "all"}>
+                        <SelectTrigger data-testid="select-city">
+                          <SelectValue placeholder="Selecione a cidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas as cidades</SelectItem>
+                          {uniqueCities.map((city: any) => (
+                            <SelectItem key={city.id} value={city.id.toString()}>
+                              {city.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Estado</label>
-                    <Select value={selectedState} onValueChange={(value) => {
-                      setSelectedState(value);
-                      setSelectedCity("all");
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o estado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os estados</SelectItem>
-                        {Array.isArray(states) ? states.map((state: any) => (
-                          <SelectItem key={state.id} value={state.id.toString()}>
-                            {state.name} ({state.code})
-                          </SelectItem>
-                        )) : null}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Cidade</label>
-                    <Select value={selectedCity} onValueChange={setSelectedCity} disabled={!selectedState}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a cidade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas as cidades</SelectItem>
-                        {Array.isArray(cities) ? cities.map((city: any) => (
-                          <SelectItem key={city.id} value={city.id.toString()}>
-                            {city.name}
-                          </SelectItem>
-                        )) : null}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-end">
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={applyFilters}
+                      className="flex-1"
+                      data-testid="button-apply-filters"
+                    >
+                      <Filter className="h-4 w-4 mr-2" />
+                      Aplicar Filtros
+                    </Button>
                     <Button 
                       variant="outline" 
-                      onClick={() => {
-                        setSelectedState("all");
-                        setSelectedCity("all");
-                        setSearchTerm("");
-                      }}
-                      className="w-full"
+                      onClick={clearFilters}
+                      data-testid="button-clear-filters"
                     >
-                      Limpar filtros
+                      Limpar
                     </Button>
                   </div>
                 </div>
