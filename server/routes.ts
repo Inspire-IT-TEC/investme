@@ -2809,11 +2809,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { stateId, cityId, search } = req.query;
       const filters: any = {};
       
+      console.log('RAW Query params:', req.query);
+      
       if (stateId) filters.stateId = parseInt(stateId as string);
       if (cityId) filters.cityId = parseInt(cityId as string);
       if (search) filters.search = search as string;
 
       console.log('Network companies request - User:', req.user?.id, 'Type:', req.user?.type);
+      console.log('Applied filters:', filters);
+      
       const companies = await storage.getNetworkCompanies(filters);
       console.log('Found companies for network:', companies.length);
       
