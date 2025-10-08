@@ -110,7 +110,7 @@ export const companies = pgTable("companies", {
   descricaoNegocio: text("descricao_negocio"),
   valuation: decimal("valuation", { precision: 15, scale: 2 }), // Valuation opcional da empresa
   images: text("images").array(), // URLs to company images (up to 5)
-  status: text("status").notNull().default("pendente_analise"), // pendente_analise, em_analise, aprovada, reprovada, incompleto
+  status: text("status").notNull().default("aprovada"), // pendente_analise, em_analise, aprovada, reprovada, incompleto
   observacoesInternas: text("observacoes_internas"),
   analisadoPor: integer("analisado_por").references(() => adminUsers.id),
   dataAnalise: timestamp("data_analise"),
