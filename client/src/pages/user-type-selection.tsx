@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building2, TrendingUp, ArrowRight, Download, Smartphone, Users, DollarSign, BarChart3, Shield, Star } from "lucide-react";
-import logoImage from "@assets/android12splash_1759926342347.png";
+import logoImage from "@assets/splash_1759926409405.png";
 
 export default function UserTypeSelection() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
