@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building2, TrendingUp, ArrowRight, Download, Smartphone, Users, DollarSign, BarChart3, Shield, Star } from "lucide-react";
-import logoImage from "@assets/image_1759924914872.png";
+import { InvestmeLogo } from "@/components/ui/logo";
 
 export default function UserTypeSelection() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -62,7 +62,7 @@ export default function UserTypeSelection() {
         {/* Header */}
         <div className="text-center py-6 px-4">
           <div className="flex justify-center mb-4">
-            <img src={logoImage} alt="InvestMe Logo" className="h-12 sm:h-14" />
+            <InvestmeLogo className="h-8 sm:h-10" />
           </div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mb-2">
             Bem-vindo à Investme
