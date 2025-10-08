@@ -62,7 +62,7 @@ export default function UserTypeSelection() {
         {/* Header */}
         <div className="text-center py-6 px-4">
           <div className="flex justify-center mb-4">
-            <img src={logoImage} alt="InvestMe" className="h-16 sm:h-20" />
+            <img src={logoImage} alt="InvestMe" className="h-16 sm:h-20" style={{ transform: 'scaleX(1.15)' }} />
           </div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mb-2">
             Bem-vindo à Investme
