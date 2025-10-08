@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { getConfig } from "../config/environments.js";
@@ -11,6 +12,19 @@ if (config.NODE_ENV === 'production') {
 }
 
 const app = express();
+
+// CORS configuration - allow localhost for development
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5000',
+    'http://localhost:5173',
+    /\.replit\.dev$/,
+    /\.replit\.app$/
+  ],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
