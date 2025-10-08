@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { Shield } from "lucide-react";
+import logoImage from "@assets/LogoSite_1759931025247.png";
 
 export default function BackofficeLogin() {
   const [, setLocation] = useLocation();
@@ -57,13 +58,10 @@ export default function BackofficeLogin() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-white rounded-full">
-              <Shield className="w-8 h-8 text-gray-800" />
-            </div>
+          <div className="flex justify-center mb-6">
+            <img src={logoImage} alt="InvestMe" className="h-16" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Investme</h1>
-          <p className="text-gray-300">Back Office - Acesso Restrito</p>
+          <p className="text-gray-300 text-lg">Back Office - Acesso Restrito</p>
         </div>
 
         <Card className="border-gray-700">

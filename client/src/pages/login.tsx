@@ -11,8 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
-import { InvestmeLogo } from "@/components/ui/logo";
 import { TrendingUp, Building2, Mail } from "lucide-react";
+import logoImage from "@assets/LogoSite_1759931025247.png";
 
 export default function Login() {
   const [location, setLocation] = useLocation();
@@ -129,7 +129,7 @@ export default function Login() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <InvestmeLogo className="h-12" />
+            <img src={logoImage} alt="InvestMe" className="h-16" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {isInvestor ? 'Portal do Investidor' : 
