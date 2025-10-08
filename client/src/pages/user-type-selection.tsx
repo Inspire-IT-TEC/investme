@@ -92,9 +92,9 @@ export default function UserTypeSelection() {
                   
                   <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                     {[
-                      { icon: Building2, text: "Cadastrar empresas" },
+                      { icon: Building2, text: "Cadastrar suas empresas" },
                       { icon: DollarSign, text: "Solicitar crédito" },
-                      { icon: BarChart3, text: "Acompanhar análises" },
+                      { icon: BarChart3, text: "Gerar o valor do seu negócio" },
                       { icon: Users, text: "Conectar com investidores" }
                     ].map((item, index) => (
                       <div key={index} className="flex items-center text-green-100">
@@ -130,6 +130,7 @@ export default function UserTypeSelection() {
                   
                   <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                     {[
+                      { icon: Users, text: "Encontrar empresas que precisam de crédito" },
                       { icon: BarChart3, text: "Ver análises de crédito" },
                       { icon: Star, text: "Avaliar empresas" },
                       { icon: Users, text: "Rede de oportunidades" }
