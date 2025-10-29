@@ -125,6 +125,39 @@ export default function Dashboard() {
           </ModernCard>
         )}
 
+        {/* Incomplete Profile Alert - Missing Address */}
+        {entrepreneurProfile && (
+          !(entrepreneurProfile as any)?.cep || 
+          !(entrepreneurProfile as any)?.rua || 
+          !(entrepreneurProfile as any)?.numero || 
+          !(entrepreneurProfile as any)?.bairro || 
+          !(entrepreneurProfile as any)?.cidade || 
+          !(entrepreneurProfile as any)?.estado
+        ) && (
+          <ModernCard className="border-blue-200 bg-blue-50">
+            <ModernCardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-blue-800 font-medium">
+                      Complete seu perfil para ter acesso a todas as funcionalidades
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Faltam informações de endereço no seu cadastro
+                    </p>
+                  </div>
+                </div>
+                <Link href="/profile">
+                  <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    Completar Perfil
+                  </Button>
+                </Link>
+              </div>
+            </ModernCardContent>
+          </ModernCard>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <ModernCard className="hover:shadow-lg transition-all duration-200">

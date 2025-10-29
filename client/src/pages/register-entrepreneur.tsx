@@ -234,16 +234,13 @@ export default function RegisterEntrepreneur() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    // Campos obrigatórios para cadastro simplificado
     if (!validateCpf(formData.cpf)) {
       newErrors.cpf = "CPF inválido";
     }
 
     if (!formData.nomeCompleto.trim()) {
       newErrors.nomeCompleto = "Nome completo é obrigatório";
-    }
-
-    if (!formData.dataNascimento) {
-      newErrors.dataNascimento = "Data de nascimento é obrigatória";
     }
 
     if (!validateEmail(formData.email)) {
@@ -259,29 +256,8 @@ export default function RegisterEntrepreneur() {
       newErrors.confirmarSenha = "Senhas não coincidem";
     }
 
-    if (!formData.rg.trim()) {
-      newErrors.rg = "RG é obrigatório";
-    }
-
-    // Validações de endereço
-    if (!formData.cep.trim()) {
-      newErrors.cep = "CEP é obrigatório";
-    }
-    if (!formData.rua.trim()) {
-      newErrors.rua = "Rua é obrigatória";
-    }
-    if (!formData.numero.trim()) {
-      newErrors.numero = "Número é obrigatório";
-    }
-    if (!formData.bairro.trim()) {
-      newErrors.bairro = "Bairro é obrigatório";
-    }
-    if (!formData.cidade.trim()) {
-      newErrors.cidade = "Cidade é obrigatória";
-    }
-    if (!formData.estado.trim()) {
-      newErrors.estado = "Estado é obrigatório";
-    }
+    // Data de nascimento, RG e campos de endereço são opcionais
+    // Não há mais validações obrigatórias para esses campos
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -308,7 +284,7 @@ export default function RegisterEntrepreneur() {
               Cadastro de Empreendedor
             </CardTitle>
             <CardDescription>
-              Preencha os dados para solicitar crédito para suas empresas
+              Faça um cadastro rápido com CPF, nome, email e senha. Complete seu perfil depois!
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -365,7 +341,7 @@ export default function RegisterEntrepreneur() {
                   </div>
 
                   <div>
-                    <Label htmlFor="dataNascimento">Data de Nascimento *</Label>
+                    <Label htmlFor="dataNascimento">Data de Nascimento</Label>
                     <Input
                       id="dataNascimento"
                       type="date"
@@ -439,7 +415,7 @@ export default function RegisterEntrepreneur() {
 
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                   <div>
-                    <Label htmlFor="rg">RG *</Label>
+                    <Label htmlFor="rg">RG</Label>
                     <Input
                       id="rg"
                       value={formData.rg}
@@ -455,11 +431,11 @@ export default function RegisterEntrepreneur() {
 
               {/* Endereço */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Endereço</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Endereço (Opcional)</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="cep">CEP *</Label>
+                    <Label htmlFor="cep">CEP</Label>
                     <div className="relative">
                       <Input
                         id="cep"
@@ -485,7 +461,7 @@ export default function RegisterEntrepreneur() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <Label htmlFor="rua">Rua *</Label>
+                    <Label htmlFor="rua">Rua</Label>
                     <Input
                       id="rua"
                       value={formData.rua}
@@ -504,7 +480,7 @@ export default function RegisterEntrepreneur() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="numero">Número *</Label>
+                    <Label htmlFor="numero">Número</Label>
                     <Input
                       id="numero"
                       value={formData.numero}
@@ -528,7 +504,7 @@ export default function RegisterEntrepreneur() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="bairro">Bairro *</Label>
+                    <Label htmlFor="bairro">Bairro</Label>
                     <Input
                       id="bairro"
                       value={formData.bairro}
@@ -545,7 +521,7 @@ export default function RegisterEntrepreneur() {
                   </div>
 
                   <div>
-                    <Label htmlFor="cidade">Cidade *</Label>
+                    <Label htmlFor="cidade">Cidade</Label>
                     <Input
                       id="cidade"
                       value={formData.cidade}
@@ -562,7 +538,7 @@ export default function RegisterEntrepreneur() {
                   </div>
 
                   <div>
-                    <Label htmlFor="estado">Estado *</Label>
+                    <Label htmlFor="estado">Estado</Label>
                     <Input
                       id="estado"
                       value={formData.estado}
