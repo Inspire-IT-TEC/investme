@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Navbar from "@/components/layout/navbar";
 import { formatCnpj, formatCep, formatCurrency } from "@/lib/validations";
-import { Plus, Trash2, Upload, Loader2 } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, AlertCircle } from "lucide-react";
 
 export default function CompanyRegistration() {
   const [, setLocation] = useLocation();
@@ -73,6 +73,11 @@ export default function CompanyRegistration() {
       credentials: 'include',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     }).then(res => res.json())
+  });
+
+  // Fetch entrepreneur profile
+  const { data: entrepreneurProfile } = useQuery({
+    queryKey: ["/api/entrepreneur/profile"],
   });
 
   const consultCnpjApi = async (cnpj: string) => {
@@ -431,6 +436,37 @@ export default function CompanyRegistration() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Incomplete Profile Alert - Missing Address */}
+            {entrepreneurProfile && (
+              !(entrepreneurProfile as any)?.cep || 
+              !(entrepreneurProfile as any)?.rua || 
+              !(entrepreneurProfile as any)?.numero || 
+              !(entrepreneurProfile as any)?.bairro || 
+              !(entrepreneurProfile as any)?.cidade || 
+              !(entrepreneurProfile as any)?.estado
+            ) && (
+              <div className="mb-6 p-4 border border-blue-200 bg-blue-50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    <div>
+                      <p className="text-blue-800 font-medium">
+                        Complete seu perfil para ter acesso a todas as funcionalidades
+                      </p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Faltam informações de endereço no seu cadastro
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/profile">
+                    <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700" data-testid="button-complete-profile">
+                      Completar Perfil
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Dados Básicos */}
               <div>
