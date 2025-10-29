@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ModernSidebarLayout } from "@/components/layout/modern-sidebar-layout";
 import { Link } from "wouter";
-import { Building2, Plus, Eye, Edit, Calendar, MapPin, FileText, Users, TrendingUp } from "lucide-react";
+import { Building2, Plus, Eye, Edit, Calendar, MapPin, FileText, Users, TrendingUp, AlertCircle } from "lucide-react";
 
 export default function Companies() {
   const { data: companies, isLoading } = useQuery({
@@ -17,6 +17,11 @@ export default function Companies() {
         }
       }).then(res => res.json());
     },
+  });
+
+  // Fetch entrepreneur profile
+  const { data: entrepreneurProfile } = useQuery({
+    queryKey: ["/api/entrepreneur/profile"],
   });
 
   const getStatusBadge = (status: string) => {
@@ -67,6 +72,39 @@ export default function Companies() {
             </Button>
           </Link>
         </div>
+
+        {/* Incomplete Profile Alert - Missing Address */}
+        {entrepreneurProfile && (
+          !(entrepreneurProfile as any)?.cep || 
+          !(entrepreneurProfile as any)?.rua || 
+          !(entrepreneurProfile as any)?.numero || 
+          !(entrepreneurProfile as any)?.bairro || 
+          !(entrepreneurProfile as any)?.cidade || 
+          !(entrepreneurProfile as any)?.estado
+        ) && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-blue-800 font-medium">
+                      Complete seu perfil para ter acesso a todas as funcionalidades
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Faltam informações de endereço no seu cadastro
+                    </p>
+                  </div>
+                </div>
+                <Link href="/profile">
+                  <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700" data-testid="button-complete-profile">
+                    Completar Perfil
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {!companies || companies.length === 0 ? (
           <Card>
