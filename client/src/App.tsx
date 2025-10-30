@@ -45,11 +45,13 @@ import Network from "@/pages/network";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
 import { ConfirmEmailPage } from "@/pages/confirm-email";
+import LandingPageCadastro from "@/pages/landing-page-cadastro";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={UserTypeSelection} />
+      <Route path="/landpagecadastro" component={LandingPageCadastro} />
       <Route path="/user-type-selection" component={UserTypeSelection} />
       <Route path="/register/entrepreneur" component={RegisterEntrepreneur} />
       <Route path="/register/investor" component={RegisterInvestor} />
