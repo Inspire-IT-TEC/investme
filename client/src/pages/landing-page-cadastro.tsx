@@ -10,9 +10,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Check, Lock, X } from "lucide-react";
+import { Check, Lock, Menu } from "lucide-react";
 import { formatCpf } from "@/lib/validations";
 import { insertEntrepreneurSchema } from "@shared/schema";
+import { useState } from "react";
 
 // Extended schema for landing page with confirm password, terms, and enhanced validations
 const landingPageSchema = insertEntrepreneurSchema.extend({
@@ -32,11 +33,9 @@ const landingPageSchema = insertEntrepreneurSchema.extend({
     .refine(val => !val || val.replace(/\D/g, '').length >= 10, {
       message: "Telefone deve conter pelo menos 10 dígitos"
     }),
-  confirmaSenha: z.string().min(6, "A confirmação de senha deve ter pelo menos 6 caracteres"),
-  aceitoTermos: z.boolean().refine(val => val === true, {
-    message: "Você deve aceitar os termos e condições"
-  })
-}).refine((data) => data.senha === data.confirmaSenha, {
+  confirmaSenha: z.string().optional(),
+  aceitoTermos: z.boolean().optional()
+}).refine((data) => !data.confirmaSenha || data.senha === data.confirmaSenha, {
   message: "As senhas não coincidem",
   path: ["confirmaSenha"],
 });
@@ -46,6 +45,7 @@ type LandingPageFormData = z.infer<typeof landingPageSchema>;
 export default function LandingPageCadastro() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const form = useForm<LandingPageFormData>({
     resolver: zodResolver(landingPageSchema),
@@ -93,9 +93,9 @@ export default function LandingPageCadastro() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100">
+    <div className="min-h-screen bg-white md:bg-gradient-to-br md:from-blue-50 md:via-blue-100 md:to-indigo-100">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-blue-900 text-white py-4 px-6 shadow-md backdrop-blur-sm">
+      <header className="sticky top-0 z-50 bg-[#1e3a8a] text-white py-4 px-6 shadow-md">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <h1 className="text-2xl font-bold">
@@ -103,19 +103,214 @@ export default function LandingPageCadastro() {
               <span className="text-blue-300">Me</span>
             </h1>
           </div>
+          
+          {/* Desktop menu */}
           <Button 
             variant="ghost"
-            className="text-white hover:bg-blue-800"
+            className="hidden md:flex text-white hover:bg-blue-800"
             onClick={() => setLocation("/login")}
             data-testid="button-login"
           >
             Já tenho conta
           </Button>
+          
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden text-white"
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            data-testid="button-mobile-menu"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+      {/* Mobile Layout */}
+      <div className="md:hidden">
+        <div className="px-6 py-8 space-y-6">
+          {/* Handshake Icon */}
+          <div className="flex justify-center">
+            <div className="text-6xl">🤝</div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-2xl font-bold text-[#4338ca] text-center leading-tight">
+            A rede onde empresários financiam empresários
+          </h2>
+
+          {/* Subtitle */}
+          <p className="text-center text-gray-700">
+            Seu banco disse <span className="font-semibold">não</span>? Outros empresários que entendem seu cenário dizem <span className="font-semibold">sim</span>.
+          </p>
+
+          {/* CTA Button */}
+          <div className="flex justify-center">
+            <Button 
+              className="bg-[#60a5fa] hover:bg-[#3b82f6] text-white font-medium px-6 py-3 rounded-lg text-sm"
+              onClick={() => document.getElementById('mobile-form')?.scrollIntoView({ behavior: 'smooth' })}
+              data-testid="button-cta-mobile"
+            >
+              Cadastre-se grátis e receba propostas
+            </Button>
+          </div>
+
+          {/* Benefits */}
+          <div className="space-y-3">
+            <div className="flex items-start space-x-3">
+              <div className="mt-0.5 flex-shrink-0">
+                <Check className="h-5 w-5 text-green-600" strokeWidth={3} />
+              </div>
+              <p className="text-gray-800 text-sm">
+                Sem depender de score ou rating bancário.
+              </p>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <div className="mt-0.5 flex-shrink-0">
+                <Check className="h-5 w-5 text-green-600" strokeWidth={3} />
+              </div>
+              <p className="text-gray-800 text-sm">
+                Negocie direto com quem vai investir
+              </p>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <div className="mt-0.5 flex-shrink-0">
+                <Check className="h-5 w-5 text-green-600" strokeWidth={3} />
+              </div>
+              <p className="text-gray-800 text-sm">
+                Interaja com outros negócios
+              </p>
+            </div>
+          </div>
+
+          {/* Security Message */}
+          <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+            <span>🔒</span>
+            <span>Fique tranquilo, seus dados estarão seguros</span>
+          </div>
+
+          {/* Mobile Form */}
+          <div id="mobile-form" className="bg-[#dbeafe] rounded-2xl p-6 space-y-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="cpf"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-800">CPF *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          onChange={(e) => field.onChange(formatCpf(e.target.value))}
+                          placeholder=""
+                          className="h-11 bg-white border-gray-300"
+                          data-testid="input-cpf-mobile"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="nomeCompleto"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-800">Nome Completo *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder=""
+                          className="h-11 bg-white border-gray-300"
+                          data-testid="input-nome-mobile"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="telefone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-800">Telefone *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          placeholder=""
+                          className="h-11 bg-white border-gray-300"
+                          data-testid="input-telefone-mobile"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-800">E-mail *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder=""
+                          className="h-11 bg-white border-gray-300"
+                          data-testid="input-email-mobile"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="senha"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-800">Nova Senha *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="password"
+                          placeholder=""
+                          className="h-11 bg-white border-gray-300"
+                          data-testid="input-senha-mobile"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    className="w-full h-12 bg-[#16a34a] hover:bg-[#15803d] text-white font-bold text-base rounded-lg"
+                    disabled={registerMutation.isPending}
+                    data-testid="button-cadastrar-mobile"
+                  >
+                    {registerMutation.isPending ? "CADASTRANDO..." : "CADASTRAR"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden md:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
           {/* Left Side - Promotional Content */}
           <div className="lg:col-span-3 space-y-8">
@@ -386,8 +581,8 @@ export default function LandingPageCadastro() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 px-6 mt-20">
+      {/* Footer - Hidden on mobile */}
+      <footer className="hidden md:block bg-gray-900 text-white py-8 px-6 mt-20">
         <div className="max-w-7xl mx-auto text-center">
           <div className="text-sm text-gray-400 space-x-4">
             <span>© 2025 InvestMe. Todos os direitos reservados.</span>
