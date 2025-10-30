@@ -431,22 +431,6 @@ export default function LandingPageCadastro() {
               </div>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl p-6 shadow-md text-center">
-                <div className="text-4xl font-bold text-blue-900 mb-2">500+</div>
-                <div className="text-sm text-gray-600">Empresas Conectadas</div>
-              </div>
-              <div className="bg-white rounded-xl p-6 shadow-md text-center">
-                <div className="text-4xl font-bold text-green-600 mb-2">R$ 50M+</div>
-                <div className="text-sm text-gray-600">Em Negociações</div>
-              </div>
-              <div className="bg-white rounded-xl p-6 shadow-md text-center">
-                <div className="text-4xl font-bold text-blue-900 mb-2">95%</div>
-                <div className="text-sm text-gray-600">Taxa de Satisfação</div>
-              </div>
-            </div>
-
             {/* Social Proof */}
             <p className="text-lg font-semibold text-blue-900">
               Empresários de Salvador e Lauro de Freitas já estão encontrando parceiros aqui.
