@@ -65,7 +65,7 @@ export default function LandingPageCadastro() {
       // Remove confirm password and terms before sending to API
       const { confirmaSenha, aceitoTermos, ...entrepreneurData } = data;
       
-      const response = await apiRequest("POST", "/api/entrepreneurs", entrepreneurData);
+      const response = await apiRequest("POST", "/api/entrepreneurs/register", entrepreneurData);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Erro ao criar conta");
