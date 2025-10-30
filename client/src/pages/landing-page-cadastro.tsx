@@ -14,8 +14,24 @@ import { Check, Lock, X } from "lucide-react";
 import { formatCpf } from "@/lib/validations";
 import { insertEntrepreneurSchema } from "@shared/schema";
 
-// Extended schema for landing page with confirm password and terms
+// Extended schema for landing page with confirm password, terms, and enhanced validations
 const landingPageSchema = insertEntrepreneurSchema.extend({
+  cpf: z.string()
+    .min(1, "CPF é obrigatório")
+    .transform(val => val.replace(/\D/g, ''))
+    .refine(val => val.length === 11, {
+      message: "CPF deve conter 11 dígitos"
+    }),
+  email: z.string()
+    .min(1, "E-mail é obrigatório")
+    .email("E-mail inválido")
+    .toLowerCase(),
+  telefone: z.string()
+    .optional()
+    .transform(val => val || null)
+    .refine(val => !val || val.replace(/\D/g, '').length >= 10, {
+      message: "Telefone deve conter pelo menos 10 dígitos"
+    }),
   confirmaSenha: z.string().min(6, "A confirmação de senha deve ter pelo menos 6 caracteres"),
   aceitoTermos: z.boolean().refine(val => val === true, {
     message: "Você deve aceitar os termos e condições"
@@ -254,6 +270,7 @@ export default function LandingPageCadastro() {
                         <FormControl>
                           <Input
                             {...field}
+                            value={field.value || ""}
                             placeholder="(00) 00000-0000"
                             className="h-12 bg-white border-gray-300"
                             data-testid="input-telefone"
