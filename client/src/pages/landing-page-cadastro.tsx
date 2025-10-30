@@ -13,7 +13,15 @@ import { apiRequest } from "@/lib/queryClient";
 import { Check, Lock, Menu, Loader2 } from "lucide-react";
 import { formatCpf, validateCpf } from "@/lib/validations";
 import { insertEntrepreneurSchema } from "@shared/schema";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// Declare Facebook Pixel for TypeScript
+declare global {
+  interface Window {
+    fbq: any;
+    _fbq: any;
+  }
+}
 
 // Extended schema for landing page with confirm password, terms, and enhanced validations
 const landingPageSchema = insertEntrepreneurSchema.extend({
@@ -60,6 +68,48 @@ export default function LandingPageCadastro() {
       aceitoTermos: false,
     },
   });
+
+  // Meta Pixel (Facebook Pixel) initialization
+  useEffect(() => {
+    // Initialize Facebook Pixel
+    (function(f: any, b: any, e: any, v: any, n: any, t: any, s: any) {
+      if (f.fbq) return;
+      n = f.fbq = function() {
+        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      };
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = true;
+      n.version = '2.0';
+      n.queue = [];
+      t = b.createElement(e);
+      t.async = true;
+      t.src = v;
+      s = b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t, s);
+    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js', undefined, undefined, undefined);
+
+    // Initialize and track PageView
+    if (window.fbq) {
+      window.fbq('init', '3312906982180786');
+      window.fbq('track', 'PageView');
+    }
+
+    // Add noscript image for tracking
+    const noscript = document.createElement('noscript');
+    const img = document.createElement('img');
+    img.height = 1;
+    img.width = 1;
+    img.style.display = 'none';
+    img.src = 'https://www.facebook.com/tr?id=3312906982180786&ev=PageView&noscript=1';
+    noscript.appendChild(img);
+    document.body.appendChild(noscript);
+
+    return () => {
+      // Cleanup noscript on unmount
+      document.body.removeChild(noscript);
+    };
+  }, []);
 
   const consultCpfApi = async (cpf: string) => {
     const cleanCpf = cpf.replace(/\D/g, '');
