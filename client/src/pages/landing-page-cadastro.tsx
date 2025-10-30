@@ -10,8 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Check, Lock, Menu } from "lucide-react";
-import { formatCpf } from "@/lib/validations";
+import { Check, Lock, Menu, Loader2 } from "lucide-react";
+import { formatCpf, validateCpf } from "@/lib/validations";
 import { insertEntrepreneurSchema } from "@shared/schema";
 import { useState } from "react";
 
@@ -46,6 +46,7 @@ export default function LandingPageCadastro() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isConsultingCpf, setIsConsultingCpf] = useState(false);
 
   const form = useForm<LandingPageFormData>({
     resolver: zodResolver(landingPageSchema),
@@ -59,6 +60,51 @@ export default function LandingPageCadastro() {
       aceitoTermos: false,
     },
   });
+
+  const consultCpfApi = async (cpf: string) => {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    if (cleanCpf.length !== 11 || !validateCpf(cpf)) {
+      return;
+    }
+
+    setIsConsultingCpf(true);
+    try {
+      const response = await fetch(`https://integracaoconsultas.inspireit.com.br/consulta/${cleanCpf}`);
+      const data = await response.json();
+      
+      if (data.returnCode === 0 && data.data?.encontrado) {
+        // API retornou sucesso e dados encontrados
+        form.setValue('nomeCompleto', data.data.nomeCompleto || "");
+        toast({
+          title: "CPF consultado com sucesso!",
+          description: "O nome foi preenchido automaticamente.",
+        });
+      } else {
+        // API não retornou sucesso ou dados não encontrados
+        toast({
+          title: "CPF não encontrado",
+          description: "Preencha manualmente os dados pessoais.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao consultar CPF:', error);
+      toast({
+        title: "Erro na consulta",
+        description: "Não foi possível consultar o CPF. Preencha manualmente os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConsultingCpf(false);
+    }
+  };
+
+  const handleCpfBlur = (cpf: string) => {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    if (cleanCpf.length === 11 && validateCpf(cpf)) {
+      consultCpfApi(cpf);
+    }
+  };
 
   const registerMutation = useMutation({
     mutationFn: async (data: LandingPageFormData) => {
@@ -199,11 +245,15 @@ export default function LandingPageCadastro() {
                   name="cpf"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-800">CPF *</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-800 flex items-center gap-2">
+                        CPF *
+                        {isConsultingCpf && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           onChange={(e) => field.onChange(formatCpf(e.target.value))}
+                          onBlur={(e) => handleCpfBlur(e.target.value)}
                           placeholder=""
                           className="h-11 bg-white border-gray-300"
                           data-testid="input-cpf-mobile"
@@ -422,11 +472,15 @@ export default function LandingPageCadastro() {
                     name="cpf"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700">CPF *</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          CPF *
+                          {isConsultingCpf && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             onChange={(e) => field.onChange(formatCpf(e.target.value))}
+                            onBlur={(e) => handleCpfBlur(e.target.value)}
                             placeholder="000.000.000-00"
                             className="h-12 bg-white border-gray-300"
                             data-testid="input-cpf"
