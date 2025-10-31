@@ -7,7 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Check, Lock, Menu, Loader2 } from "lucide-react";
@@ -24,29 +31,34 @@ declare global {
 }
 
 // Extended schema for landing page with confirm password, terms, and enhanced validations
-const landingPageSchema = insertEntrepreneurSchema.extend({
-  cpf: z.string()
-    .min(1, "CPF é obrigatório")
-    .transform(val => val.replace(/\D/g, ''))
-    .refine(val => val.length === 11, {
-      message: "CPF deve conter 11 dígitos"
-    }),
-  email: z.string()
-    .min(1, "E-mail é obrigatório")
-    .email("E-mail inválido")
-    .toLowerCase(),
-  telefone: z.string()
-    .optional()
-    .transform(val => val || null)
-    .refine(val => !val || val.replace(/\D/g, '').length >= 10, {
-      message: "Telefone deve conter pelo menos 10 dígitos"
-    }),
-  confirmaSenha: z.string().optional(),
-  aceitoTermos: z.boolean().optional()
-}).refine((data) => !data.confirmaSenha || data.senha === data.confirmaSenha, {
-  message: "As senhas não coincidem",
-  path: ["confirmaSenha"],
-});
+const landingPageSchema = insertEntrepreneurSchema
+  .extend({
+    cpf: z
+      .string()
+      .min(1, "CPF é obrigatório")
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 11, {
+        message: "CPF deve conter 11 dígitos",
+      }),
+    email: z
+      .string()
+      .min(1, "E-mail é obrigatório")
+      .email("E-mail inválido")
+      .toLowerCase(),
+    telefone: z
+      .string()
+      .optional()
+      .transform((val) => val || null)
+      .refine((val) => !val || val.replace(/\D/g, "").length >= 10, {
+        message: "Telefone deve conter pelo menos 10 dígitos",
+      }),
+    confirmaSenha: z.string().optional(),
+    aceitoTermos: z.boolean().optional(),
+  })
+  .refine((data) => !data.confirmaSenha || data.senha === data.confirmaSenha, {
+    message: "As senhas não coincidem",
+    path: ["confirmaSenha"],
+  });
 
 type LandingPageFormData = z.infer<typeof landingPageSchema>;
 
@@ -72,36 +84,47 @@ export default function LandingPageCadastro() {
   // Meta Pixel (Facebook Pixel) initialization
   useEffect(() => {
     // Initialize Facebook Pixel
-    (function(f: any, b: any, e: any, v: any, n: any, t: any, s: any) {
+    (function (f: any, b: any, e: any, v: any, n: any, t: any, s: any) {
       if (f.fbq) return;
-      n = f.fbq = function() {
-        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      n = f.fbq = function () {
+        n.callMethod
+          ? n.callMethod.apply(n, arguments)
+          : n.queue.push(arguments);
       };
       if (!f._fbq) f._fbq = n;
       n.push = n;
       n.loaded = true;
-      n.version = '2.0';
+      n.version = "2.0";
       n.queue = [];
       t = b.createElement(e);
       t.async = true;
       t.src = v;
       s = b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t, s);
-    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js', undefined, undefined, undefined);
+    })(
+      window,
+      document,
+      "script",
+      "https://connect.facebook.net/en_US/fbevents.js",
+      undefined,
+      undefined,
+      undefined,
+    );
 
     // Initialize and track PageView
     if (window.fbq) {
-      window.fbq('init', '3312906982180786');
-      window.fbq('track', 'PageView');
+      window.fbq("init", "3312906982180786");
+      window.fbq("track", "PageView");
     }
 
     // Add noscript image for tracking
-    const noscript = document.createElement('noscript');
-    const img = document.createElement('img');
+    const noscript = document.createElement("noscript");
+    const img = document.createElement("img");
     img.height = 1;
     img.width = 1;
-    img.style.display = 'none';
-    img.src = 'https://www.facebook.com/tr?id=3312906982180786&ev=PageView&noscript=1';
+    img.style.display = "none";
+    img.src =
+      "https://www.facebook.com/tr?id=3312906982180786&ev=PageView&noscript=1";
     noscript.appendChild(img);
     document.body.appendChild(noscript);
 
@@ -112,19 +135,21 @@ export default function LandingPageCadastro() {
   }, []);
 
   const consultCpfApi = async (cpf: string) => {
-    const cleanCpf = cpf.replace(/\D/g, '');
+    const cleanCpf = cpf.replace(/\D/g, "");
     if (cleanCpf.length !== 11 || !validateCpf(cpf)) {
       return;
     }
 
     setIsConsultingCpf(true);
     try {
-      const response = await fetch(`https://integracaoconsultas.inspireit.com.br/consulta/${cleanCpf}`);
+      const response = await fetch(
+        `https://integracaoconsultas.inspireit.com.br/consulta/${cleanCpf}`,
+      );
       const data = await response.json();
-      
+
       if (data.returnCode === 0 && data.data?.encontrado) {
         // API retornou sucesso e dados encontrados
-        form.setValue('nomeCompleto', data.data.nomeCompleto || "");
+        form.setValue("nomeCompleto", data.data.nomeCompleto || "");
         toast({
           title: "CPF consultado com sucesso!",
           description: "O nome foi preenchido automaticamente.",
@@ -138,10 +163,11 @@ export default function LandingPageCadastro() {
         });
       }
     } catch (error) {
-      console.error('Erro ao consultar CPF:', error);
+      console.error("Erro ao consultar CPF:", error);
       toast({
         title: "Erro na consulta",
-        description: "Não foi possível consultar o CPF. Preencha manualmente os dados.",
+        description:
+          "Não foi possível consultar o CPF. Preencha manualmente os dados.",
         variant: "destructive",
       });
     } finally {
@@ -150,7 +176,7 @@ export default function LandingPageCadastro() {
   };
 
   const handleCpfBlur = (cpf: string) => {
-    const cleanCpf = cpf.replace(/\D/g, '');
+    const cleanCpf = cpf.replace(/\D/g, "");
     if (cleanCpf.length === 11 && validateCpf(cpf)) {
       consultCpfApi(cpf);
     }
@@ -160,8 +186,12 @@ export default function LandingPageCadastro() {
     mutationFn: async (data: LandingPageFormData) => {
       // Remove confirm password and terms before sending to API
       const { confirmaSenha, aceitoTermos, ...entrepreneurData } = data;
-      
-      const response = await apiRequest("POST", "/api/entrepreneurs/register", entrepreneurData);
+
+      const response = await apiRequest(
+        "POST",
+        "/api/entrepreneurs/register",
+        entrepreneurData,
+      );
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Erro ao criar conta");
@@ -199,9 +229,9 @@ export default function LandingPageCadastro() {
               <span className="text-blue-300">Me</span>
             </h1>
           </div>
-          
+
           {/* Desktop menu */}
-          <Button 
+          <Button
             variant="ghost"
             className="hidden md:flex text-white hover:bg-blue-800"
             onClick={() => setLocation("/login")}
@@ -209,7 +239,7 @@ export default function LandingPageCadastro() {
           >
             Já tenho conta
           </Button>
-          
+
           {/* Mobile menu button */}
           <button
             className="md:hidden text-white"
@@ -231,22 +261,36 @@ export default function LandingPageCadastro() {
 
           {/* Title */}
           <h2 className="text-2xl font-bold text-[#4338ca] text-center leading-tight">
-            A rede onde empresários financiam empresários
+            InvestMe, a rede social onde empresários e oportunidades de crédito
+            se encontram
           </h2>
 
           {/* Subtitle */}
           <p className="text-center text-gray-700">
-            Seu banco disse <span className="font-semibold">não</span>? Outros empresários que entendem seu cenário dizem <span className="font-semibold">sim</span>.
+            Precisando de capital para crescer e o banco disse
+            <span className="font-semibold">não</span>? Se conecte com quem quer
+            investir avaliando o potencial do seu negócio, e não só seu score ou
+            rating bancário.
+          </p>
+
+          {/* Subtitle */}
+          <p className="text-center text-gray-700">
+            Participe de um ecossistema onde negócios se conectam, se apoiam e
+            se financiam, de forma simples, direta e transparente
           </p>
 
           {/* CTA Button */}
           <div className="flex justify-center">
-            <Button 
+            <Button
               className="bg-[#60a5fa] hover:bg-[#3b82f6] text-white font-medium px-6 py-3 rounded-lg text-sm"
-              onClick={() => document.getElementById('mobile-form')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() =>
+                document
+                  .getElementById("mobile-form")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
               data-testid="button-cta-mobile"
             >
-              Cadastre-se grátis e receba propostas
+              Cadastre-se grátis e solicite crédito
             </Button>
           </div>
 
@@ -287,9 +331,15 @@ export default function LandingPageCadastro() {
           </div>
 
           {/* Mobile Form */}
-          <div id="mobile-form" className="bg-[#dbeafe] rounded-2xl p-6 space-y-4">
+          <div
+            id="mobile-form"
+            className="bg-[#dbeafe] rounded-2xl p-6 space-y-4"
+          >
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="cpf"
@@ -297,12 +347,16 @@ export default function LandingPageCadastro() {
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-800 flex items-center gap-2">
                         CPF *
-                        {isConsultingCpf && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
+                        {isConsultingCpf && (
+                          <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                        )}
                       </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          onChange={(e) => field.onChange(formatCpf(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(formatCpf(e.target.value))
+                          }
                           onBlur={(e) => handleCpfBlur(e.target.value)}
                           placeholder=""
                           className="h-11 bg-white border-gray-300"
@@ -319,7 +373,9 @@ export default function LandingPageCadastro() {
                   name="nomeCompleto"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-800">Nome Completo *</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-800">
+                        Nome Completo *
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -338,7 +394,9 @@ export default function LandingPageCadastro() {
                   name="telefone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-800">Telefone *</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-800">
+                        Telefone *
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -358,7 +416,9 @@ export default function LandingPageCadastro() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-800">E-mail *</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-800">
+                        E-mail *
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -378,7 +438,9 @@ export default function LandingPageCadastro() {
                   name="senha"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-800">Nova Senha *</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-800">
+                        Nova Senha *
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -400,7 +462,9 @@ export default function LandingPageCadastro() {
                     disabled={registerMutation.isPending}
                     data-testid="button-cadastrar-mobile"
                   >
-                    {registerMutation.isPending ? "CADASTRANDO..." : "CADASTRAR"}
+                    {registerMutation.isPending
+                      ? "CADASTRANDO..."
+                      : "CADASTRAR"}
                   </Button>
                 </div>
               </form>
@@ -417,32 +481,36 @@ export default function LandingPageCadastro() {
             {/* Hero Section */}
             <div className="space-y-6">
               <h2 className="text-4xl lg:text-5xl font-bold text-blue-900 leading-tight">
-                A rede onde empresários <br />
-                financiam empresários 🤝
+                InvestMe, a rede social onde empresários e oportunidades de
+                crédito se encontram
               </h2>
-              
+
               <p className="text-xl text-gray-700 max-w-2xl leading-relaxed">
-                Seu banco disse <span className="font-bold text-blue-900">não</span>? 
-                Outros empresários que entendem seu cenário dizem{" "}
-                <span className="font-bold text-green-600">sim</span>.
+                Precisando de capital para crescer e o banco disse{" "}
+                <span className="font-bold text-blue-900">não</span>? Se conecte
+                com quem quer investir avaliando o potencial do seu negócio, e
+                não só seu score ou rating bancário.
               </p>
 
-              <Button 
+              <Button
                 size="lg"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-6 text-lg rounded-lg shadow-lg"
-                onClick={() => document.getElementById('cadastro-form')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() =>
+                  document
+                    .getElementById("cadastro-form")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
                 data-testid="button-scroll-to-form"
               >
-                Cadastre-se grátis e receba propostas
+                Cadastre-se grátis e solicite crédito
               </Button>
             </div>
 
             {/* Value Proposition */}
             <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 space-y-4 shadow-md">
               <p className="text-gray-700 leading-relaxed">
-                Na InvestMe, seu histórico com banco não define se você consegue 
-                crédito ou não. Aqui, outros empresários avaliam o potencial do seu 
-                negócio, e não suas pendências financeiras.
+                Participe de um ecossistema onde negócios se conectam, se apoiam
+                e se financiam, de forma simples, direta e transparente.
               </p>
 
               <div className="space-y-3">
@@ -474,22 +542,24 @@ export default function LandingPageCadastro() {
                       <Check className="h-4 w-4 text-white" />
                     </div>
                   </div>
-                  <p className="text-gray-700">
-                    Interaja com outros negócios.
-                  </p>
+                  <p className="text-gray-700">Interaja com outros negócios.</p>
                 </div>
               </div>
             </div>
 
             {/* Social Proof */}
             <p className="text-lg font-semibold text-blue-900">
-              Empresários de Salvador e Lauro de Freitas já estão encontrando parceiros aqui.
+              Empresários de Salvador e Lauro de Freitas já estão encontrando
+              parceiros aqui.
             </p>
           </div>
 
           {/* Right Side - Registration Form */}
           <div className="lg:col-span-2">
-            <div id="cadastro-form" className="bg-blue-50 rounded-2xl shadow-2xl p-8 border border-blue-200">
+            <div
+              id="cadastro-form"
+              className="bg-blue-50 rounded-2xl shadow-2xl p-8 border border-blue-200"
+            >
               <div className="mb-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   Comece a Investir Hoje
@@ -500,7 +570,10 @@ export default function LandingPageCadastro() {
               </div>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-5"
+                >
                   <FormField
                     control={form.control}
                     name="cpf"
@@ -508,12 +581,16 @@ export default function LandingPageCadastro() {
                       <FormItem>
                         <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
                           CPF *
-                          {isConsultingCpf && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
+                          {isConsultingCpf && (
+                            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                          )}
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            onChange={(e) => field.onChange(formatCpf(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(formatCpf(e.target.value))
+                            }
                             onBlur={(e) => handleCpfBlur(e.target.value)}
                             placeholder="000.000.000-00"
                             className="h-12 bg-white border-gray-300"
@@ -530,7 +607,9 @@ export default function LandingPageCadastro() {
                     name="nomeCompleto"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700">Nome Completo *</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Nome Completo *
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
@@ -549,7 +628,9 @@ export default function LandingPageCadastro() {
                     name="telefone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700">Telefone</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Telefone
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
@@ -569,7 +650,9 @@ export default function LandingPageCadastro() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700">E-mail *</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          E-mail *
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
@@ -589,7 +672,9 @@ export default function LandingPageCadastro() {
                     name="senha"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700">Nova Senha *</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Nova Senha *
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
@@ -609,7 +694,9 @@ export default function LandingPageCadastro() {
                     name="confirmaSenha"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700">Confirmar Senha *</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Confirmar Senha *
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
@@ -639,7 +726,10 @@ export default function LandingPageCadastro() {
                         <div className="space-y-1 leading-none">
                           <FormLabel className="text-xs text-gray-700">
                             Aceito os{" "}
-                            <a href="#" className="text-blue-600 hover:underline">
+                            <a
+                              href="#"
+                              className="text-blue-600 hover:underline"
+                            >
                               termos e condições
                             </a>
                           </FormLabel>
@@ -655,7 +745,9 @@ export default function LandingPageCadastro() {
                     disabled={registerMutation.isPending}
                     data-testid="button-cadastrar"
                   >
-                    {registerMutation.isPending ? "CADASTRANDO..." : "CADASTRAR"}
+                    {registerMutation.isPending
+                      ? "CADASTRANDO..."
+                      : "CADASTRAR"}
                   </Button>
 
                   <div className="flex items-center justify-center space-x-2 text-xs text-gray-600 pt-2">
@@ -674,8 +766,12 @@ export default function LandingPageCadastro() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="text-sm text-gray-400 space-x-4">
             <span>© 2025 InvestMe. Todos os direitos reservados.</span>
-            <a href="#" className="hover:text-white">Política de Privacidade</a>
-            <a href="#" className="hover:text-white">Termos de Uso</a>
+            <a href="#" className="hover:text-white">
+              Política de Privacidade
+            </a>
+            <a href="#" className="hover:text-white">
+              Termos de Uso
+            </a>
           </div>
         </div>
       </footer>
