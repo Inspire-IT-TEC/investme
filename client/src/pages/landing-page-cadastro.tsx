@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Check, Lock, Menu, Loader2 } from "lucide-react";
+import { Check, Lock, Menu, Loader2, Eye, EyeOff } from "lucide-react";
 import { formatCpf, validateCpf } from "@/lib/validations";
 import { insertEntrepreneurSchema } from "@shared/schema";
 import { useState, useEffect } from "react";
@@ -67,6 +67,8 @@ export default function LandingPageCadastro() {
   const { toast } = useToast();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isConsultingCpf, setIsConsultingCpf] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<LandingPageFormData>({
     resolver: zodResolver(landingPageSchema),
@@ -444,13 +446,27 @@ export default function LandingPageCadastro() {
                         Nova Senha *
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder=""
-                          className="h-11 bg-white border-gray-300"
-                          data-testid="input-senha-mobile"
-                        />
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            type={showPassword ? "text" : "password"}
+                            placeholder=""
+                            className="h-11 bg-white border-gray-300 pr-10"
+                            data-testid="input-senha-mobile"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            data-testid="toggle-senha-mobile"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -678,13 +694,27 @@ export default function LandingPageCadastro() {
                           Nova Senha *
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            type="password"
-                            placeholder="Mínimo 6 caracteres"
-                            className="h-12 bg-white border-gray-300"
-                            data-testid="input-senha"
-                          />
+                          <div className="relative">
+                            <Input
+                              {...field}
+                              type={showPassword ? "text" : "password"}
+                              placeholder="Mínimo 6 caracteres"
+                              className="h-12 bg-white border-gray-300 pr-10"
+                              data-testid="input-senha"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                              data-testid="toggle-senha"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -700,13 +730,27 @@ export default function LandingPageCadastro() {
                           Confirmar Senha *
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            type="password"
-                            placeholder="Digite a senha novamente"
-                            className="h-12 bg-white border-gray-300"
-                            data-testid="input-confirma-senha"
-                          />
+                          <div className="relative">
+                            <Input
+                              {...field}
+                              type={showConfirmPassword ? "text" : "password"}
+                              placeholder="Digite a senha novamente"
+                              className="h-12 bg-white border-gray-300 pr-10"
+                              data-testid="input-confirma-senha"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                              data-testid="toggle-confirma-senha"
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
