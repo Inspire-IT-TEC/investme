@@ -280,8 +280,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         documentosVerificados: true
       });
 
-      // Send welcome email (optional)
-      // await emailService.sendWelcomeEmail(entrepreneur.email, 'entrepreneur');
+      // Send welcome email
+      try {
+        await emailService.sendWelcomeEmail(entrepreneur.email, 'entrepreneur');
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError);
+        // Don't fail registration if email fails
+      }
 
       res.status(201).json({ 
         message: 'Empreendedor cadastrado e aprovado com sucesso!',

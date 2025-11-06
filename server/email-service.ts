@@ -421,6 +421,131 @@ export class EmailService {
       text,
     });
   }
+
+  async sendWelcomeEmail(email: string, userType: 'entrepreneur' | 'investor'): Promise<void> {
+    const userTypeLabel = userType === 'entrepreneur' ? 'Empreendedor' : 'Investidor';
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Bem-vindo à InvestMe</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+          }
+          .content {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+          }
+          .button {
+            display: inline-block;
+            background: #1e40af;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #6b7280;
+          }
+          .highlight {
+            background: #e0f2fe;
+            padding: 15px;
+            border-left: 4px solid #1e40af;
+            margin: 20px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>🎉 Bem-vindo à InvestMe!</h1>
+        </div>
+        <div class="content">
+          <p>Olá!</p>
+          
+          <p>Parabéns! Sua conta como <strong>${userTypeLabel}</strong> foi criada com sucesso na plataforma InvestMe.</p>
+          
+          <div class="highlight">
+            <p><strong>A rede onde empresários financiam empresários</strong></p>
+            <p>Aqui, seu histórico com banco não define se você consegue crédito ou não. Outros empresários avaliam o potencial do seu negócio, e não suas pendências financeiras.</p>
+          </div>
+          
+          <p><strong>Próximos passos:</strong></p>
+          <ul>
+            <li>${userType === 'entrepreneur' ? 'Complete seu perfil e cadastre sua empresa' : 'Complete seu perfil de investidor'}</li>
+            <li>${userType === 'entrepreneur' ? 'Cadastre suas solicitações de crédito' : 'Explore as oportunidades de investimento'}</li>
+            <li>Conecte-se com outros empresários na rede</li>
+          </ul>
+          
+          <p>Estamos felizes em tê-lo(a) conosco!</p>
+          
+          <p>
+            <strong>Equipe InvestMe</strong><br>
+            A rede de empreendedores e investidores
+          </p>
+          
+          <div class="footer">
+            <p>Este é um e-mail automático. Por favor, não responda.</p>
+            <p>&copy; ${new Date().getFullYear()} InvestMe. Todos os direitos reservados.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const text = `
+      Bem-vindo à InvestMe!
+
+      Olá!
+
+      Parabéns! Sua conta como ${userTypeLabel} foi criada com sucesso na plataforma InvestMe.
+
+      A rede onde empresários financiam empresários
+
+      Aqui, seu histórico com banco não define se você consegue crédito ou não. Outros empresários avaliam o potencial do seu negócio, e não suas pendências financeiras.
+
+      Próximos passos:
+      ${userType === 'entrepreneur' ? '- Complete seu perfil e cadastre sua empresa' : '- Complete seu perfil de investidor'}
+      ${userType === 'entrepreneur' ? '- Cadastre suas solicitações de crédito' : '- Explore as oportunidades de investimento'}
+      - Conecte-se com outros empresários na rede
+
+      Estamos felizes em tê-lo(a) conosco!
+
+      Equipe InvestMe
+      A rede de empreendedores e investidores
+
+      ---
+      Este é um e-mail automático. Por favor, não responda.
+      © ${new Date().getFullYear()} InvestMe. Todos os direitos reservados.
+    `;
+
+    await this.sendEmail({
+      to: email,
+      subject: `🎉 Bem-vindo à InvestMe - Portal ${userTypeLabel}`,
+      html,
+      text,
+    });
+  }
 }
 
 export const emailService = new EmailService();

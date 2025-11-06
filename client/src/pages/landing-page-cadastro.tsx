@@ -201,9 +201,11 @@ export default function LandingPageCadastro() {
     onSuccess: () => {
       toast({
         title: "Conta criada com sucesso!",
-        description: "Você será redirecionado para fazer login.",
+        description: "Você receberá um e-mail de boas-vindas. Redirecionando para o login...",
       });
-      setLocation("/login");
+      setTimeout(() => {
+        setLocation("/login/entrepreneur");
+      }, 2000);
     },
     onError: (error: Error) => {
       toast({
